@@ -3249,34 +3249,40 @@
 
         // Update Step Indicators
         function updateStepIndicators() {
-            const stepTexts = [
-                '📚 ประวัติศาสตร์',
-                '📖 แสดงโคลง',
-                '✍️ จินตนาการ & ถอดความ',
-                '🖼️ เปิดภาพจริง',
-                '📝 ทบทวน',
-                '🏆 สรุปผล'
-            ];
+            const stepTextMap = {
+                1: '📚 ประวัติศาสตร์',
+                2: '📖 แสดงโคลง',
+                '2.5': '🎯 จับคู่คำศัพท์',
+                3: '✍️ จินตนาการ & ถอดความ',
+                4: '🖼️ เปิดภาพจริง',
+                5: '📝 ทบทวน',
+                6: '🏆 สรุปผล'
+            };
+
+            const rawStep = gameState.currentStep || 1;
+            const isIntermediateStep = !Number.isInteger(rawStep);
+            const activeStep = Math.min(6, Math.max(1, isIntermediateStep ? Math.floor(rawStep) : rawStep));
+            const completedThreshold = Math.max(0, activeStep - 1);
 
             for (let i = 1; i <= 6; i++) {
                 const stepElement = document.getElementById(`step-${i}`);
-                if (stepElement) {
-                    stepElement.className = 'step-circle ';
-                    
-                    if (i < gameState.currentStep) {
-                        stepElement.className += 'step-completed';
-                    } else if (i === gameState.currentStep) {
-                        stepElement.className += 'step-active';
-                    } else {
-                        stepElement.className += 'step-inactive';
-                    }
+                if (!stepElement) continue;
+
+                stepElement.classList.remove('step-active', 'step-completed', 'step-inactive');
+
+                if (i <= completedThreshold) {
+                    stepElement.classList.add('step-completed');
+                } else if (i === activeStep) {
+                    stepElement.classList.add('step-active');
+                } else {
+                    stepElement.classList.add('step-inactive');
                 }
             }
 
-            // Update mobile step text
             const currentStepText = document.getElementById('currentStepText');
-            if (currentStepText && gameState.currentStep >= 1 && gameState.currentStep <= 6) {
-                currentStepText.textContent = stepTexts[gameState.currentStep - 1];
+            if (currentStepText) {
+                const stepKey = stepTextMap[rawStep] ? rawStep : activeStep;
+                currentStepText.textContent = stepTextMap[stepKey] || stepTextMap[1];
             }
         }
 
@@ -5258,5 +5264,5 @@
             }, 4000);
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98f039c8838b91b4',t:'MTc2MDU0MDg0Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>
