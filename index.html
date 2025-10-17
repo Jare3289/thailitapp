@@ -23,11 +23,42 @@
         body {
             box-sizing: border-box;
             font-family: 'IBM Plex Sans Thai Looped', sans-serif;
+            background: radial-gradient(circle at top left, #eef2ff 0%, rgba(238, 242, 255, 0) 45%),
+                        radial-gradient(circle at bottom right, #fdf2f8 0%, rgba(253, 242, 248, 0) 45%),
+                        linear-gradient(180deg, #f8fafc 0%, #ffffff 50%, #fdf2f8 100%);
+            position: relative;
+            min-height: 100vh;
+            color: #111827;
+            overflow-x: hidden;
+        }
+
+        body::before,
+        body::after {
+            content: '';
+            position: fixed;
+            width: 420px;
+            height: 420px;
+            border-radius: 9999px;
+            filter: blur(120px);
+            opacity: 0.45;
+            z-index: -1;
+        }
+
+        body::before {
+            top: -180px;
+            left: -120px;
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.7), rgba(236, 72, 153, 0.6));
+        }
+
+        body::after {
+            bottom: -160px;
+            right: -100px;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.6), rgba(16, 185, 129, 0.55));
         }
         
         /* Landing page background */
         #landingPage {
-            background-image: url('https://img2.pic.in.th/pic/742215688----.jpg');
+            background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.88), rgba(236, 233, 254, 0.72)), url('https://img2.pic.in.th/pic/742215688----.jpg');
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
@@ -42,7 +73,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(255, 255, 255, 0.1);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.6), rgba(224, 231, 255, 0.3));
             z-index: 1;
             pointer-events: none;
             transition: background 0.3s ease;
@@ -59,6 +90,157 @@
         
         .hero-gradient {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+        }
+
+        .hero-title {
+            font-weight: 800;
+            line-height: 1.2;
+            letter-spacing: -0.02em;
+        }
+
+        .hero-highlight {
+            display: inline-block;
+            background: linear-gradient(120deg, #7c3aed 0%, #ec4899 50%, #f59e0b 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            padding-left: 0.35rem;
+            font-size: 0.9em;
+        }
+
+        .hero-subtitle {
+            color: #4b5563;
+            font-size: 1.05rem;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.65rem 1rem;
+            border-radius: 9999px;
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            font-weight: 600;
+            color: #4338ca;
+            box-shadow: 0 15px 25px -10px rgba(67, 56, 202, 0.35);
+        }
+
+        .stat-chip {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 1rem 0.75rem;
+            border-radius: 1rem;
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(148, 163, 184, 0.35);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .stat-chip:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 15px 30px -12px rgba(59, 130, 246, 0.3);
+        }
+
+        .landing-card {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            box-shadow: 0 35px 65px -25px rgba(30, 64, 175, 0.45);
+            border-radius: 1.75rem;
+        }
+
+        .landing-card h3 {
+            color: #1f2937;
+        }
+
+        .mission-card {
+            background: rgba(255, 255, 255, 0.82);
+            backdrop-filter: blur(16px);
+            border-radius: 2rem;
+            border: 1px solid rgba(148, 163, 184, 0.35);
+            box-shadow: 0 40px 70px -30px rgba(15, 23, 42, 0.45);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mission-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(236, 72, 153, 0.08));
+            opacity: 0.9;
+            z-index: 0;
+        }
+
+        .mission-card > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .mission-card .badge-modern {
+            box-shadow: 0 12px 30px -12px rgba(124, 58, 237, 0.4);
+        }
+
+        .login-actions button {
+            transform: translateY(0);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+            box-shadow: 0 12px 24px -12px rgba(37, 99, 235, 0.4);
+        }
+
+        .login-actions button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 16px 32px -12px rgba(37, 99, 235, 0.45);
+        }
+
+        .landing-aurora {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .landing-aurora::before,
+        .landing-aurora::after {
+            content: '';
+            position: absolute;
+            border-radius: 9999px;
+            filter: blur(120px);
+            opacity: 0.55;
+        }
+
+        .landing-aurora::before {
+            width: 520px;
+            height: 520px;
+            top: -120px;
+            right: -80px;
+            background: linear-gradient(135deg, rgba(129, 140, 248, 0.8), rgba(192, 132, 252, 0.7));
+            animation: auroraPulse 14s ease-in-out infinite;
+        }
+
+        .landing-aurora::after {
+            width: 420px;
+            height: 420px;
+            bottom: -160px;
+            left: -40px;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.65), rgba(16, 185, 129, 0.6));
+            animation: auroraPulse 16s ease-in-out infinite reverse;
+        }
+
+        @keyframes auroraPulse {
+            0%, 100% {
+                transform: translate3d(0, 0, 0) scale(1);
+                opacity: 0.45;
+            }
+            50% {
+                transform: translate3d(40px, -30px, 0) scale(1.1);
+                opacity: 0.7;
+            }
         }
         
         .glass-card {
@@ -413,6 +595,12 @@
                 margin: 0.5rem !important;
                 padding: 1rem !important;
             }
+
+            .mission-card,
+            .landing-card {
+                margin: 0.5rem !important;
+                padding: 1.25rem !important;
+            }
             
             .modern-button {
                 padding: 0.75rem 1.5rem !important;
@@ -550,7 +738,9 @@
                 overflow: hidden !important;
             }
             
-            #landingPage .modern-card {
+            #landingPage .modern-card,
+            #landingPage .mission-card,
+            #landingPage .landing-card {
                 padding: 0.5rem !important;
                 height: 100vh !important;
                 overflow-y: auto !important;
@@ -938,56 +1128,67 @@
 
     <!-- Landing Page -->
     <div id="landingPage" class="min-h-screen bg-gray-50 flex items-center justify-center p-2 md:p-4 relative overflow-hidden">
+        <div class="landing-aurora"></div>
         <div class="max-w-6xl mx-auto relative z-10 w-full">
             <!-- Main Content Grid -->
             <div class="grid lg:grid-cols-2 gap-4 md:gap-8 items-center min-h-screen py-4">
                 <!-- Left Column - Hero Content -->
                 <div class="text-center lg:text-left flex flex-col justify-center h-full py-8">
-                    <div class="mb-6">
-                        <div class="text-6xl lg:text-7xl mb-4">📚</div>
-                        <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+                    <div class="mb-8 space-y-6">
+                        <div class="flex justify-center lg:justify-start">
+                            <span class="hero-badge">
+                                📚 ภารกิจ 01 • โคลงสี่สุภาพ
+                            </span>
+                        </div>
+
+                        <h1 class="hero-title text-3xl md:text-4xl lg:text-5xl text-gray-900">
                             ไขรหัสวรรณคดี
+                            <span class="hero-highlight">The Literature Detective</span>
                         </h1>
-                        <p class="text-base md:text-lg lg:text-xl text-gray-600 mb-6">
-                            แอปพลิเคชันเรียนรู้วรรณคดีไทยแบบโต้ตอบ
+
+                        <p class="hero-subtitle text-base md:text-lg lg:text-xl">
+                            ประสบการณ์เรียนรู้วรรณคดีไทยที่ผสานเกมการสืบสวน การตีความ และการจับคู่คำศัพท์ให้สนุกกว่าที่เคย
                         </p>
-                        
+
                         <!-- Feature Highlights -->
-                        <div class="flex flex-wrap justify-center lg:justify-start gap-4 text-base mb-6">
-                            <div class="flex items-center gap-2 bg-blue-100 px-4 py-2 rounded-full">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-base">
+                            <div class="stat-chip">
                                 <span class="text-2xl">🔍</span>
-                                <span class="font-semibold text-blue-800">สืบสอบคำศัพท์</span>
+                                <p class="font-semibold text-blue-700">สืบค้นคำศัพท์</p>
+                                <p class="text-xs text-gray-500">พร้อมแหล่งอ้างอิง</p>
                             </div>
-                            <div class="flex items-center gap-2 bg-purple-100 px-4 py-2 rounded-full">
+                            <div class="stat-chip">
                                 <span class="text-2xl">💭</span>
-                                <span class="font-semibold text-purple-800">จินตนาการ</span>
+                                <p class="font-semibold text-purple-700">จินตนาการเรื่องราว</p>
+                                <p class="text-xs text-gray-500">ถอดความแบบสร้างสรรค์</p>
                             </div>
-                            <div class="flex items-center gap-2 bg-green-100 px-4 py-2 rounded-full">
-                                <span class="text-2xl">📖</span>
-                                <span class="font-semibold text-green-800">ถอดความ</span>
+                            <div class="stat-chip">
+                                <span class="text-2xl">🎯</span>
+                                <p class="font-semibold text-emerald-700">สะสมคะแนน</p>
+                                <p class="text-xs text-gray-500">ปลดล็อกภารกิจใหม่</p>
                             </div>
                         </div>
                         
                         <!-- Login Section -->
                         <div id="loginSection" class="mb-6">
-                            <div class="bg-white bg-opacity-20 backdrop-filter backdrop-blur-lg border border-white border-opacity-30 rounded-2xl p-4 mb-4">
+                            <div class="landing-card p-6 md:p-7 mb-6">
                                 <div class="flex items-center justify-center gap-4 mb-4">
                                     <span class="text-2xl">👤</span>
                                     <h3 class="text-xl font-bold text-gray-900">เข้าสู่ระบบ</h3>
                                 </div>
-                                <p class="text-gray-700 text-center mb-6">เข้าสู่ระบบเพื่อบันทึกความคืบหน้าและคะแนน</p>
-                                
+                                <p class="text-gray-600 text-center mb-6 leading-relaxed">เข้าสู่ระบบเพื่อบันทึกความคืบหน้า เชื่อมต่อคะแนน และรับคำแนะนำเฉพาะตัวในแต่ละภารกิจ</p>
+
                                 <div id="loginButtons" class="space-y-4">
-                                    <div class="grid grid-cols-3 gap-2">
+                                    <div class="grid grid-cols-3 gap-2 login-actions">
                                         <button onclick="showStudentForm()" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-2 rounded-xl transition-all duration-200 text-sm">
                                             📝 ลงทะเบียน
                                         </button>
-                                        
+
                                         <button onclick="showLoginForm()" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-2 rounded-xl transition-all duration-200 text-sm">
                                             🔑 เข้าสู่ระบบ
                                         </button>
-                                        
-                                        <button id="startGameBtn" onclick="startGame()" class="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-3 px-2 rounded-xl transition-all duration-200 text-sm disabled:bg-gray-400 disabled:cursor-not-allowed disabled:opacity-50 transform hover:scale-105 shadow-lg enabled:shadow-2xl enabled:animate-pulse" disabled>
+
+                                        <button id="startGameBtn" onclick="startGame()" class="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-3 px-2 rounded-xl transition-all duration-200 text-sm disabled:bg-gray-400 disabled:cursor-not-allowed disabled:opacity-50 transform hover:scale-105 enabled:shadow-2xl enabled:animate-pulse" disabled>
                                             ✨ เริ่มเลย
                                         </button>
                                     </div>
@@ -1100,7 +1301,7 @@
                 </div>
                 
                 <!-- Right Column - Mission Info -->
-                <div class="modern-card rounded-3xl p-4 md:p-6 h-full overflow-y-auto">
+                <div class="mission-card rounded-3xl p-4 md:p-6 h-full overflow-y-auto">
                     <div class="mb-4">
                         <h2 class="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
                             โคลงสี่สุภาพ
@@ -1108,25 +1309,25 @@
                         <p class="text-base md:text-lg lg:text-xl text-gray-600">พระราชพงศาวดาร - เรื่องสมเด็จพระสุริโยทัย</p>
                     </div>
                     
-                    <div class="bg-gradient-to-br from-blue-50 to-purple-50 border-2 border-blue-200 rounded-2xl p-4 mb-4">
-                        <div class="flex items-center gap-3 mb-3">
+                    <div class="bg-white bg-opacity-70 border border-blue-200/60 rounded-2xl p-4 mb-6 backdrop-blur">
+                        <div class="flex items-center gap-3 mb-4">
                             <span class="text-3xl">🎯</span>
                             <div>
                                 <h3 class="text-lg font-bold text-blue-900">ภารกิจ</h3>
                                 <p class="text-blue-800 text-sm">ค้นหาความหมายคำศัพท์ยาก 5 คำ</p>
                             </div>
                         </div>
-                        
+
                         <div class="grid grid-cols-3 gap-3 text-center">
-                            <div class="bg-white bg-opacity-50 rounded-xl p-3">
+                            <div class="stat-chip">
                                 <div class="text-xl font-bold text-blue-600">5</div>
                                 <div class="text-blue-700 text-xs">คำศัพท์</div>
                             </div>
-                            <div class="bg-white bg-opacity-50 rounded-xl p-3">
+                            <div class="stat-chip">
                                 <div class="text-xl font-bold text-green-600">100+</div>
                                 <div class="text-green-700 text-xs">คะแนน</div>
                             </div>
-                            <div class="bg-white bg-opacity-50 rounded-xl p-3">
+                            <div class="stat-chip">
                                 <div class="text-xl font-bold text-purple-600">5</div>
                                 <div class="text-purple-700 text-xs">ขั้นตอน</div>
                             </div>
@@ -1134,22 +1335,29 @@
                     </div>
                     
                     <!-- Features List -->
-                    <div class="space-y-3 mb-4">
-                        <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                    <div class="space-y-3 mb-6">
+                        <div class="flex items-center gap-3 p-3 bg-white/70 backdrop-blur rounded-xl border border-slate-200/70">
                             <div class="text-2xl">🔍</div>
                             <div>
                                 <h4 class="font-bold text-gray-900 text-sm">สืบสอบคำศัพท์</h4>
                                 <p class="text-gray-600 text-xs">ค้นหาความหมายด้วยตนเอง พร้อมระบุแหล่งอ้างอิง</p>
                             </div>
                         </div>
-                        <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                        <div class="flex items-center gap-3 p-3 bg-white/70 backdrop-blur rounded-xl border border-slate-200/70">
                             <div class="text-2xl">💭</div>
                             <div>
                                 <h4 class="font-bold text-gray-900 text-sm">จินตนาการ & ถอดความ</h4>
                                 <p class="text-gray-600 text-xs">วาดภาพในใจและถอดความเป็นร้อยแก้วสมัยใหม่</p>
                             </div>
                         </div>
-                        <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                        <div class="flex items-center gap-3 p-3 bg-white/70 backdrop-blur rounded-xl border border-slate-200/70">
+                            <div class="text-2xl">🧠</div>
+                            <div>
+                                <h4 class="font-bold text-gray-900 text-sm">วิเคราะห์เชิงวรรณศิลป์</h4>
+                                <p class="text-gray-600 text-xs">สังเกตรูปแบบฉันทลักษณ์และเทคนิคการประพันธ์</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 p-3 bg-white/70 backdrop-blur rounded-xl border border-slate-200/70">
                             <div class="text-2xl">🖼️</div>
                             <div>
                                 <h4 class="font-bold text-gray-900 text-sm">เปิดภาพจริง</h4>
@@ -1159,7 +1367,7 @@
                     </div>
                     
                     <!-- Ranking System -->
-                    <div class="bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-yellow-200 rounded-2xl p-4">
+                    <div class="bg-white/80 backdrop-blur border border-yellow-200/70 rounded-2xl p-4 shadow-xl">
                         <div class="flex items-center gap-2 mb-3">
                             <span class="text-2xl">🏆</span>
                             <h3 class="text-lg font-bold text-yellow-900">ระบบอันดับ</h3>
@@ -3041,34 +3249,40 @@
 
         // Update Step Indicators
         function updateStepIndicators() {
-            const stepTexts = [
-                '📚 ประวัติศาสตร์',
-                '📖 แสดงโคลง',
-                '✍️ จินตนาการ & ถอดความ',
-                '🖼️ เปิดภาพจริง',
-                '📝 ทบทวน',
-                '🏆 สรุปผล'
-            ];
+            const stepTextMap = {
+                1: '📚 ประวัติศาสตร์',
+                2: '📖 แสดงโคลง',
+                '2.5': '🎯 จับคู่คำศัพท์',
+                3: '✍️ จินตนาการ & ถอดความ',
+                4: '🖼️ เปิดภาพจริง',
+                5: '📝 ทบทวน',
+                6: '🏆 สรุปผล'
+            };
+
+            const rawStep = gameState.currentStep || 1;
+            const isIntermediateStep = !Number.isInteger(rawStep);
+            const activeStep = Math.min(6, Math.max(1, isIntermediateStep ? Math.floor(rawStep) : rawStep));
+            const completedThreshold = Math.max(0, activeStep - 1);
 
             for (let i = 1; i <= 6; i++) {
                 const stepElement = document.getElementById(`step-${i}`);
-                if (stepElement) {
-                    stepElement.className = 'step-circle ';
-                    
-                    if (i < gameState.currentStep) {
-                        stepElement.className += 'step-completed';
-                    } else if (i === gameState.currentStep) {
-                        stepElement.className += 'step-active';
-                    } else {
-                        stepElement.className += 'step-inactive';
-                    }
+                if (!stepElement) continue;
+
+                stepElement.classList.remove('step-active', 'step-completed', 'step-inactive');
+
+                if (i <= completedThreshold) {
+                    stepElement.classList.add('step-completed');
+                } else if (i === activeStep) {
+                    stepElement.classList.add('step-active');
+                } else {
+                    stepElement.classList.add('step-inactive');
                 }
             }
 
-            // Update mobile step text
             const currentStepText = document.getElementById('currentStepText');
-            if (currentStepText && gameState.currentStep >= 1 && gameState.currentStep <= 6) {
-                currentStepText.textContent = stepTexts[gameState.currentStep - 1];
+            if (currentStepText) {
+                const stepKey = stepTextMap[rawStep] ? rawStep : activeStep;
+                currentStepText.textContent = stepTextMap[stepKey] || stepTextMap[1];
             }
         }
 
@@ -5050,5 +5264,5 @@
             }, 4000);
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98f039c8838b91b4',t:'MTc2MDU0MDg0Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>
