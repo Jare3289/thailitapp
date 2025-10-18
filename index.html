@@ -580,10 +580,48 @@
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
         }
 
-        /* 📱 Responsive refinements */
-        @media (max-width: 1024px) {
-            #landingPage {
-                background-attachment: scroll;
+        /* 📱 Mobile Portrait Styles */
+        @media (max-width: 768px) and (orientation: portrait) {
+            .poem-text {
+                font-size: 1.1rem !important;
+                line-height: 1.6 !important;
+            }
+            
+            .hero-text {
+                font-size: 2rem !important;
+            }
+            
+            .modern-card {
+                margin: 0.5rem !important;
+                padding: 1rem !important;
+            }
+
+            .mission-card,
+            .landing-card {
+                margin: 0.5rem !important;
+                padding: 1.25rem !important;
+            }
+            
+            .modern-button {
+                padding: 0.75rem 1.5rem !important;
+                font-size: 1rem !important;
+            }
+            
+            .step-indicator {
+                padding: 0.5rem !important;
+            }
+            
+            .step-circle {
+                width: 35px !important;
+                height: 35px !important;
+                font-size: 0.9rem !important;
+            }
+            
+            .notification {
+                top: 1rem !important;
+                right: 1rem !important;
+                left: 1rem !important;
+                width: auto !important;
             }
 
             .teacher-dashboard-header {
@@ -644,9 +682,56 @@
             }
         }
 
-        @media (max-width: 640px) {
-            body {
-                font-size: 16px;
+        /* 📱 Mobile Landscape Styles - Perfect fit without scrollbars */
+        @media (max-width: 1024px) and (orientation: landscape) and (max-height: 768px) {
+            html, body {
+                overflow: hidden !important;
+                height: 100vh !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                position: fixed !important;
+                width: 100vw !important;
+            }
+            
+            /* Landing page - perfect fit */
+            #landingPage {
+                height: 100vh !important;
+                overflow: hidden !important;
+                padding: 0.25rem !important;
+                position: fixed !important;
+                top: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                bottom: 0 !important;
+            }
+            
+            #landingPage .grid {
+                height: 100vh !important;
+                gap: 0.5rem !important;
+                overflow: hidden !important;
+            }
+            
+            #landingPage .modern-card,
+            #landingPage .mission-card,
+            #landingPage .landing-card {
+                padding: 0.5rem !important;
+                height: 100vh !important;
+                overflow-y: auto !important;
+                max-height: 100vh !important;
+            }
+            
+            #landingPage h1 {
+                font-size: 1.2rem !important;
+                margin-bottom: 0.25rem !important;
+            }
+            
+            #landingPage p {
+                font-size: 0.7rem !important;
+                margin-bottom: 0.25rem !important;
+            }
+            
+            #landingPage .text-3xl {
+                font-size: 1rem !important;
             }
 
             .hero-title {
@@ -889,7 +974,7 @@
                     <div class="mb-8 space-y-6">
                         <div class="flex justify-center lg:justify-start">
                             <span class="hero-badge">
-                                📚 ภารกิจ 01 • โคลงสี่สุภาพ
+                                📚 ภาคกิจพิชิตวรรณคดี
                             </span>
                         </div>
 
@@ -899,7 +984,7 @@
                         </h1>
 
                         <p class="hero-subtitle text-base md:text-lg lg:text-xl">
-                            ประสบการณ์เรียนรู้วรรณคดีไทยที่ผสานเกมการสืบสวน การตีความ และการจับคู่คำศัพท์ให้สนุกกว่าที่เคย
+                            ประสบการณ์เรียนรู้วรรณคดีไทยที่ผสานการศึกษาศัพท์ยาก จับใจความ และความเข้าใจภาพที่สนุกกว่าที่เคย
                         </p>
 
                         <!-- Feature Highlights -->
@@ -1068,9 +1153,9 @@
                 <div class="mission-card rounded-3xl p-4 md:p-6 h-full overflow-y-auto">
                     <div class="mb-4">
                         <h2 class="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
-                            โคลงสี่สุภาพ
+                            โคลงภาพพระราชงพงศาวดาร
                         </h2>
-                        <p class="text-base md:text-lg lg:text-xl text-gray-600">พระราชพงศาวดาร - เรื่องสมเด็จพระสุริโยทัย</p>
+                        <p class="text-base md:text-lg lg:text-xl text-gray-600">ภาพที่ 10 ตอน สมเด็จพระสุริโยทัยขาดคอช้าง</p>
                     </div>
                     
                     <div class="bg-white bg-opacity-70 border border-blue-200/60 rounded-2xl p-4 mb-6 backdrop-blur">
@@ -1086,12 +1171,6 @@
                             <img src="https://img5.pic.in.th/file/secure-sv1/education-booksOK.jpg" alt="กองหนังสือเพื่อการเรียนรู้" class="w-full h-40 object-cover">
                             <div class="absolute inset-0 bg-gradient-to-t from-blue-900/40 via-transparent to-transparent"></div>
                         </div>
-
-                        <div class="grid grid-cols-3 gap-3 text-center">
-                            <div class="stat-chip">
-                                <div class="text-xl font-bold text-blue-600">5</div>
-                                <div class="text-blue-700 text-xs">คำศัพท์</div>
-                            </div>
                             <div class="stat-chip">
                                 <div class="text-xl font-bold text-green-600">100+</div>
                                 <div class="text-green-700 text-xs">คะแนน</div>
@@ -1115,18 +1194,11 @@
                         <div class="flex items-center gap-3 p-3 bg-white/70 backdrop-blur rounded-xl border border-slate-200/70">
                             <div class="text-2xl">💭</div>
                             <div>
-                                <h4 class="font-bold text-gray-900 text-sm">จินตนาการ & ถอดความ</h4>
-                                <p class="text-gray-600 text-xs">วาดภาพในใจและถอดความเป็นร้อยแก้วสมัยใหม่</p>
+                                <h4 class="font-bold text-gray-900 text-sm">ถอดถอดความ</h4>
+                                <p class="text-gray-600 text-xs">ถอดเป็นเรียงความร้อยแก้วและภารใจจินตนาการ</p>
                             </div>
                         </div>
-                        <div class="flex items-center gap-3 p-3 bg-white/70 backdrop-blur rounded-xl border border-slate-200/70">
-                            <div class="text-2xl">🧠</div>
-                            <div>
-                                <h4 class="font-bold text-gray-900 text-sm">วิเคราะห์เชิงวรรณศิลป์</h4>
-                                <p class="text-gray-600 text-xs">สังเกตรูปแบบฉันทลักษณ์และเทคนิคการประพันธ์</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-3 p-3 bg-white/70 backdrop-blur rounded-xl border border-slate-200/70">
+                                               <div class="flex items-center gap-3 p-3 bg-white/70 backdrop-blur rounded-xl border border-slate-200/70">
                             <div class="text-2xl">🖼️</div>
                             <div>
                                 <h4 class="font-bold text-gray-900 text-sm">เปิดภาพจริง</h4>
@@ -1255,7 +1327,7 @@
                 <div class="hidden md:flex justify-center items-center gap-2 text-white font-semibold text-xs opacity-90">
                     <span>📚 ประวัติศาสตร์</span>
                     <span>📖 แสดงโคลง</span>
-                    <span>✍️ จินตนาการ & ถอดความ</span>
+                    <span>✍️ ถอดถอดความ</span>
                     <span>🖼️ เปิดภาพจริง</span>
                     <span>📝 ทบทวน</span>
                     <span>🏆 สรุปผล</span>
@@ -1392,7 +1464,7 @@
                             <div class="bg-gradient-to-r from-amber-50 to-yellow-50 border-2 border-amber-200 rounded-2xl p-6">
                                 <h4 class="text-xl font-bold text-amber-900 mb-4">👑 สมเด็จพระสุริโยทัย</h4>
                                 <p class="text-amber-800 leading-relaxed">
-                                    สมเด็จพระสุริโยทัย เป็นพระมเหสีของสมเด็จพระมหาจักรพรรดิ (พระราเมศวร) แห่งกรุงศรีอยุธยา 
+                                    สมเด็จพระสุริโยทัย เป็นพระมเหสีของสมเด็จพระมหาจักรพรรดิแห่งกรุงศรีอยุธยา 
                                     ทรงเป็นบุคคลสำคัญในประวัติศาสตร์ไทย ที่ทรงแสดงความกล้าหาญในการปกป้องแผ่นดิน
                                 </p>
                             </div>
@@ -1400,7 +1472,7 @@
                             <div class="bg-gradient-to-r from-red-50 to-pink-50 border-2 border-red-200 rounded-2xl p-6">
                                 <h4 class="text-xl font-bold text-red-900 mb-4">⚔️ สงครามกับพม่า (พ.ศ. 2091)</h4>
                                 <p class="text-red-800 leading-relaxed">
-                                    เมื่อพระเจ้าแปร (พระเจ้าตะบิงชเวตี) แห่งพม่ายกทัพมาตีกรุงศรีอยุธยา 
+                                    เมื่อพระเจ้าแปร (พระเจ้าตะโดธรรมราชาที่ 1) แห่งพม่ายกทัพมาตีกรุงศรีอยุธยา 
                                     สมเด็จพระสุริโยทัยทรงแต่งกายเป็นทหาร ขี่ช้างออกรบเพื่อช่วยเหลือพระราชสามี
                                 </p>
                             </div>
@@ -1481,8 +1553,8 @@
                     "มลาย": { meaning: "ตาย, สิ้นชีวิต, เสียชีวิต, สวรรคต", points: 18 },
                     "คเชนทร": { meaning: "ช้าง, ช้างเผือก, พาหนะ, สัตว์ใหญ่", points: 20 },
                     "ดัสกร": { meaning: "ข้าศึก, ศัตรู, คู่อริ, ผู้ร้าย", points: 18 },
-                    "ง้าว": { meaning: "ดาบด้ามยาว, ทวน, อาวุธ, หอก, ใส", points: 15 },
-                    "แล่ง": { meaning: "ผ่า, แยก, ฟัน, ตัด", points: 15 },
+                    "ง้าว": { meaning: "ดาบด้ามยาว, ทวน, อาวุธ, หอก", points: 15 },
+                    "แล่ง": { meaning: "ผ่า, แยก, ฟัน, ตัด, ทำให้แตก", points: 15 },
                     "อุระ": { meaning: "อก, หน้าอก, ทรวงอก, ส่วนหน้าของร่างกาย", points: 12 },
                     "หรุบ": { meaning: "ร่วง, ตก, ล้ม, หล่น", points: 15 },
                     "ไป่": { meaning: "ไม่, มิ, หา...ไม่, ปฏิเสธ", points: 10 },
@@ -2885,7 +2957,7 @@
                                     <span class="text-xl">📚</span>
                                     <h4 class="text-lg font-bold text-amber-900">จุดประสงค์การเรียนรู้</h4>
                                 </div>
-                                <p class="text-amber-800">หน้านี้เป็นการศึกษาประวัติศาสตร์เบื้องหลังของโคลงสี่สุภาพ เพื่อให้เข้าใจบริบทและความสำคัญของเหตุการณ์ก่อนเข้าสู่การศึกษาโคลง</p>
+                                <p class="text-amber-800">เป็นการศึกษาประวัติศาสตร์เบื้องต้น เพื่อให้เข้าใจบริบทและความสำคัญของเหตุการณ์ก่อนเข้าสู่การศึกษาโคลง</p>
                             </div>
                             
                             <div class="mb-8">
@@ -3061,9 +3133,8 @@
                             <div class="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-2xl p-6 mb-6">
                                 <div class="text-center">
                                     <div class="text-5xl mb-4">📚</div>
-                                    <h3 class="text-xl font-bold text-blue-900 mb-4">เครื่องมือค้นหาความหมาย</h3>
-                                    <p class="text-blue-800 text-center mb-6">เลือกเครื่องมือที่ต้องการใช้ค้นหาความหมายคำศัพท์</p>
-                                    
+                                    <h3 class="text-xl font-bold text-blue-900 mb-4">เครื่องมือเพิ่มเติม</h3>
+                                   
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <button onclick="openDictionaryNewTab()" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200 flex items-center justify-center gap-3">
                                             <span class="text-2xl">📖</span>
@@ -3071,7 +3142,7 @@
                                         </button>
                                         <button onclick="showKloangInfo()" class="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200 flex items-center justify-center gap-3">
                                             <span class="text-2xl">📋</span>
-                                            <span>ฉันทลักษณ์โคลงสี่สุภาพ</span>
+                                            <span>ลักษณะคำประพันธ์</span>
                                         </button>
                                     </div>
                                 </div>
@@ -3419,7 +3490,7 @@
                                     </button>
                                     <button onclick="goToStep(3)" class="modern-button px-4 py-3 text-sm md:text-base rounded-xl bg-purple-500 hover:bg-purple-600 flex flex-col items-center gap-2">
                                         <span class="text-2xl">✍️</span>
-                                        <span>จินตนาการ & ถอดความ</span>
+                                        <span>ถอดถอดความ</span>
                                         <span class="text-xs opacity-75">คะแนน: -</span>
                                     </button>
                                     <button onclick="goToStep(4)" class="modern-button px-4 py-3 text-sm md:text-base rounded-xl bg-green-500 hover:bg-green-600 flex flex-col items-center gap-2">
@@ -3459,7 +3530,7 @@
                 1: '📚 ประวัติศาสตร์',
                 2: '📖 แสดงโคลง',
                 '2.5': '🎯 จับคู่คำศัพท์',
-                3: '✍️ จินตนาการ & ถอดความ',
+                3: '✍️ ถอดถอดความ',
                 4: '🖼️ เปิดภาพจริง',
                 5: '📝 ทบทวน',
                 6: '🏆 สรุปผล'
@@ -3556,8 +3627,8 @@
                             <label class="block text-gray-700 mb-2 md:mb-3 font-semibold text-sm md:text-base">📚 แหล่งอ้างอิง</label>
                             <select id="referenceType" class="w-full modern-input p-3 md:p-4 text-sm md:text-base mb-3" onchange="toggleReferenceInput()">
                                 <option value="">เลือกแหล่งอ้างอิง</option>
-                                <option value="รู้อยู่แล้ว">รู้อยู่แล้ว</option>
-                                <option value="ค้นหามา">ค้นหามา</option>
+                                <option value="ความรู้เดิม">ความรู้เดิม</option>
+                                <option value="ค้นหามาจาก">ค้นหามาจาก</option>
                             </select>
                             <input type="text" id="wordReference" class="w-full modern-input p-3 md:p-4 text-sm md:text-base hidden" placeholder="ระบุแหล่งที่มา เช่น พจนานุกรม ราชบัณฑิตยสถาน, เว็บไซต์, หนังสือ">
                         </div>
@@ -3598,7 +3669,7 @@
             const referenceType = document.getElementById('referenceType').value;
             const referenceInput = document.getElementById('wordReference');
             
-            if (referenceType === 'ค้นหามา') {
+            if (referenceType === 'ค้นหามาจาก') {
                 referenceInput.classList.remove('hidden');
                 referenceInput.required = true;
             } else {
@@ -3628,12 +3699,12 @@
                     return;
                 }
                 
-                if (referenceType === 'ค้นหามา' && (!referenceInput || referenceInput.trim() === '')) {
+                if (referenceType === 'ค้นหามาจาก' && (!referenceInput || referenceInput.trim() === '')) {
                     showNotification('กรุณาระบุแหล่งที่มาของการค้นหา', 'error');
                     return;
                 }
                 
-                const finalReference = referenceType === 'รู้อยู่แล้ว' ? 'รู้อยู่แล้ว' : referenceInput;
+                const finalReference = referenceType === 'ความรู้เดิม' ? 'ความรู้เดิม' : referenceInput;
                 
                 // Check if translation contains key concepts (more flexible matching)
                 const correctMeanings = mission.hardWords[gameState.selectedWord].meaning.split(',').map(m => m.trim());
@@ -4353,16 +4424,16 @@
                     overlay.innerHTML = `
                         <div class="text-white text-center">
                             <div class="text-4xl mb-2">🔒</div>
-                            <p class="text-lg font-bold">ต้องทำหน้าจินตนาการ & ถอดความก่อน</p>
+                            <p class="text-lg font-bold">ต้องทำหน้าถอดถอดความก่อน</p>
                             <p class="text-sm mt-2 opacity-75">กลับไปหน้าที่ 3 เพื่อเขียนจินตนาการและถอดความ</p>
                             <button onclick="goToStep(3)" class="mt-4 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-xl">
-                                ไปหน้าจินตนาการ & ถอดความ
+                                ไปหน้าถอดถอดความ
                             </button>
                         </div>
                     `;
                 }
                 
-                showNotification('กรุณาทำหน้าจินตนาการ & ถอดความให้เสร็จก่อน', 'error');
+                showNotification('กรุณาทำหน้าถอดถอดความให้เสร็จก่อน', 'error');
                 return;
             }
             
