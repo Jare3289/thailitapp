@@ -23,11 +23,42 @@
         body {
             box-sizing: border-box;
             font-family: 'IBM Plex Sans Thai Looped', sans-serif;
+            background: radial-gradient(circle at top left, #eef2ff 0%, rgba(238, 242, 255, 0) 45%),
+                        radial-gradient(circle at bottom right, #fdf2f8 0%, rgba(253, 242, 248, 0) 45%),
+                        linear-gradient(180deg, #f8fafc 0%, #ffffff 50%, #fdf2f8 100%);
+            position: relative;
+            min-height: 100vh;
+            color: #111827;
+            overflow-x: hidden;
+        }
+
+        body::before,
+        body::after {
+            content: '';
+            position: fixed;
+            width: 420px;
+            height: 420px;
+            border-radius: 9999px;
+            filter: blur(120px);
+            opacity: 0.45;
+            z-index: -1;
+        }
+
+        body::before {
+            top: -180px;
+            left: -120px;
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.7), rgba(236, 72, 153, 0.6));
+        }
+
+        body::after {
+            bottom: -160px;
+            right: -100px;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.6), rgba(16, 185, 129, 0.55));
         }
         
         /* Landing page background */
         #landingPage {
-            background-image: url('https://img2.pic.in.th/pic/742215688----.jpg');
+            background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.88), rgba(236, 233, 254, 0.72)), url('https://img2.pic.in.th/pic/742215688----.jpg');
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
@@ -42,7 +73,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(255, 255, 255, 0.1);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.6), rgba(224, 231, 255, 0.3));
             z-index: 1;
             pointer-events: none;
             transition: background 0.3s ease;
@@ -59,6 +90,157 @@
         
         .hero-gradient {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+        }
+
+        .hero-title {
+            font-weight: 800;
+            line-height: 1.2;
+            letter-spacing: -0.02em;
+        }
+
+        .hero-highlight {
+            display: inline-block;
+            background: linear-gradient(120deg, #7c3aed 0%, #ec4899 50%, #f59e0b 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            padding-left: 0.35rem;
+            font-size: 0.9em;
+        }
+
+        .hero-subtitle {
+            color: #4b5563;
+            font-size: 1.05rem;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.65rem 1rem;
+            border-radius: 9999px;
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            font-weight: 600;
+            color: #4338ca;
+            box-shadow: 0 15px 25px -10px rgba(67, 56, 202, 0.35);
+        }
+
+        .stat-chip {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 1rem 0.75rem;
+            border-radius: 1rem;
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(148, 163, 184, 0.35);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .stat-chip:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 15px 30px -12px rgba(59, 130, 246, 0.3);
+        }
+
+        .landing-card {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            box-shadow: 0 35px 65px -25px rgba(30, 64, 175, 0.45);
+            border-radius: 1.75rem;
+        }
+
+        .landing-card h3 {
+            color: #1f2937;
+        }
+
+        .mission-card {
+            background: rgba(255, 255, 255, 0.82);
+            backdrop-filter: blur(16px);
+            border-radius: 2rem;
+            border: 1px solid rgba(148, 163, 184, 0.35);
+            box-shadow: 0 40px 70px -30px rgba(15, 23, 42, 0.45);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mission-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(236, 72, 153, 0.08));
+            opacity: 0.9;
+            z-index: 0;
+        }
+
+        .mission-card > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .mission-card .badge-modern {
+            box-shadow: 0 12px 30px -12px rgba(124, 58, 237, 0.4);
+        }
+
+        .login-actions button {
+            transform: translateY(0);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+            box-shadow: 0 12px 24px -12px rgba(37, 99, 235, 0.4);
+        }
+
+        .login-actions button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 16px 32px -12px rgba(37, 99, 235, 0.45);
+        }
+
+        .landing-aurora {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .landing-aurora::before,
+        .landing-aurora::after {
+            content: '';
+            position: absolute;
+            border-radius: 9999px;
+            filter: blur(120px);
+            opacity: 0.55;
+        }
+
+        .landing-aurora::before {
+            width: 520px;
+            height: 520px;
+            top: -120px;
+            right: -80px;
+            background: linear-gradient(135deg, rgba(129, 140, 248, 0.8), rgba(192, 132, 252, 0.7));
+            animation: auroraPulse 14s ease-in-out infinite;
+        }
+
+        .landing-aurora::after {
+            width: 420px;
+            height: 420px;
+            bottom: -160px;
+            left: -40px;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.65), rgba(16, 185, 129, 0.6));
+            animation: auroraPulse 16s ease-in-out infinite reverse;
+        }
+
+        @keyframes auroraPulse {
+            0%, 100% {
+                transform: translate3d(0, 0, 0) scale(1);
+                opacity: 0.45;
+            }
+            50% {
+                transform: translate3d(40px, -30px, 0) scale(1.1);
+                opacity: 0.7;
+            }
         }
         
         .glass-card {
@@ -398,116 +580,147 @@
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
         }
 
-        /* 📱 Mobile Portrait Styles */
-        @media (max-width: 768px) and (orientation: portrait) {
-            .poem-text {
-                font-size: 1.1rem !important;
-                line-height: 1.6 !important;
-            }
-            
-            .hero-text {
-                font-size: 2rem !important;
-            }
-            
-            .modern-card {
-                margin: 0.5rem !important;
-                padding: 1rem !important;
-            }
-            
-            .modern-button {
-                padding: 0.75rem 1.5rem !important;
-                font-size: 1rem !important;
-            }
-            
-            .step-indicator {
-                padding: 0.5rem !important;
-            }
-            
-            .step-circle {
-                width: 35px !important;
-                height: 35px !important;
-                font-size: 0.9rem !important;
-            }
-            
-            .notification {
-                top: 1rem !important;
-                right: 1rem !important;
-                left: 1rem !important;
-                width: auto !important;
-            }
-            
-            .tooltip-modern {
-                position: fixed !important;
-                top: 50% !important;
-                left: 50% !important;
-                transform: translate(-50%, -50%) !important;
-                max-width: 90vw !important;
-                max-height: 80vh !important;
-                overflow-y: auto !important;
+        /* 📱 Responsive refinements */
+        @media (max-width: 1024px) {
+            #landingPage {
+                background-attachment: scroll;
             }
 
-            .kloang-container {
-                padding: 0 0.5rem !important;
-                font-size: 0.9rem !important;
-                max-width: 100% !important;
-                overflow-x: auto !important;
-            }
-            
-            .bart {
-                flex-direction: row !important;
-                flex-wrap: nowrap !important;
-                margin-bottom: 0.8rem !important;
-                padding: 0.3rem !important;
-                background: rgba(255,255,255,0.1) !important;
-                border-radius: 8px !important;
-                white-space: nowrap !important;
-                min-width: fit-content !important;
-            }
-            
-            .wak-na {
-                min-width: 200px !important;
-                max-width: 200px !important;
-                text-align: left !important;
-                padding-right: 1rem !important;
-                margin-bottom: 0 !important;
-                font-size: 0.9rem !important;
-                line-height: 1.4 !important;
-                white-space: nowrap !important;
-                flex-shrink: 0 !important;
-            }
-            
-            .wak-lang {
-                padding-right: 0.3rem !important;
-                padding-left: 0.8rem !important;
-                font-size: 0.9rem !important;
-                white-space: nowrap !important;
-                flex-shrink: 0 !important;
-            }
-            
-            .kam-sroi {
-                padding-left: 0.5rem !important;
-                font-size: 0.9rem !important;
-                color: rgba(0,0,0,0.7) !important;
-                white-space: nowrap !important;
-                flex-shrink: 0 !important;
+            .teacher-dashboard-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
             }
 
-            .progress-container {
-                padding: 0.5rem !important;
-                margin-bottom: 1rem !important;
-            }
-
-            #header {
-                margin-top: 0px !important;
-            }
-
-            #mainContent {
-                padding: 1rem !important;
-                margin-top: 0px !important;
-                padding-top: 1rem !important;
+            .teacher-portal-grid {
+                gap: 2rem;
             }
         }
 
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.25rem;
+            }
+
+            .hero-subtitle {
+                font-size: 1.05rem;
+            }
+
+            .hero-badge {
+                font-size: 0.95rem;
+                padding: 0.6rem 1.25rem;
+            }
+
+            .stat-chip {
+                width: 100%;
+                flex-direction: row;
+                align-items: center;
+                text-align: left;
+                gap: 0.75rem;
+            }
+
+            .landing-card,
+            .mission-card {
+                padding: 1.5rem;
+                border-radius: 1.5rem;
+            }
+
+            .mission-card img {
+                max-height: 220px;
+                width: 100%;
+                object-fit: cover;
+            }
+
+            .teacher-sidebar {
+                border-radius: 2rem;
+            }
+
+            .teacher-summary-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .teacher-activity-list {
+                gap: 1.5rem;
+            }
+        }
+
+        @media (max-width: 640px) {
+            body {
+                font-size: 16px;
+            }
+
+            .hero-title {
+                font-size: 1.875rem;
+            }
+
+            .hero-subtitle {
+                font-size: 0.95rem;
+            }
+
+            .hero-badge {
+                font-size: 0.85rem;
+            }
+
+            .stat-chip {
+                padding: 1rem;
+            }
+
+            .teacher-summary-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .teacher-summary-card {
+                padding: 1.25rem !important;
+            }
+
+            .teacher-table {
+                border: none;
+            }
+
+            .teacher-table thead {
+                display: none;
+            }
+
+            .teacher-table tbody tr {
+                display: block;
+                margin-bottom: 1rem;
+                border: 1px solid rgba(148, 163, 184, 0.25);
+                border-radius: 1rem;
+                overflow: hidden;
+                background: rgba(255, 255, 255, 0.95);
+            }
+
+            .teacher-table tbody tr:last-child {
+                margin-bottom: 0;
+            }
+
+            .teacher-table tbody td {
+                display: flex;
+                justify-content: space-between;
+                gap: 1rem;
+                padding: 0.85rem 1rem;
+                border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+            }
+
+            .teacher-table tbody td:last-child {
+                border-bottom: none;
+            }
+
+            .teacher-table tbody td::before {
+                content: attr(data-label);
+                font-weight: 600;
+                color: #475569;
+            }
+
+            .teacher-dashboard-header button {
+                width: 100%;
+            }
+
+            .teacher-portal-grid {
+                gap: 1.5rem;
+            }
+        }
         /* Header Sticky Positioning */
         #header {
             position: sticky !important;
@@ -521,410 +734,6 @@
             min-height: calc(100vh - 200px) !important;
         }
 
-        /* 📱 Mobile Landscape Styles - Perfect fit without scrollbars */
-        @media (max-width: 1024px) and (orientation: landscape) and (max-height: 768px) {
-            html, body {
-                overflow: hidden !important;
-                height: 100vh !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                position: fixed !important;
-                width: 100vw !important;
-            }
-            
-            /* Landing page - perfect fit */
-            #landingPage {
-                height: 100vh !important;
-                overflow: hidden !important;
-                padding: 0.25rem !important;
-                position: fixed !important;
-                top: 0 !important;
-                left: 0 !important;
-                right: 0 !important;
-                bottom: 0 !important;
-            }
-            
-            #landingPage .grid {
-                height: 100vh !important;
-                gap: 0.5rem !important;
-                overflow: hidden !important;
-            }
-            
-            #landingPage .modern-card {
-                padding: 0.5rem !important;
-                height: 100vh !important;
-                overflow-y: auto !important;
-                max-height: 100vh !important;
-            }
-            
-            #landingPage h1 {
-                font-size: 1.2rem !important;
-                margin-bottom: 0.25rem !important;
-            }
-            
-            #landingPage p {
-                font-size: 0.7rem !important;
-                margin-bottom: 0.25rem !important;
-            }
-            
-            #landingPage .text-3xl {
-                font-size: 1rem !important;
-            }
-            
-            #landingPage .text-2xl {
-                font-size: 0.9rem !important;
-            }
-            
-            #landingPage .text-xl {
-                font-size: 0.8rem !important;
-            }
-            
-            #landingPage .text-lg {
-                font-size: 0.7rem !important;
-            }
-            
-            #landingPage .py-4 {
-                padding-top: 0.25rem !important;
-                padding-bottom: 0.25rem !important;
-            }
-            
-            #landingPage .px-6 {
-                padding-left: 0.5rem !important;
-                padding-right: 0.5rem !important;
-            }
-            
-            #landingPage .mb-4 {
-                margin-bottom: 0.25rem !important;
-            }
-            
-            #landingPage .mb-6 {
-                margin-bottom: 0.5rem !important;
-            }
-            
-            #landingPage .p-4 {
-                padding: 0.5rem !important;
-            }
-            
-            #landingPage .p-6 {
-                padding: 0.5rem !important;
-            }
-            
-            #landingPage .p-8 {
-                padding: 0.5rem !important;
-            }
-            
-            #landingPage .space-y-4 > * + * {
-                margin-top: 0.25rem !important;
-            }
-            
-            #landingPage .grid-cols-3 {
-                gap: 0.25rem !important;
-            }
-            
-            #landingPage .grid-cols-2 {
-                gap: 0.25rem !important;
-            }
-            
-            /* Header - ultra compact */
-            #header {
-                padding: 0.1rem 0.25rem !important;
-                position: sticky !important;
-                top: 0 !important;
-                left: 0 !important;
-                right: 0 !important;
-                z-index: 50 !important;
-                height: 60px !important;
-                overflow: hidden !important;
-            }
-            
-            #header h1 {
-                font-size: 0.8rem !important;
-                margin-bottom: 0.05rem !important;
-            }
-            
-            #header p {
-                font-size: 0.6rem !important;
-                margin-bottom: 0.05rem !important;
-            }
-            
-            #header .modern-card {
-                margin: 0 !important;
-                padding: 0.1rem 0.25rem !important;
-            }
-            
-            #header .text-2xl {
-                font-size: 0.7rem !important;
-            }
-            
-            #header .text-xl {
-                font-size: 0.6rem !important;
-            }
-            
-            .step-indicator {
-                padding: 0.1rem !important;
-                margin-top: 0.05rem !important;
-            }
-            
-            .step-circle {
-                width: 15px !important;
-                height: 15px !important;
-                font-size: 0.5rem !important;
-            }
-            
-            /* Main content - perfect fit with proper spacing */
-            #mainContent {
-                padding: 0.5rem !important;
-                padding-top: 1rem !important;
-                overflow-y: auto !important;
-                height: calc(100vh - 60px) !important;
-                margin-top: 0 !important;
-                display: flex !important;
-                align-items: flex-start !important;
-                justify-content: center !important;
-            }
-            
-            #mainContent .modern-card {
-                margin: 0 !important;
-                padding: 0.5rem !important;
-                margin-top: 0 !important;
-                width: 100% !important;
-                max-width: 100% !important;
-                height: auto !important;
-                max-height: calc(100vh - 60px) !important;
-                overflow-y: auto !important;
-                display: flex !important;
-                flex-direction: column !important;
-                justify-content: flex-start !important;
-                align-items: center !important;
-            }
-            
-            /* Typography ultra compact */
-            .poem-text {
-                font-size: 0.6rem !important;
-                line-height: 1.1 !important;
-            }
-            
-            .poem-container {
-                padding: 0.25rem !important;
-                margin-bottom: 0.25rem !important;
-            }
-            
-            .kloang-container {
-                padding: 0 0.5rem !important;
-                font-size: 0.6rem !important;
-                max-width: 100% !important;
-                margin: 0 auto !important;
-                display: flex !important;
-                flex-direction: column !important;
-                align-items: center !important;
-                justify-content: center !important;
-                text-align: center !important;
-            }
-            
-            .bart {
-                margin-bottom: 0.2rem !important;
-                padding: 0.2rem !important;
-                display: flex !important;
-                flex-direction: row !important;
-                justify-content: center !important;
-                align-items: center !important;
-                text-align: center !important;
-                width: 100% !important;
-                flex-wrap: nowrap !important;
-            }
-            
-            .wak-na {
-                min-width: 120px !important;
-                max-width: 120px !important;
-                padding-right: 0.5rem !important;
-                text-align: center !important;
-                display: flex !important;
-                justify-content: center !important;
-                align-items: center !important;
-            }
-            
-            /* Buttons ultra compact */
-            .modern-button {
-                padding: 0.2rem 0.4rem !important;
-                font-size: 0.6rem !important;
-            }
-            
-            .badge-modern {
-                padding: 0.05rem 0.2rem !important;
-                font-size: 0.5rem !important;
-            }
-            
-            /* Grid ultra compact */
-            .grid {
-                gap: 0.1rem !important;
-            }
-            
-            .grid-cols-1 {
-                grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
-            }
-            
-            .grid-cols-3 {
-                gap: 0.1rem !important;
-            }
-            
-            /* Text sizes ultra small */
-            h2 {
-                font-size: 0.8rem !important;
-                margin-bottom: 0.1rem !important;
-            }
-            
-            h3 {
-                font-size: 0.7rem !important;
-                margin-bottom: 0.1rem !important;
-            }
-            
-            h4 {
-                font-size: 0.6rem !important;
-                margin-bottom: 0.1rem !important;
-            }
-            
-            p, div, span {
-                font-size: 0.6rem !important;
-                line-height: 1.0 !important;
-            }
-            
-            /* Spacing ultra compact */
-            .space-y-6 > * + * {
-                margin-top: 0.1rem !important;
-            }
-            
-            .space-y-8 > * + * {
-                margin-top: 0.1rem !important;
-            }
-            
-            .space-y-10 > * + * {
-                margin-top: 0.2rem !important;
-            }
-            
-            /* Margins and padding ultra small */
-            .mb-6, .mb-8, .mb-10 {
-                margin-bottom: 0.1rem !important;
-            }
-            
-            .mt-6, .mt-8, .mt-10 {
-                margin-top: 0.1rem !important;
-            }
-            
-            .p-6, .p-8, .p-10 {
-                padding: 0.1rem !important;
-            }
-            
-            .p-4 {
-                padding: 0.1rem !important;
-            }
-            
-            /* Form elements compact */
-            textarea {
-                min-height: 30px !important;
-                padding: 0.2rem !important;
-                font-size: 0.6rem !important;
-            }
-            
-            input {
-                padding: 0.2rem !important;
-                font-size: 0.6rem !important;
-            }
-            
-            /* Images compact */
-            .aspect-video {
-                aspect-ratio: 16/9 !important;
-                max-height: 60px !important;
-            }
-            
-            /* Notifications */
-            .notification {
-                top: 0.1rem !important;
-                right: 0.1rem !important;
-                font-size: 0.5rem !important;
-                padding: 0.1rem 0.25rem !important;
-            }
-            
-            /* Hide unnecessary elements */
-            .md\\:hidden {
-                display: none !important;
-            }
-            
-            .hidden.md\\:flex {
-                display: none !important;
-            }
-            
-            /* Mobile step text only */
-            .md\\:hidden {
-                display: block !important;
-                font-size: 0.5rem !important;
-            }
-            
-            /* Tooltip adjustments */
-            .tooltip-modern {
-                max-width: 80vw !important;
-                max-height: 60vh !important;
-                padding: 0.25rem !important;
-            }
-            
-            .tooltip-modern h3 {
-                font-size: 0.6rem !important;
-            }
-            
-            .tooltip-modern input {
-                padding: 0.2rem !important;
-                font-size: 0.6rem !important;
-            }
-            
-            .tooltip-modern button {
-                padding: 0.2rem 0.3rem !important;
-                font-size: 0.6rem !important;
-            }
-            
-            /* Final score page adjustments */
-            .text-4xl, .text-5xl {
-                font-size: 1rem !important;
-            }
-            
-            .text-3xl {
-                font-size: 0.9rem !important;
-            }
-            
-            /* Certificate button */
-            #mainContent button {
-                width: 100% !important;
-                margin-bottom: 0.1rem !important;
-            }
-            
-            /* Remove all scrollbars completely */
-            * {
-                scrollbar-width: none !important;
-                -ms-overflow-style: none !important;
-            }
-            
-            *::-webkit-scrollbar {
-                display: none !important;
-            }
-        }
-
-        /* 📟 Tablet Styles */
-        @media (max-width: 1024px) and (min-width: 769px) and (orientation: portrait) {
-            .poem-text {
-                font-size: 1.3rem !important;
-            }
-            
-            .modern-card {
-                padding: 1.5rem !important;
-            }
-
-            .kloang-container {
-                max-width: 500px !important;
-            }
-            
-            .wak-na {
-                min-width: 200px !important;
-                max-width: 200px !important;
-            }
-        }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-900 min-h-screen">
@@ -936,60 +745,216 @@
         <div class="floating-element text-3xl" style="bottom: 30%; right: 25%; animation-delay: 3s;">💭</div>
     </div>
 
+    <!-- Teacher Portal Section -->
+    <div id="teacherPortal" class="hidden bg-slate-50/70 min-h-screen py-12">
+        <div class="max-w-6xl mx-auto px-4 md:px-6 lg:px-8 space-y-10">
+            <div class="teacher-dashboard-header flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                    <p class="text-sm uppercase tracking-widest text-blue-600/70">ThaiLit Backoffice</p>
+                    <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900">แดชบอร์ดครูผู้สอน</h2>
+                    <p class="text-sm md:text-base text-slate-600 mt-2 max-w-2xl">ติดตามผลการเรียนรู้แบบเรียลไทม์ ดูคะแนน ทบทวนคำตอบ และวางแผนการสอนให้สอดคล้องกับความคืบหน้าของนักเรียนในแต่ละห้องเรียน</p>
+                </div>
+                <button onclick="closeTeacherPortal()" class="self-start md:self-center inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white text-slate-700 border border-slate-200 shadow-sm hover:bg-slate-100 transition">⬅️ กลับสู่หน้าหลัก</button>
+            </div>
+
+            <div class="teacher-portal-grid grid lg:grid-cols-5 gap-6">
+                <aside class="teacher-sidebar order-2 lg:order-1 lg:col-span-2 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 text-white rounded-3xl p-6 md:p-8 space-y-6 shadow-xl">
+                    <div class="space-y-2">
+                        <p class="text-sm text-white/80">ภาพรวมระบบ</p>
+                        <p class="text-lg md:text-xl font-semibold text-white/90">ข้อมูลสำคัญของวันนี้</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3 text-sm">
+                        <div class="bg-white/10 rounded-2xl p-3 backdrop-blur border border-white/10">
+                            <p class="text-white/70">ภาพรวมคะแนน</p>
+                            <p class="text-2xl font-bold" id="teacherQuickAverage">-</p>
+                        </div>
+                        <div class="bg-white/10 rounded-2xl p-3 backdrop-blur border border-white/10">
+                            <p class="text-white/70">นักเรียนลงทะเบียน</p>
+                            <p class="text-2xl font-bold" id="teacherQuickStudents">-</p>
+                        </div>
+                        <div class="bg-white/10 rounded-2xl p-3 backdrop-blur border border-white/10">
+                            <p class="text-white/70">ภารกิจสำเร็จ</p>
+                            <p class="text-2xl font-bold" id="teacherQuickCompleted">-</p>
+                        </div>
+                        <div class="bg-white/10 rounded-2xl p-3 backdrop-blur border border-white/10">
+                            <p class="text-white/70">เข้าสู่ระบบวันนี้</p>
+                            <p class="text-2xl font-bold" id="teacherQuickActive">-</p>
+                        </div>
+                    </div>
+                    <div class="text-xs text-white/70 space-y-1">
+                        <p>บัญชีทดลอง</p>
+                        <p class="font-semibold">อีเมล: teacher@thailit.app • รหัสผ่าน: litpass123</p>
+                    </div>
+                </aside>
+
+                <section class="order-1 lg:order-2 lg:col-span-3 space-y-6">
+                    <div id="teacherLoginPanel" class="space-y-6 bg-white/80 border border-slate-200 rounded-3xl p-6 md:p-8 shadow-lg">
+                        <div>
+                            <h3 class="text-2xl font-bold text-slate-900 mb-2">เข้าสู่ระบบสำหรับครู</h3>
+                            <p class="text-sm text-slate-600">ใช้บัญชีที่ได้รับจากผู้ดูแลเพื่อเข้าถึงข้อมูลนักเรียนและบันทึกการเรียนรู้</p>
+                        </div>
+                        <form id="teacherLoginForm" class="space-y-4" onsubmit="submitTeacherLogin(event)">
+                            <div>
+                                <label for="teacherEmail" class="block text-sm font-semibold text-slate-700 mb-2">อีเมลครู</label>
+                                <input id="teacherEmail" type="email" required class="w-full modern-input p-3" placeholder="teacher@school.ac.th">
+                            </div>
+                            <div>
+                                <label for="teacherPassword" class="block text-sm font-semibold text-slate-700 mb-2">รหัสผ่าน</label>
+                                <input id="teacherPassword" type="password" required class="w-full modern-input p-3" placeholder="••••••••">
+                            </div>
+                            <button type="submit" class="modern-button w-full py-3 text-base rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">เข้าสู่ระบบครู</button>
+                        </form>
+                        <div class="text-xs text-slate-500 leading-relaxed">
+                            <p>เมื่อเข้าสู่ระบบ ครูจะสามารถดาวน์โหลดรายงานผลลัพธ์ แสดงคำตอบของนักเรียนแต่ละคน และดูไทม์ไลน์กิจกรรมล่าสุดได้</p>
+                        </div>
+                    </div>
+
+                    <div id="teacherDashboard" class="hidden space-y-6">
+                        <div class="bg-white/80 border border-slate-200 rounded-3xl p-6 md:p-8 shadow-lg space-y-6">
+                            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                                <div>
+                                    <h3 class="text-2xl font-bold text-slate-900" id="teacherGreeting">สวัสดีคุณครู</h3>
+                                    <p class="text-sm text-slate-600" id="teacherClasses">บัญชีครูภาษาไทย</p>
+                                    <p class="text-xs text-slate-500" id="teacherEmailDisplay"></p>
+                                </div>
+                                <div class="flex flex-wrap gap-2">
+                                    <button onclick="renderTeacherDashboard()" class="modern-button px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 flex items-center gap-2">
+                                        🔄 รีเฟรชข้อมูล
+                                    </button>
+                                    <button onclick="logoutTeacher()" class="modern-button px-4 py-2 rounded-xl bg-red-500 hover:bg-red-600 flex items-center gap-2">
+                                        🚪 ออกจากระบบครู
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div id="teacherDashboardLoading" class="hidden">
+                                <div class="bg-white border border-slate-200 rounded-2xl p-6 text-center shadow-sm">
+                                    <div class="flex flex-col items-center gap-3">
+                                        <div class="w-12 h-12 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin"></div>
+                                        <p class="text-sm text-slate-600">กำลังดึงข้อมูลนักเรียน...</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="teacherSummaryCards" class="teacher-summary-grid grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+
+                            <div id="teacherEmptyState" class="hidden bg-white border border-dashed border-slate-300 rounded-2xl p-6 text-center text-slate-500">
+                                <p class="font-semibold">ยังไม่มีข้อมูลนักเรียนในระบบ</p>
+                                <p class="text-sm mt-2">เมื่อมีนักเรียนลงทะเบียนหรือเริ่มทำภารกิจ ข้อมูลจะปรากฏที่นี่อัตโนมัติ</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+                            <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+                                <h4 class="text-lg font-semibold text-slate-900">ภาพรวมคะแนนนักเรียน</h4>
+                                <span class="text-xs text-slate-500" id="teacherTableMeta"></span>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="teacher-table min-w-full divide-y divide-slate-200 text-sm">
+                                    <thead class="bg-slate-50">
+                                        <tr>
+                                            <th class="px-4 py-3 text-left font-semibold text-slate-600">นักเรียน</th>
+                                            <th class="px-4 py-3 text-left font-semibold text-slate-600">ชั้น/ห้อง</th>
+                                            <th class="px-4 py-3 text-left font-semibold text-slate-600">ความคืบหน้า</th>
+                                            <th class="px-4 py-3 text-left font-semibold text-slate-600">คะแนนเฉลี่ย</th>
+                                            <th class="px-4 py-3 text-left font-semibold text-slate-600">อัปเดตล่าสุด</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="teacherStudentTable" class="divide-y divide-slate-100 bg-white"></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h4 class="text-lg font-semibold text-slate-900">กิจกรรมล่าสุด</h4>
+                                <span class="text-xs text-slate-500" id="teacherTimelineMeta"></span>
+                            </div>
+                            <div id="teacherActivityTimeline" class="teacher-activity-list space-y-4"></div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
     <!-- Landing Page -->
     <div id="landingPage" class="min-h-screen bg-gray-50 flex items-center justify-center p-2 md:p-4 relative overflow-hidden">
+        <div class="landing-aurora"></div>
         <div class="max-w-6xl mx-auto relative z-10 w-full">
             <!-- Main Content Grid -->
             <div class="grid lg:grid-cols-2 gap-4 md:gap-8 items-center min-h-screen py-4">
                 <!-- Left Column - Hero Content -->
                 <div class="text-center lg:text-left flex flex-col justify-center h-full py-8">
-                    <div class="mb-6">
-                        <div class="text-6xl lg:text-7xl mb-4">📚</div>
-                        <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+                    <div class="mb-8 space-y-6">
+                        <div class="flex justify-center lg:justify-start">
+                            <span class="hero-badge">
+                                📚 ภารกิจ 01 • โคลงสี่สุภาพ
+                            </span>
+                        </div>
+
+                        <h1 class="hero-title text-3xl md:text-4xl lg:text-5xl text-gray-900">
                             ไขรหัสวรรณคดี
+                            <span class="hero-highlight">The Literature Detective</span>
                         </h1>
-                        <p class="text-base md:text-lg lg:text-xl text-gray-600 mb-6">
-                            แอปพลิเคชันเรียนรู้วรรณคดีไทยแบบโต้ตอบ
+
+                        <p class="hero-subtitle text-base md:text-lg lg:text-xl">
+                            ประสบการณ์เรียนรู้วรรณคดีไทยที่ผสานเกมการสืบสวน การตีความ และการจับคู่คำศัพท์ให้สนุกกว่าที่เคย
                         </p>
-                        
+
                         <!-- Feature Highlights -->
-                        <div class="flex flex-wrap justify-center lg:justify-start gap-4 text-base mb-6">
-                            <div class="flex items-center gap-2 bg-blue-100 px-4 py-2 rounded-full">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-base">
+                            <div class="stat-chip">
                                 <span class="text-2xl">🔍</span>
-                                <span class="font-semibold text-blue-800">สืบสอบคำศัพท์</span>
+                                <p class="font-semibold text-blue-700">สืบค้นคำศัพท์</p>
+                                <p class="text-xs text-gray-500">พร้อมแหล่งอ้างอิง</p>
                             </div>
-                            <div class="flex items-center gap-2 bg-purple-100 px-4 py-2 rounded-full">
+                            <div class="stat-chip">
                                 <span class="text-2xl">💭</span>
-                                <span class="font-semibold text-purple-800">จินตนาการ</span>
+                                <p class="font-semibold text-purple-700">จินตนาการเรื่องราว</p>
+                                <p class="text-xs text-gray-500">ถอดความแบบสร้างสรรค์</p>
                             </div>
-                            <div class="flex items-center gap-2 bg-green-100 px-4 py-2 rounded-full">
-                                <span class="text-2xl">📖</span>
-                                <span class="font-semibold text-green-800">ถอดความ</span>
+                            <div class="stat-chip">
+                                <span class="text-2xl">🎯</span>
+                                <p class="font-semibold text-emerald-700">สะสมคะแนน</p>
+                                <p class="text-xs text-gray-500">ปลดล็อกภารกิจใหม่</p>
                             </div>
                         </div>
                         
                         <!-- Login Section -->
                         <div id="loginSection" class="mb-6">
-                            <div class="bg-white bg-opacity-20 backdrop-filter backdrop-blur-lg border border-white border-opacity-30 rounded-2xl p-4 mb-4">
+                            <div class="landing-card p-6 md:p-7 mb-6">
                                 <div class="flex items-center justify-center gap-4 mb-4">
                                     <span class="text-2xl">👤</span>
                                     <h3 class="text-xl font-bold text-gray-900">เข้าสู่ระบบ</h3>
                                 </div>
-                                <p class="text-gray-700 text-center mb-6">เข้าสู่ระบบเพื่อบันทึกความคืบหน้าและคะแนน</p>
-                                
+                                <p class="text-gray-600 text-center mb-6 leading-relaxed">เข้าสู่ระบบเพื่อบันทึกความคืบหน้า เชื่อมต่อคะแนน และรับคำแนะนำเฉพาะตัวในแต่ละภารกิจ</p>
+
                                 <div id="loginButtons" class="space-y-4">
-                                    <div class="grid grid-cols-3 gap-2">
+                                    <div class="grid grid-cols-3 gap-2 login-actions">
                                         <button onclick="showStudentForm()" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-2 rounded-xl transition-all duration-200 text-sm">
                                             📝 ลงทะเบียน
                                         </button>
-                                        
+
                                         <button onclick="showLoginForm()" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-2 rounded-xl transition-all duration-200 text-sm">
                                             🔑 เข้าสู่ระบบ
                                         </button>
-                                        
-                                        <button id="startGameBtn" onclick="startGame()" class="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-3 px-2 rounded-xl transition-all duration-200 text-sm disabled:bg-gray-400 disabled:cursor-not-allowed disabled:opacity-50 transform hover:scale-105 shadow-lg enabled:shadow-2xl enabled:animate-pulse" disabled>
+
+                                        <button id="startGameBtn" onclick="startGame()" class="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-3 px-2 rounded-xl transition-all duration-200 text-sm disabled:bg-gray-400 disabled:cursor-not-allowed disabled:opacity-50 transform hover:scale-105 enabled:shadow-2xl enabled:animate-pulse" disabled>
                                             ✨ เริ่มเลย
                                         </button>
+                                    </div>
+
+                                    <div class="p-4 rounded-2xl bg-gradient-to-r from-blue-50/80 via-indigo-50/80 to-purple-50/80 border border-blue-100/70">
+                                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                                            <div class="text-left">
+                                                <p class="text-sm font-semibold text-blue-900">สำหรับครูผู้สอน</p>
+                                                <p class="text-xs text-blue-600">เข้าสู่ระบบเพื่อดูคะแนนและความคืบหน้านักเรียน</p>
+                                            </div>
+                                            <button onclick="openTeacherPortal()" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-4 rounded-xl transition-all duration-200 shadow-lg flex items-center justify-center gap-2">
+                                                👩‍🏫 พื้นที่ครู
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                                 
@@ -1100,7 +1065,7 @@
                 </div>
                 
                 <!-- Right Column - Mission Info -->
-                <div class="modern-card rounded-3xl p-4 md:p-6 h-full overflow-y-auto">
+                <div class="mission-card rounded-3xl p-4 md:p-6 h-full overflow-y-auto">
                     <div class="mb-4">
                         <h2 class="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
                             โคลงสี่สุภาพ
@@ -1108,25 +1073,30 @@
                         <p class="text-base md:text-lg lg:text-xl text-gray-600">พระราชพงศาวดาร - เรื่องสมเด็จพระสุริโยทัย</p>
                     </div>
                     
-                    <div class="bg-gradient-to-br from-blue-50 to-purple-50 border-2 border-blue-200 rounded-2xl p-4 mb-4">
-                        <div class="flex items-center gap-3 mb-3">
+                    <div class="bg-white bg-opacity-70 border border-blue-200/60 rounded-2xl p-4 mb-6 backdrop-blur">
+                        <div class="flex items-center gap-3 mb-4">
                             <span class="text-3xl">🎯</span>
                             <div>
                                 <h3 class="text-lg font-bold text-blue-900">ภารกิจ</h3>
                                 <p class="text-blue-800 text-sm">ค้นหาความหมายคำศัพท์ยาก 5 คำ</p>
                             </div>
                         </div>
-                        
+
+                        <div class="relative mb-4 overflow-hidden rounded-xl border border-blue-200/50 shadow-lg">
+                            <img src="https://img5.pic.in.th/file/secure-sv1/education-booksOK.jpg" alt="กองหนังสือเพื่อการเรียนรู้" class="w-full h-40 object-cover">
+                            <div class="absolute inset-0 bg-gradient-to-t from-blue-900/40 via-transparent to-transparent"></div>
+                        </div>
+
                         <div class="grid grid-cols-3 gap-3 text-center">
-                            <div class="bg-white bg-opacity-50 rounded-xl p-3">
+                            <div class="stat-chip">
                                 <div class="text-xl font-bold text-blue-600">5</div>
                                 <div class="text-blue-700 text-xs">คำศัพท์</div>
                             </div>
-                            <div class="bg-white bg-opacity-50 rounded-xl p-3">
+                            <div class="stat-chip">
                                 <div class="text-xl font-bold text-green-600">100+</div>
                                 <div class="text-green-700 text-xs">คะแนน</div>
                             </div>
-                            <div class="bg-white bg-opacity-50 rounded-xl p-3">
+                            <div class="stat-chip">
                                 <div class="text-xl font-bold text-purple-600">5</div>
                                 <div class="text-purple-700 text-xs">ขั้นตอน</div>
                             </div>
@@ -1134,22 +1104,29 @@
                     </div>
                     
                     <!-- Features List -->
-                    <div class="space-y-3 mb-4">
-                        <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                    <div class="space-y-3 mb-6">
+                        <div class="flex items-center gap-3 p-3 bg-white/70 backdrop-blur rounded-xl border border-slate-200/70">
                             <div class="text-2xl">🔍</div>
                             <div>
                                 <h4 class="font-bold text-gray-900 text-sm">สืบสอบคำศัพท์</h4>
                                 <p class="text-gray-600 text-xs">ค้นหาความหมายด้วยตนเอง พร้อมระบุแหล่งอ้างอิง</p>
                             </div>
                         </div>
-                        <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                        <div class="flex items-center gap-3 p-3 bg-white/70 backdrop-blur rounded-xl border border-slate-200/70">
                             <div class="text-2xl">💭</div>
                             <div>
                                 <h4 class="font-bold text-gray-900 text-sm">จินตนาการ & ถอดความ</h4>
                                 <p class="text-gray-600 text-xs">วาดภาพในใจและถอดความเป็นร้อยแก้วสมัยใหม่</p>
                             </div>
                         </div>
-                        <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                        <div class="flex items-center gap-3 p-3 bg-white/70 backdrop-blur rounded-xl border border-slate-200/70">
+                            <div class="text-2xl">🧠</div>
+                            <div>
+                                <h4 class="font-bold text-gray-900 text-sm">วิเคราะห์เชิงวรรณศิลป์</h4>
+                                <p class="text-gray-600 text-xs">สังเกตรูปแบบฉันทลักษณ์และเทคนิคการประพันธ์</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 p-3 bg-white/70 backdrop-blur rounded-xl border border-slate-200/70">
                             <div class="text-2xl">🖼️</div>
                             <div>
                                 <h4 class="font-bold text-gray-900 text-sm">เปิดภาพจริง</h4>
@@ -1159,7 +1136,7 @@
                     </div>
                     
                     <!-- Ranking System -->
-                    <div class="bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-yellow-200 rounded-2xl p-4">
+                    <div class="bg-white/80 backdrop-blur border border-yellow-200/70 rounded-2xl p-4 shadow-xl">
                         <div class="flex items-center gap-2 mb-3">
                             <span class="text-2xl">🏆</span>
                             <h3 class="text-lg font-bold text-yellow-900">ระบบอันดับ</h3>
@@ -1379,6 +1356,31 @@
             expToNextLevel: 100
         };
 
+        const teacherCredentials = {
+            "teacher@thailit.app": {
+                password: "litpass123",
+                name: "ครูอารีย์ วิชิต",
+                department: "กลุ่มสาระภาษาไทย",
+                classes: ["ม.4/1", "ม.4/2"],
+                role: "หัวหน้ากลุ่มสาระ"
+            },
+            "headteacher@thailit.app": {
+                password: "thailit789",
+                name: "ครูวราภรณ์ มั่นคง",
+                department: "กลุ่มสาระภาษาไทย",
+                classes: ["ม.5/1", "ม.5/3", "ชมรมวรรณศิลป์"],
+                role: "ครูพี่เลี้ยง"
+            }
+        };
+
+        let currentTeacher = null;
+
+        function refreshTeacherViewIfNeeded() {
+            if (currentTeacher) {
+                renderTeacherDashboard().catch(error => console.error('Teacher dashboard refresh failed:', error));
+            }
+        }
+
         // Mission Data
         const MISSION_DATA = {
             MISSION_01: {
@@ -1535,11 +1537,13 @@
                     localStorage.setItem(`student_${gameState.userId}`, JSON.stringify(userData));
                     console.log('User data saved to localStorage');
                 }
+                refreshTeacherViewIfNeeded();
                 return true;
             } catch (error) {
                 console.error('Error saving user data:', error);
                 // Fallback to localStorage
                 localStorage.setItem(`student_${gameState.userId}`, JSON.stringify(userData));
+                refreshTeacherViewIfNeeded();
                 return false;
             }
         }
@@ -1593,10 +1597,12 @@
                     localStorage.setItem(`gameSession_${gameState.gameId}`, JSON.stringify(sessionData));
                     console.log('Game session saved to localStorage');
                 }
+                refreshTeacherViewIfNeeded();
                 return true;
             } catch (error) {
                 console.error('Error saving game session:', error);
                 localStorage.setItem(`gameSession_${gameState.gameId}`, JSON.stringify(sessionData));
+                refreshTeacherViewIfNeeded();
                 return false;
             }
         }
@@ -1675,8 +1681,9 @@
                 await db.collection('UserAnswer').doc(answersDocId).set(answersData);
                 
                 console.log('All user answers saved to Firebase UserAnswer collection:', answersDocId);
+                refreshTeacherViewIfNeeded();
                 return true;
-                
+
             } catch (error) {
                 console.error('Error saving user answers to UserAnswer collection:', error);
                 return false;
@@ -2031,7 +2038,414 @@
                 gameState.currentUser = null;
             }
         }
-        
+
+        function openTeacherPortal() {
+            const portal = document.getElementById('teacherPortal');
+            const landing = document.getElementById('landingPage');
+            if (!portal) return;
+
+            portal.classList.remove('hidden');
+            if (landing) landing.classList.add('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            const loginPanel = document.getElementById('teacherLoginPanel');
+            const dashboard = document.getElementById('teacherDashboard');
+
+            if (currentTeacher) {
+                if (loginPanel) loginPanel.classList.add('hidden');
+                if (dashboard) dashboard.classList.remove('hidden');
+                renderTeacherDashboard();
+            } else {
+                if (loginPanel) loginPanel.classList.remove('hidden');
+                if (dashboard) dashboard.classList.add('hidden');
+                resetTeacherLoginForm();
+            }
+        }
+
+        function closeTeacherPortal() {
+            const portal = document.getElementById('teacherPortal');
+            const landing = document.getElementById('landingPage');
+            if (!portal) return;
+
+            portal.classList.add('hidden');
+            if (landing) landing.classList.remove('hidden');
+        }
+
+        function resetTeacherLoginForm() {
+            const emailInput = document.getElementById('teacherEmail');
+            const passwordInput = document.getElementById('teacherPassword');
+            if (emailInput) emailInput.value = '';
+            if (passwordInput) passwordInput.value = '';
+        }
+
+        async function submitTeacherLogin(event) {
+            event.preventDefault();
+
+            const emailInput = document.getElementById('teacherEmail');
+            const passwordInput = document.getElementById('teacherPassword');
+
+            const email = emailInput?.value.trim().toLowerCase();
+            const password = passwordInput?.value.trim();
+
+            if (!email || !password) {
+                showNotification('กรุณากรอกอีเมลและรหัสผ่านของคุณครู', 'error');
+                return;
+            }
+
+            const credential = teacherCredentials[email];
+            if (!credential || credential.password !== password) {
+                showNotification('อีเมลหรือรหัสผ่านไม่ถูกต้อง', 'error');
+                if (passwordInput) passwordInput.value = '';
+                return;
+            }
+
+            currentTeacher = {
+                email,
+                ...credential
+            };
+
+            const loginPanel = document.getElementById('teacherLoginPanel');
+            const dashboard = document.getElementById('teacherDashboard');
+
+            if (loginPanel) loginPanel.classList.add('hidden');
+            if (dashboard) dashboard.classList.remove('hidden');
+
+            showNotification(`ยินดีต้อนรับ ${credential.name}`, 'success');
+            await renderTeacherDashboard();
+        }
+
+        function logoutTeacher() {
+            currentTeacher = null;
+            const loginPanel = document.getElementById('teacherLoginPanel');
+            const dashboard = document.getElementById('teacherDashboard');
+            if (loginPanel) loginPanel.classList.remove('hidden');
+            if (dashboard) dashboard.classList.add('hidden');
+            resetTeacherLoginForm();
+            showNotification('ออกจากระบบครูเรียบร้อย', 'success');
+        }
+
+        async function renderTeacherDashboard() {
+            const loading = document.getElementById('teacherDashboardLoading');
+            const summary = document.getElementById('teacherSummaryCards');
+            const tableBody = document.getElementById('teacherStudentTable');
+            const timeline = document.getElementById('teacherActivityTimeline');
+            const emptyState = document.getElementById('teacherEmptyState');
+            const tableMeta = document.getElementById('teacherTableMeta');
+            const timelineMeta = document.getElementById('teacherTimelineMeta');
+            const quickAverage = document.getElementById('teacherQuickAverage');
+            const quickStudents = document.getElementById('teacherQuickStudents');
+            const quickCompleted = document.getElementById('teacherQuickCompleted');
+            const quickActive = document.getElementById('teacherQuickActive');
+            const greeting = document.getElementById('teacherGreeting');
+            const classesEl = document.getElementById('teacherClasses');
+            const emailEl = document.getElementById('teacherEmailDisplay');
+
+            if (currentTeacher) {
+                if (greeting) greeting.textContent = `ยินดีต้อนรับ ${currentTeacher.name}`;
+                if (classesEl) classesEl.textContent = currentTeacher.classes?.length ? `ดูแล: ${currentTeacher.classes.join(', ')}` : 'บัญชีครูภาษาไทย';
+                if (emailEl) emailEl.textContent = `${currentTeacher.role || 'ครูผู้สอน'} • ${currentTeacher.email}`;
+            }
+
+            if (summary) summary.innerHTML = '';
+            if (tableBody) tableBody.innerHTML = '';
+            if (timeline) timeline.innerHTML = '';
+            if (tableMeta) tableMeta.textContent = '';
+            if (timelineMeta) timelineMeta.textContent = '';
+            if (emptyState) emptyState.classList.add('hidden');
+
+            if (loading) loading.classList.remove('hidden');
+
+            const { students, sessions } = await fetchTeacherData();
+
+            if (loading) loading.classList.add('hidden');
+
+            if (quickStudents) quickStudents.textContent = students.length.toString();
+
+            const completedSessions = sessions.filter(session => session.completed);
+            const averageScore = sessions.length ? Math.round(sessions.reduce((sum, item) => sum + (item.totalScore || item.comprehensionScore || 0), 0) / sessions.length) : 0;
+            const activeToday = sessions.filter(session => {
+                if (!session.lastUpdated && !session.timestamp) return false;
+                const time = new Date(session.lastUpdated || session.timestamp);
+                const now = new Date();
+                return time.getDate() === now.getDate() && time.getMonth() === now.getMonth() && time.getFullYear() === now.getFullYear();
+            });
+
+            if (quickAverage) quickAverage.textContent = sessions.length ? `${averageScore}` : '-';
+            if (quickCompleted) quickCompleted.textContent = completedSessions.length.toString();
+            if (quickActive) quickActive.textContent = activeToday.length.toString();
+
+            if (students.length === 0 && sessions.length === 0) {
+                if (emptyState) emptyState.classList.remove('hidden');
+                return;
+            }
+
+            const sessionsByStudent = {};
+            sessions.forEach(session => {
+                const key = session.userId || session.studentId || session.userEmail || session.userName;
+                if (!key) return;
+                if (!sessionsByStudent[key]) sessionsByStudent[key] = [];
+                sessionsByStudent[key].push(session);
+            });
+
+            const studentRows = students.map(student => {
+                const key = student.studentId || student.id || student.email || student.name;
+                const studentSessions = sessionsByStudent[key] || [];
+                const sortedSessions = studentSessions.sort((a, b) => new Date(b.lastUpdated || b.timestamp || 0) - new Date(a.lastUpdated || a.timestamp || 0));
+                const latestSession = sortedSessions[0];
+                const average = studentSessions.length ? Math.round(studentSessions.reduce((sum, item) => sum + (item.totalScore || item.comprehensionScore || 0), 0) / studentSessions.length) : 0;
+                const completionCount = studentSessions.filter(item => item.completed).length;
+                return {
+                    ...student,
+                    averageScore: average,
+                    latestSession,
+                    completionCount,
+                    sessions: studentSessions
+                };
+            });
+
+            const knownStudentIds = new Set(studentRows.map(row => row.studentId || row.id || row.email));
+            sessions.forEach(session => {
+                const key = session.userId || session.studentId || session.userEmail;
+                if (!key || knownStudentIds.has(key)) return;
+                const average = session.totalScore || session.comprehensionScore || 0;
+                studentRows.push({
+                    name: session.userName || 'นักเรียนไม่ระบุชื่อ',
+                    grade: session.grade || '-',
+                    room: session.room || '-',
+                    number: session.number || '-',
+                    studentId: key,
+                    averageScore: average,
+                    latestSession: session,
+                    completionCount: session.completed ? 1 : 0,
+                    sessions: [session]
+                });
+                knownStudentIds.add(key);
+            });
+
+            studentRows.sort((a, b) => {
+                const scoreDiff = (b.averageScore || 0) - (a.averageScore || 0);
+                if (scoreDiff !== 0) return scoreDiff;
+                const aTime = new Date(a.latestSession?.lastUpdated || a.latestSession?.timestamp || 0).getTime();
+                const bTime = new Date(b.latestSession?.lastUpdated || b.latestSession?.timestamp || 0).getTime();
+                return bTime - aTime;
+            });
+
+            if (summary) {
+                const inProgress = sessions.length - completedSessions.length;
+                const summaryData = [
+                    {
+                        label: 'นักเรียนที่ลงทะเบียน',
+                        value: students.length,
+                        description: 'มีโปรไฟล์ในระบบ',
+                        gradient: 'from-blue-500 to-indigo-500',
+                        icon: '👨‍🎓'
+                    },
+                    {
+                        label: 'ภารกิจที่เสร็จสมบูรณ์',
+                        value: completedSessions.length,
+                        description: 'ปิดจบครบทุกขั้น',
+                        gradient: 'from-emerald-500 to-teal-500',
+                        icon: '🏆'
+                    },
+                    {
+                        label: 'กำลังทำอยู่',
+                        value: inProgress,
+                        description: 'อยู่ระหว่างภารกิจ',
+                        gradient: 'from-amber-500 to-orange-500',
+                        icon: '⏳'
+                    },
+                    {
+                        label: 'คะแนนเฉลี่ยรวม',
+                        value: sessions.length ? `${averageScore}` : '-',
+                        description: 'จากทุกเกมที่บันทึก',
+                        gradient: 'from-purple-500 to-pink-500',
+                        icon: '📊'
+                    }
+                ];
+
+                summary.innerHTML = summaryData.map(card => `
+                    <div class="teacher-summary-card bg-white border border-slate-200 rounded-3xl p-5 flex flex-col gap-3 shadow-sm">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">${card.icon}</span>
+                            <div>
+                                <p class="text-xs uppercase tracking-wide text-slate-500">${card.label}</p>
+                                <p class="text-2xl font-bold text-slate-900">${card.value}</p>
+                            </div>
+                        </div>
+                        <div class="mt-auto">
+                            <div class="h-1.5 rounded-full bg-slate-200 overflow-hidden">
+                                <div class="h-full bg-gradient-to-r ${card.gradient}"></div>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-2">${card.description}</p>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            if (tableBody) {
+                tableBody.innerHTML = studentRows.map(row => {
+                    const gradeRoom = row.grade ? `${row.grade}${row.room ? `/${row.room}` : ''}` : '-';
+                    const progressPercent = Math.min(100, Math.round(((row.latestSession?.currentStep || 1) / 6) * 100));
+                    const latestScore = row.latestSession ? Math.round(row.latestSession.totalScore || row.latestSession.comprehensionScore || 0) : 0;
+                    const updatedAt = row.latestSession ? new Date(row.latestSession.lastUpdated || row.latestSession.timestamp || Date.now()).toLocaleString('th-TH', {
+                        dateStyle: 'short',
+                        timeStyle: 'short'
+                    }) : '-';
+                    const completionBadge = row.completionCount > 0 ? `<span class="px-2 py-1 rounded-full text-xs bg-emerald-100 text-emerald-700">เสร็จ ${row.completionCount} ครั้ง</span>` : `<span class="px-2 py-1 rounded-full text-xs bg-amber-100 text-amber-700">กำลังทำ</span>`;
+
+                    return `
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="px-4 py-3" data-label="นักเรียน">
+                                <div class="flex flex-col">
+                                    <span class="font-semibold text-slate-900">${row.name || 'ไม่ระบุชื่อ'}</span>
+                                    <span class="text-xs text-slate-500">${row.studentId || '-'}</span>
+                                </div>
+                            </td>
+                            <td class="px-4 py-3 text-slate-600" data-label="ชั้น/ห้อง">
+                                <div class="flex flex-col gap-1">
+                                    <span>${gradeRoom}</span>
+                                    <span class="text-xs text-slate-500">เลขที่ ${row.number || '-'}</span>
+                                </div>
+                            </td>
+                            <td class="px-4 py-3" data-label="ความคืบหน้า">
+                                <div class="flex flex-col gap-1">
+                                    <div class="h-2.5 rounded-full bg-slate-200">
+                                        <div class="h-full rounded-full bg-gradient-to-r from-blue-500 to-indigo-500" style="width: ${progressPercent}%"></div>
+                                    </div>
+                                    <div class="flex items-center justify-between text-xs text-slate-500">
+                                        <span>${progressPercent}%</span>
+                                        ${completionBadge}
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-4 py-3 text-slate-600" data-label="คะแนนเฉลี่ย">
+                                <div class="flex flex-col gap-1">
+                                    <span class="font-semibold text-slate-900">${row.averageScore || latestScore}</span>
+                                    <span class="text-xs text-slate-500">ล่าสุด ${latestScore}</span>
+                                </div>
+                            </td>
+                            <td class="px-4 py-3 text-slate-600 text-sm" data-label="อัปเดตล่าสุด">${updatedAt}</td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            if (tableMeta) {
+                tableMeta.textContent = `${studentRows.length} รายการ • อัปเดต ${new Date().toLocaleString('th-TH', { timeStyle: 'short', dateStyle: 'short' })}`;
+            }
+
+            if (timeline) {
+                const recentActivities = [...sessions]
+                    .sort((a, b) => new Date(b.lastUpdated || b.timestamp || 0) - new Date(a.lastUpdated || a.timestamp || 0))
+                    .slice(0, 6);
+
+                if (recentActivities.length === 0) {
+                    timeline.innerHTML = '<p class="text-sm text-slate-500 text-center">ยังไม่มีกิจกรรมล่าสุด</p>';
+                } else {
+                    timeline.innerHTML = recentActivities.map(activity => {
+                        const activityTime = new Date(activity.lastUpdated || activity.timestamp || Date.now()).toLocaleString('th-TH', {
+                            dateStyle: 'short',
+                            timeStyle: 'short'
+                        });
+                        const status = activity.completed ? 'เสร็จสิ้นภารกิจ' : `อยู่ที่ขั้นตอน ${activity.currentStep || '-'}`;
+                        const score = activity.totalScore || activity.comprehensionScore || 0;
+                        return `
+                            <div class="flex flex-col sm:flex-row gap-3">
+                                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 text-white flex items-center justify-center text-lg">
+                                    📘
+                                </div>
+                                <div class="flex-1 border-b border-dashed border-slate-200 pb-3">
+                                    <div class="flex items-center justify-between">
+                                        <p class="font-semibold text-slate-900">${activity.userName || 'นักเรียนไม่ระบุชื่อ'}</p>
+                                        <span class="text-xs text-slate-500">${activityTime}</span>
+                                    </div>
+                                    <p class="text-sm text-slate-600">${status} • คะแนน ${Math.round(score)}</p>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+            }
+
+            if (timelineMeta) {
+                timelineMeta.textContent = `${sessions.length} บันทึกกิจกรรม`;
+            }
+        }
+
+        async function fetchTeacherData() {
+            let students = [];
+            let sessions = [];
+
+            try {
+                if (db) {
+                    const [studentSnapshot, sessionSnapshot] = await Promise.all([
+                        db.collection('User').where('isStudent', '==', true).get().catch(() => null),
+                        db.collection('gameSessions').get().catch(() => null)
+                    ]);
+
+                    if (studentSnapshot) {
+                        studentSnapshot.forEach(doc => {
+                            students.push({ id: doc.id, ...doc.data() });
+                        });
+                    }
+
+                    if (sessionSnapshot) {
+                        sessionSnapshot.forEach(doc => {
+                            sessions.push({ id: doc.id, ...doc.data() });
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading data from Firebase for teacher portal:', error);
+            }
+
+            if (students.length === 0) {
+                students = loadLocalStudents();
+            }
+
+            if (sessions.length === 0) {
+                sessions = loadLocalSessions();
+            }
+
+            return { students, sessions };
+        }
+
+        function loadLocalStudents() {
+            const result = [];
+            if (typeof localStorage === 'undefined') return result;
+
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('student_')) {
+                    try {
+                        const data = JSON.parse(localStorage.getItem(key));
+                        if (data) result.push(data);
+                    } catch (error) {
+                        console.error('Failed to parse local student data', error);
+                    }
+                }
+            }
+            return result;
+        }
+
+        function loadLocalSessions() {
+            const result = [];
+            if (typeof localStorage === 'undefined') return result;
+
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('gameSession_')) {
+                    try {
+                        const data = JSON.parse(localStorage.getItem(key));
+                        if (data) result.push(data);
+                    } catch (error) {
+                        console.error('Failed to parse local session data', error);
+                    }
+                }
+            }
+            return result;
+        }
+
         // Check for existing student login on page load
         window.addEventListener('load', async () => {
             // Try to restore previous student session
@@ -3041,34 +3455,40 @@
 
         // Update Step Indicators
         function updateStepIndicators() {
-            const stepTexts = [
-                '📚 ประวัติศาสตร์',
-                '📖 แสดงโคลง',
-                '✍️ จินตนาการ & ถอดความ',
-                '🖼️ เปิดภาพจริง',
-                '📝 ทบทวน',
-                '🏆 สรุปผล'
-            ];
+            const stepTextMap = {
+                1: '📚 ประวัติศาสตร์',
+                2: '📖 แสดงโคลง',
+                '2.5': '🎯 จับคู่คำศัพท์',
+                3: '✍️ จินตนาการ & ถอดความ',
+                4: '🖼️ เปิดภาพจริง',
+                5: '📝 ทบทวน',
+                6: '🏆 สรุปผล'
+            };
+
+            const rawStep = gameState.currentStep || 1;
+            const isIntermediateStep = !Number.isInteger(rawStep);
+            const activeStep = Math.min(6, Math.max(1, isIntermediateStep ? Math.floor(rawStep) : rawStep));
+            const completedThreshold = Math.max(0, activeStep - 1);
 
             for (let i = 1; i <= 6; i++) {
                 const stepElement = document.getElementById(`step-${i}`);
-                if (stepElement) {
-                    stepElement.className = 'step-circle ';
-                    
-                    if (i < gameState.currentStep) {
-                        stepElement.className += 'step-completed';
-                    } else if (i === gameState.currentStep) {
-                        stepElement.className += 'step-active';
-                    } else {
-                        stepElement.className += 'step-inactive';
-                    }
+                if (!stepElement) continue;
+
+                stepElement.classList.remove('step-active', 'step-completed', 'step-inactive');
+
+                if (i <= completedThreshold) {
+                    stepElement.classList.add('step-completed');
+                } else if (i === activeStep) {
+                    stepElement.classList.add('step-active');
+                } else {
+                    stepElement.classList.add('step-inactive');
                 }
             }
 
-            // Update mobile step text
             const currentStepText = document.getElementById('currentStepText');
-            if (currentStepText && gameState.currentStep >= 1 && gameState.currentStep <= 6) {
-                currentStepText.textContent = stepTexts[gameState.currentStep - 1];
+            if (currentStepText) {
+                const stepKey = stepTextMap[rawStep] ? rawStep : activeStep;
+                currentStepText.textContent = stepTextMap[stepKey] || stepTextMap[1];
             }
         }
 
@@ -5050,5 +5470,5 @@
             }, 4000);
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98f039c8838b91b4',t:'MTc2MDU0MDg0Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>
