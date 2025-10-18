@@ -1126,46 +1126,50 @@
         <div class="floating-element text-3xl" style="bottom: 30%; right: 25%; animation-delay: 3s;">💭</div>
     </div>
 
-    <!-- Teacher Portal Modal -->
-    <div id="teacherPortal" class="hidden fixed inset-0 z-50 flex items-center justify-center px-4">
-        <div class="absolute inset-0 bg-slate-900/70 backdrop-blur-sm" onclick="closeTeacherPortal()"></div>
-        <div class="relative bg-white rounded-3xl shadow-2xl max-w-6xl w-full overflow-hidden">
-            <div class="grid lg:grid-cols-5">
-                <div class="lg:col-span-2 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 text-white p-6 md:p-8 relative">
-                    <button onclick="closeTeacherPortal()" class="absolute top-4 right-4 w-10 h-10 bg-white/20 hover:bg-white/30 text-white rounded-full flex items-center justify-center font-bold backdrop-blur border border-white/40 transition-all duration-200">×</button>
-                    <div class="space-y-6">
-                        <div class="space-y-2">
-                            <p class="text-sm uppercase tracking-widest text-white/80">ThaiLit Backoffice</p>
-                            <h2 class="text-3xl md:text-4xl font-extrabold leading-tight">แดชบอร์ดครูผู้สอน</h2>
+    <!-- Teacher Portal Section -->
+    <div id="teacherPortal" class="hidden bg-slate-50/70 min-h-screen py-12">
+        <div class="max-w-6xl mx-auto px-4 md:px-6 lg:px-8 space-y-10">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                    <p class="text-sm uppercase tracking-widest text-blue-600/70">ThaiLit Backoffice</p>
+                    <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900">แดชบอร์ดครูผู้สอน</h2>
+                    <p class="text-sm md:text-base text-slate-600 mt-2 max-w-2xl">ติดตามผลการเรียนรู้แบบเรียลไทม์ ดูคะแนน ทบทวนคำตอบ และวางแผนการสอนให้สอดคล้องกับความคืบหน้าของนักเรียนในแต่ละห้องเรียน</p>
+                </div>
+                <button onclick="closeTeacherPortal()" class="self-start md:self-center inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white text-slate-700 border border-slate-200 shadow-sm hover:bg-slate-100 transition">⬅️ กลับสู่หน้าหลัก</button>
+            </div>
+
+            <div class="grid lg:grid-cols-5 gap-6">
+                <aside class="lg:col-span-2 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 text-white rounded-3xl p-6 md:p-8 space-y-6 shadow-xl">
+                    <div class="space-y-2">
+                        <p class="text-sm text-white/80">ภาพรวมระบบ</p>
+                        <p class="text-lg md:text-xl font-semibold text-white/90">ข้อมูลสำคัญของวันนี้</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3 text-sm">
+                        <div class="bg-white/10 rounded-2xl p-3 backdrop-blur border border-white/10">
+                            <p class="text-white/70">ภาพรวมคะแนน</p>
+                            <p class="text-2xl font-bold" id="teacherQuickAverage">-</p>
                         </div>
-                        <p class="text-white/80 leading-relaxed">ติดตามผลการเรียนรู้แบบเรียลไทม์ ดูคะแนน ทบทวนคำตอบ และวางแผนการสอนให้สอดคล้องกับความคืบหน้าของนักเรียนในแต่ละห้องเรียน</p>
-                        <div class="grid grid-cols-2 gap-3 text-sm">
-                            <div class="bg-white/10 rounded-2xl p-3 backdrop-blur border border-white/10">
-                                <p class="text-white/70">ภาพรวมคะแนน</p>
-                                <p class="text-2xl font-bold" id="teacherQuickAverage">-</p>
-                            </div>
-                            <div class="bg-white/10 rounded-2xl p-3 backdrop-blur border border-white/10">
-                                <p class="text-white/70">นักเรียนลงทะเบียน</p>
-                                <p class="text-2xl font-bold" id="teacherQuickStudents">-</p>
-                            </div>
-                            <div class="bg-white/10 rounded-2xl p-3 backdrop-blur border border-white/10">
-                                <p class="text-white/70">ภารกิจสำเร็จ</p>
-                                <p class="text-2xl font-bold" id="teacherQuickCompleted">-</p>
-                            </div>
-                            <div class="bg-white/10 rounded-2xl p-3 backdrop-blur border border-white/10">
-                                <p class="text-white/70">เข้าสู่ระบบวันนี้</p>
-                                <p class="text-2xl font-bold" id="teacherQuickActive">-</p>
-                            </div>
+                        <div class="bg-white/10 rounded-2xl p-3 backdrop-blur border border-white/10">
+                            <p class="text-white/70">นักเรียนลงทะเบียน</p>
+                            <p class="text-2xl font-bold" id="teacherQuickStudents">-</p>
                         </div>
-                        <div class="text-xs text-white/60">
-                            <p>บัญชีทดลอง</p>
-                            <p class="font-semibold">อีเมล: teacher@thailit.app • รหัสผ่าน: litpass123</p>
+                        <div class="bg-white/10 rounded-2xl p-3 backdrop-blur border border-white/10">
+                            <p class="text-white/70">ภารกิจสำเร็จ</p>
+                            <p class="text-2xl font-bold" id="teacherQuickCompleted">-</p>
+                        </div>
+                        <div class="bg-white/10 rounded-2xl p-3 backdrop-blur border border-white/10">
+                            <p class="text-white/70">เข้าสู่ระบบวันนี้</p>
+                            <p class="text-2xl font-bold" id="teacherQuickActive">-</p>
                         </div>
                     </div>
-                </div>
+                    <div class="text-xs text-white/70 space-y-1">
+                        <p>บัญชีทดลอง</p>
+                        <p class="font-semibold">อีเมล: teacher@thailit.app • รหัสผ่าน: litpass123</p>
+                    </div>
+                </aside>
 
-                <div class="lg:col-span-3 p-6 md:p-8 bg-slate-50/60">
-                    <div id="teacherLoginPanel" class="space-y-6">
+                <section class="lg:col-span-3 space-y-6">
+                    <div id="teacherLoginPanel" class="space-y-6 bg-white/80 border border-slate-200 rounded-3xl p-6 md:p-8 shadow-lg">
                         <div>
                             <h3 class="text-2xl font-bold text-slate-900 mb-2">เข้าสู่ระบบสำหรับครู</h3>
                             <p class="text-sm text-slate-600">ใช้บัญชีที่ได้รับจากผู้ดูแลเพื่อเข้าถึงข้อมูลนักเรียนและบันทึกการเรียนรู้</p>
@@ -1187,36 +1191,38 @@
                     </div>
 
                     <div id="teacherDashboard" class="hidden space-y-6">
-                        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                            <div>
-                                <h3 class="text-2xl font-bold text-slate-900" id="teacherGreeting">สวัสดีคุณครู</h3>
-                                <p class="text-sm text-slate-600" id="teacherClasses">บัญชีครูภาษาไทย</p>
-                                <p class="text-xs text-slate-500" id="teacherEmailDisplay"></p>
-                            </div>
-                            <div class="flex flex-wrap gap-2">
-                                <button onclick="renderTeacherDashboard()" class="modern-button px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 flex items-center gap-2">
-                                    🔄 รีเฟรชข้อมูล
-                                </button>
-                                <button onclick="logoutTeacher()" class="modern-button px-4 py-2 rounded-xl bg-red-500 hover:bg-red-600 flex items-center gap-2">
-                                    🚪 ออกจากระบบครู
-                                </button>
-                            </div>
-                        </div>
-
-                        <div id="teacherDashboardLoading" class="hidden">
-                            <div class="bg-white border border-slate-200 rounded-2xl p-6 text-center shadow-sm">
-                                <div class="flex flex-col items-center gap-3">
-                                    <div class="w-12 h-12 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin"></div>
-                                    <p class="text-sm text-slate-600">กำลังดึงข้อมูลนักเรียน...</p>
+                        <div class="bg-white/80 border border-slate-200 rounded-3xl p-6 md:p-8 shadow-lg space-y-6">
+                            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                                <div>
+                                    <h3 class="text-2xl font-bold text-slate-900" id="teacherGreeting">สวัสดีคุณครู</h3>
+                                    <p class="text-sm text-slate-600" id="teacherClasses">บัญชีครูภาษาไทย</p>
+                                    <p class="text-xs text-slate-500" id="teacherEmailDisplay"></p>
+                                </div>
+                                <div class="flex flex-wrap gap-2">
+                                    <button onclick="renderTeacherDashboard()" class="modern-button px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 flex items-center gap-2">
+                                        🔄 รีเฟรชข้อมูล
+                                    </button>
+                                    <button onclick="logoutTeacher()" class="modern-button px-4 py-2 rounded-xl bg-red-500 hover:bg-red-600 flex items-center gap-2">
+                                        🚪 ออกจากระบบครู
+                                    </button>
                                 </div>
                             </div>
-                        </div>
 
-                        <div id="teacherSummaryCards" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+                            <div id="teacherDashboardLoading" class="hidden">
+                                <div class="bg-white border border-slate-200 rounded-2xl p-6 text-center shadow-sm">
+                                    <div class="flex flex-col items-center gap-3">
+                                        <div class="w-12 h-12 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin"></div>
+                                        <p class="text-sm text-slate-600">กำลังดึงข้อมูลนักเรียน...</p>
+                                    </div>
+                                </div>
+                            </div>
 
-                        <div id="teacherEmptyState" class="hidden bg-white border border-dashed border-slate-300 rounded-2xl p-6 text-center text-slate-500">
-                            <p class="font-semibold">ยังไม่มีข้อมูลนักเรียนในระบบ</p>
-                            <p class="text-sm mt-2">เมื่อมีนักเรียนลงทะเบียนหรือเริ่มทำภารกิจ ข้อมูลจะปรากฏที่นี่อัตโนมัติ</p>
+                            <div id="teacherSummaryCards" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+
+                            <div id="teacherEmptyState" class="hidden bg-white border border-dashed border-slate-300 rounded-2xl p-6 text-center text-slate-500">
+                                <p class="font-semibold">ยังไม่มีข้อมูลนักเรียนในระบบ</p>
+                                <p class="text-sm mt-2">เมื่อมีนักเรียนลงทะเบียนหรือเริ่มทำภารกิจ ข้อมูลจะปรากฏที่นี่อัตโนมัติ</p>
+                            </div>
                         </div>
 
                         <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
@@ -1248,7 +1254,7 @@
                             <div id="teacherActivityTimeline" class="space-y-4"></div>
                         </div>
                     </div>
-                </div>
+                </section>
             </div>
         </div>
     </div>
@@ -2416,10 +2422,12 @@
 
         function openTeacherPortal() {
             const portal = document.getElementById('teacherPortal');
+            const landing = document.getElementById('landingPage');
             if (!portal) return;
 
             portal.classList.remove('hidden');
-            document.body.classList.add('overflow-hidden');
+            if (landing) landing.classList.add('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
 
             const loginPanel = document.getElementById('teacherLoginPanel');
             const dashboard = document.getElementById('teacherDashboard');
@@ -2437,10 +2445,11 @@
 
         function closeTeacherPortal() {
             const portal = document.getElementById('teacherPortal');
+            const landing = document.getElementById('landingPage');
             if (!portal) return;
 
             portal.classList.add('hidden');
-            document.body.classList.remove('overflow-hidden');
+            if (landing) landing.classList.remove('hidden');
         }
 
         function resetTeacherLoginForm() {
