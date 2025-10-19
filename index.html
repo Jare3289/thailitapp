@@ -718,10 +718,9 @@
             z-index: 50 !important;
         }
 
-        /* Main Content Proper Spacing */
-        #mainContent {
-            padding-top: 2rem !important;
-            min-height: calc(100vh - 200px) !important;
+            .teacher-activity-list {
+                gap: 1.5rem;
+            }
         }
 
     </style>
@@ -871,6 +870,142 @@
                 </div>
     </div>
 
+    <!-- Teacher Portal Section -->
+    <div id="teacherPortal" class="hidden bg-slate-100/90 min-h-screen py-10">
+        <div class="w-full px-4 md:px-8 lg:px-12">
+            <div class="mx-auto w-full max-w-screen-2xl space-y-10">
+                <div class="teacher-dashboard-header bg-white/80 backdrop-blur border border-slate-200 rounded-3xl p-6 md:p-8 shadow-lg flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+                    <div class="space-y-2">
+                        <p class="text-sm uppercase tracking-widest text-blue-600/70">ThaiLit Backoffice</p>
+                        <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900">แดชบอร์ดครูผู้สอน</h2>
+                        <p class="text-sm md:text-base text-slate-600 max-w-2xl">ติดตามผลการเรียนรู้แบบเรียลไทม์ ดูคะแนน ทบทวนคำตอบ และวางแผนการสอนให้สอดคล้องกับความคืบหน้าของนักเรียนในแต่ละห้องเรียน</p>
+                    </div>
+                    <button onclick="closeTeacherPortal()" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 text-white shadow hover:bg-slate-800 transition">⬅️ กลับสู่หน้าหลัก</button>
+                </div>
+
+                <div class="space-y-8">
+                    <div id="teacherLoginPanel" class="space-y-6 bg-white/80 border border-slate-200 rounded-3xl p-6 md:p-8 shadow-lg">
+                        <div>
+                            <h3 class="text-2xl font-bold text-slate-900 mb-2">เข้าสู่ระบบสำหรับครู</h3>
+                            <p class="text-sm text-slate-600">ใช้บัญชีที่ได้รับจากผู้ดูแลเพื่อเข้าถึงข้อมูลนักเรียนและบันทึกการเรียนรู้</p>
+                        </div>
+                        <form id="teacherLoginForm" class="space-y-4" onsubmit="submitTeacherLogin(event)">
+                            <div>
+                                <label for="teacherEmail" class="block text-sm font-semibold text-slate-700 mb-2">อีเมลครู</label>
+                                <input id="teacherEmail" type="email" required class="w-full modern-input p-3" placeholder="teacher@school.ac.th">
+                            </div>
+                            <div>
+                                <label for="teacherPassword" class="block text-sm font-semibold text-slate-700 mb-2">รหัสผ่าน</label>
+                                <input id="teacherPassword" type="password" required class="w-full modern-input p-3" placeholder="••••••••">
+                            </div>
+                            <button type="submit" class="modern-button w-full py-3 text-base rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">เข้าสู่ระบบครู</button>
+                        </form>
+                        <div class="text-xs text-slate-500 leading-relaxed">
+                            <p>เมื่อเข้าสู่ระบบ ครูจะสามารถดาวน์โหลดรายงานผลลัพธ์ แสดงคำตอบของนักเรียนแต่ละคน และดูไทม์ไลน์กิจกรรมล่าสุดได้</p>
+                        </div>
+                    </div>
+
+                    <div id="teacherDashboard" class="hidden space-y-8">
+                        <div class="bg-white/80 border border-slate-200 rounded-3xl p-6 md:p-8 shadow-lg space-y-6">
+                            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                                <div>
+                                    <h3 class="text-2xl font-bold text-slate-900" id="teacherGreeting">สวัสดีคุณครู</h3>
+                                    <p class="text-sm text-slate-600" id="teacherClasses">บัญชีครูภาษาไทย</p>
+                                    <p class="text-xs text-slate-500" id="teacherEmailDisplay"></p>
+                                </div>
+                                <div class="flex flex-wrap gap-2">
+                                    <button onclick="renderTeacherDashboard()" class="modern-button px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 flex items-center gap-2">
+                                        🔄 รีเฟรชข้อมูล
+                                    </button>
+                                    <button onclick="logoutTeacher()" class="modern-button px-4 py-2 rounded-xl bg-red-500 hover:bg-red-600 flex items-center gap-2">
+                                        🚪 ออกจากระบบครู
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div id="teacherDashboardLoading" class="hidden">
+                                <div class="bg-white border border-slate-200 rounded-2xl p-6 text-center shadow-sm">
+                                    <div class="flex flex-col items-center gap-3">
+                                        <div class="w-12 h-12 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin"></div>
+                                        <p class="text-sm text-slate-600">กำลังดึงข้อมูลนักเรียน...</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="teacherSummaryCards" class="teacher-summary-grid grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5 gap-4"></div>
+
+                            <div id="teacherEmptyState" class="hidden bg-white border border-dashed border-slate-300 rounded-2xl p-6 text-center text-slate-500">
+                                <p class="font-semibold">ยังไม่มีข้อมูลนักเรียนในระบบ</p>
+                                <p class="text-sm mt-2">เมื่อมีนักเรียนลงทะเบียนหรือเริ่มทำภารกิจ ข้อมูลจะปรากฏที่นี่อัตโนมัติ</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+                            <div class="px-6 py-4 border-b border-slate-200 flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+                                <h4 class="text-lg font-semibold text-slate-900">ภาพรวมคะแนนนักเรียน</h4>
+                                <span class="text-xs text-slate-500" id="teacherTableMeta"></span>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="teacher-table min-w-full divide-y divide-slate-200 text-sm">
+                                    <thead class="bg-slate-50">
+                                        <tr>
+                                            <th class="px-4 py-3 text-left font-semibold text-slate-600">นักเรียน</th>
+                                            <th class="px-4 py-3 text-left font-semibold text-slate-600">ชั้น/ห้อง</th>
+                                            <th class="px-4 py-3 text-left font-semibold text-slate-600">ความคืบหน้า</th>
+                                            <th class="px-4 py-3 text-left font-semibold text-slate-600">คะแนนรวม</th>
+                                            <th class="px-4 py-3 text-left font-semibold text-slate-600">คะแนนเฉลี่ย</th>
+                                            <th class="px-4 py-3 text-left font-semibold text-slate-600">อัปเดตล่าสุด</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="teacherStudentTable" class="divide-y divide-slate-100 bg-white"></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
+                            <div class="flex flex-col gap-2 mb-4 lg:flex-row lg:items-center lg:justify-between">
+                                <h4 class="text-lg font-semibold text-slate-900">กิจกรรมล่าสุด</h4>
+                                <span class="text-xs text-slate-500" id="teacherTimelineMeta"></span>
+                            </div>
+                            <div id="teacherActivityTimeline" class="teacher-activity-list space-y-4"></div>
+                        </div>
+
+                        <div class="bg-white/90 backdrop-blur border border-slate-200 rounded-3xl p-6 md:p-8 space-y-6 shadow-lg">
+                            <div class="space-y-2">
+                                <p class="text-sm text-slate-500 uppercase tracking-wider">ภาพรวมระบบ</p>
+                                <p class="text-lg md:text-xl font-semibold text-slate-900">ข้อมูลสำคัญของวันนี้</p>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
+                                <div class="rounded-2xl p-4 bg-slate-50 border border-slate-200">
+                                    <p class="text-slate-500">คะแนนรวมสะสม</p>
+                                    <p class="text-2xl font-bold text-slate-900" id="teacherQuickTotal">-</p>
+                                </div>
+                                <div class="rounded-2xl p-4 bg-slate-50 border border-slate-200">
+                                    <p class="text-slate-500">คะแนนเฉลี่ย</p>
+                                    <p class="text-2xl font-bold text-slate-900" id="teacherQuickAverage">-</p>
+                                </div>
+                                <div class="rounded-2xl p-4 bg-slate-50 border border-slate-200">
+                                    <p class="text-slate-500">นักเรียนลงทะเบียน</p>
+                                    <p class="text-2xl font-bold text-slate-900" id="teacherQuickStudents">-</p>
+                                </div>
+                                <div class="rounded-2xl p-4 bg-slate-50 border border-slate-200">
+                                    <p class="text-slate-500">ภารกิจสำเร็จ</p>
+                                    <p class="text-2xl font-bold text-slate-900" id="teacherQuickCompleted">-</p>
+                                </div>
+                                <div class="rounded-2xl p-4 bg-slate-50 border border-slate-200">
+                                    <p class="text-slate-500">เข้าสู่ระบบวันนี้</p>
+                                    <p class="text-2xl font-bold text-slate-900" id="teacherQuickActive">-</p>
+                                </div>
+                            </div>
+                            <div class="text-xs text-slate-500 space-y-1">
+                                <p class="uppercase tracking-wider">บัญชีทดลอง</p>
+                                <p class="font-semibold text-slate-700">อีเมล: teacher@thailit.app • รหัสผ่าน: litpass123</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+    </div>
+
     <!-- Landing Page -->
     <div id="landingPage" class="min-h-screen bg-gray-50 flex items-center justify-center p-2 md:p-4 relative overflow-hidden">
         <div class="landing-aurora"></div>
@@ -882,7 +1017,7 @@
                     <div class="mb-8 space-y-6">
                         <div class="flex justify-center lg:justify-start">
                             <span class="hero-badge">
-                                📚 ภาคกิจพิชิตวรรณคดี
+                                📚 ภารกิจ 01 • โคลงสี่สุภาพ
                             </span>
                         </div>
 
@@ -2402,6 +2537,75 @@
             }
         }
 
+        const sampleStudents = [
+            {
+                studentId: 'ST1001',
+                name: 'กชมน ศรีวิชัย',
+                grade: 'ม.5',
+                room: '2',
+                number: '12'
+            },
+            {
+                studentId: 'ST1002',
+                name: 'ชยุต วัฒนะชัย',
+                grade: 'ม.5',
+                room: '2',
+                number: '7'
+            },
+            {
+                studentId: 'ST1003',
+                name: 'ณัฐวดี อินทรา',
+                grade: 'ม.5',
+                room: '2',
+                number: '18'
+            }
+        ];
+
+        const sampleSessions = [
+            {
+                id: 'GS-001',
+                studentId: 'ST1001',
+                userName: 'กชมน ศรีวิชัย',
+                grade: 'ม.5',
+                room: '2',
+                number: '12',
+                totalScore: 1240,
+                comprehensionScore: 1240,
+                completed: true,
+                step: 6,
+                lastUpdated: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
+                timestamp: new Date(Date.now() - 1000 * 60 * 90).toISOString()
+            },
+            {
+                id: 'GS-002',
+                studentId: 'ST1002',
+                userName: 'ชยุต วัฒนะชัย',
+                grade: 'ม.5',
+                room: '2',
+                number: '7',
+                totalScore: 865,
+                comprehensionScore: 865,
+                completed: false,
+                step: 4,
+                lastUpdated: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
+                timestamp: new Date(Date.now() - 1000 * 60 * 55).toISOString()
+            },
+            {
+                id: 'GS-003',
+                studentId: 'ST1003',
+                userName: 'ณัฐวดี อินทรา',
+                grade: 'ม.5',
+                room: '2',
+                number: '18',
+                totalScore: 540,
+                comprehensionScore: 540,
+                completed: true,
+                step: 6,
+                lastUpdated: new Date(Date.now() - 1000 * 60 * 180).toISOString(),
+                timestamp: new Date(Date.now() - 1000 * 60 * 240).toISOString()
+            }
+        ];
+
         async function fetchTeacherData() {
             let students = [];
             let sessions = [];
@@ -2429,12 +2633,52 @@
                 console.error('Error loading data from Firebase for teacher portal:', error);
             }
 
+            if (sessions.length === 0 || students.length === 0) {
+                try {
+                    const response = await fetch('/gameSessions');
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (Array.isArray(data)) {
+                            sessions = sessions.length === 0 ? data : sessions;
+                        } else {
+                            if (Array.isArray(data.sessions) && sessions.length === 0) {
+                                sessions = data.sessions;
+                            }
+                            if (Array.isArray(data.students) && students.length === 0) {
+                                students = data.students;
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.warn('Fallback fetch to /gameSessions failed:', error);
+                }
+            }
+
             if (students.length === 0) {
                 students = loadLocalStudents();
             }
 
             if (sessions.length === 0) {
                 sessions = loadLocalSessions();
+            }
+
+            if (students.length === 0 && sessions.length === 0) {
+                students = sampleStudents;
+                sessions = sampleSessions;
+            } else if (students.length === 0 && sessions.length > 0) {
+                const synthesizedStudents = new Map();
+                sessions.forEach(session => {
+                    const key = session.studentId || session.userId || session.userEmail || session.userName;
+                    if (!key || synthesizedStudents.has(key)) return;
+                    synthesizedStudents.set(key, {
+                        studentId: session.studentId || key,
+                        name: session.userName || 'นักเรียนไม่ระบุชื่อ',
+                        grade: session.grade || '-',
+                        room: session.room || '-',
+                        number: session.number || '-'
+                    });
+                });
+                students = Array.from(synthesizedStudents.values());
             }
 
             return { students, sessions };
@@ -3488,7 +3732,7 @@
                 1: '📚 ประวัติศาสตร์',
                 2: '📖 แสดงโคลง',
                 '2.5': '🎯 จับคู่คำศัพท์',
-                3: '✍️ ถอดถอดความ',
+                3: '✍️ จินตนาการ & ถอดความ',
                 4: '🖼️ เปิดภาพจริง',
                 5: '📝 ทบทวน',
                 6: '🏆 สรุปผล'
