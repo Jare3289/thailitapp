@@ -718,9 +718,10 @@
             z-index: 50 !important;
         }
 
-            .teacher-activity-list {
-                gap: 1.5rem;
-            }
+        /* Main Content Proper Spacing */
+        #mainContent {
+            padding-top: 2rem !important;
+            min-height: calc(100vh - 200px) !important;
         }
 
     </style>
@@ -732,142 +733,6 @@
         <div class="floating-element text-4xl" style="top: 20%; right: 15%; animation-delay: 1s;">✨</div>
         <div class="floating-element text-5xl" style="bottom: 20%; left: 20%; animation-delay: 2s;">🔍</div>
         <div class="floating-element text-3xl" style="bottom: 30%; right: 25%; animation-delay: 3s;">💭</div>
-    </div>
-
-    <!-- Teacher Portal Section -->
-    <div id="teacherPortal" class="hidden bg-slate-100/90 min-h-screen py-10">
-        <div class="w-full px-4 md:px-8 lg:px-12">
-            <div class="mx-auto w-full max-w-screen-2xl space-y-10">
-                <div class="teacher-dashboard-header bg-white/80 backdrop-blur border border-slate-200 rounded-3xl p-6 md:p-8 shadow-lg flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-                    <div class="space-y-2">
-                        <p class="text-sm uppercase tracking-widest text-blue-600/70">ThaiLit Backoffice</p>
-                        <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900">แดชบอร์ดครูผู้สอน</h2>
-                        <p class="text-sm md:text-base text-slate-600 max-w-2xl">ติดตามผลการเรียนรู้แบบเรียลไทม์ ดูคะแนน ทบทวนคำตอบ และวางแผนการสอนให้สอดคล้องกับความคืบหน้าของนักเรียนในแต่ละห้องเรียน</p>
-                    </div>
-                    <button onclick="closeTeacherPortal()" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 text-white shadow hover:bg-slate-800 transition">⬅️ กลับสู่หน้าหลัก</button>
-                </div>
-
-                <div class="space-y-8">
-                    <div id="teacherLoginPanel" class="space-y-6 bg-white/80 border border-slate-200 rounded-3xl p-6 md:p-8 shadow-lg">
-                        <div>
-                            <h3 class="text-2xl font-bold text-slate-900 mb-2">เข้าสู่ระบบสำหรับครู</h3>
-                            <p class="text-sm text-slate-600">ใช้บัญชีที่ได้รับจากผู้ดูแลเพื่อเข้าถึงข้อมูลนักเรียนและบันทึกการเรียนรู้</p>
-                        </div>
-                        <form id="teacherLoginForm" class="space-y-4" onsubmit="submitTeacherLogin(event)">
-                            <div>
-                                <label for="teacherEmail" class="block text-sm font-semibold text-slate-700 mb-2">อีเมลครู</label>
-                                <input id="teacherEmail" type="email" required class="w-full modern-input p-3" placeholder="teacher@school.ac.th">
-                            </div>
-                            <div>
-                                <label for="teacherPassword" class="block text-sm font-semibold text-slate-700 mb-2">รหัสผ่าน</label>
-                                <input id="teacherPassword" type="password" required class="w-full modern-input p-3" placeholder="••••••••">
-                            </div>
-                            <button type="submit" class="modern-button w-full py-3 text-base rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">เข้าสู่ระบบครู</button>
-                        </form>
-                        <div class="text-xs text-slate-500 leading-relaxed">
-                            <p>เมื่อเข้าสู่ระบบ ครูจะสามารถดาวน์โหลดรายงานผลลัพธ์ แสดงคำตอบของนักเรียนแต่ละคน และดูไทม์ไลน์กิจกรรมล่าสุดได้</p>
-                        </div>
-                    </div>
-
-                    <div id="teacherDashboard" class="hidden space-y-8">
-                        <div class="bg-white/80 border border-slate-200 rounded-3xl p-6 md:p-8 shadow-lg space-y-6">
-                            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                                <div>
-                                    <h3 class="text-2xl font-bold text-slate-900" id="teacherGreeting">สวัสดีคุณครู</h3>
-                                    <p class="text-sm text-slate-600" id="teacherClasses">บัญชีครูภาษาไทย</p>
-                                    <p class="text-xs text-slate-500" id="teacherEmailDisplay"></p>
-                                </div>
-                                <div class="flex flex-wrap gap-2">
-                                    <button onclick="renderTeacherDashboard()" class="modern-button px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 flex items-center gap-2">
-                                        🔄 รีเฟรชข้อมูล
-                                    </button>
-                                    <button onclick="logoutTeacher()" class="modern-button px-4 py-2 rounded-xl bg-red-500 hover:bg-red-600 flex items-center gap-2">
-                                        🚪 ออกจากระบบครู
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div id="teacherDashboardLoading" class="hidden">
-                                <div class="bg-white border border-slate-200 rounded-2xl p-6 text-center shadow-sm">
-                                    <div class="flex flex-col items-center gap-3">
-                                        <div class="w-12 h-12 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin"></div>
-                                        <p class="text-sm text-slate-600">กำลังดึงข้อมูลนักเรียน...</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div id="teacherSummaryCards" class="teacher-summary-grid grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5 gap-4"></div>
-
-                            <div id="teacherEmptyState" class="hidden bg-white border border-dashed border-slate-300 rounded-2xl p-6 text-center text-slate-500">
-                                <p class="font-semibold">ยังไม่มีข้อมูลนักเรียนในระบบ</p>
-                                <p class="text-sm mt-2">เมื่อมีนักเรียนลงทะเบียนหรือเริ่มทำภารกิจ ข้อมูลจะปรากฏที่นี่อัตโนมัติ</p>
-                            </div>
-                        </div>
-
-                        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-                            <div class="px-6 py-4 border-b border-slate-200 flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
-                                <h4 class="text-lg font-semibold text-slate-900">ภาพรวมคะแนนนักเรียน</h4>
-                                <span class="text-xs text-slate-500" id="teacherTableMeta"></span>
-                            </div>
-                            <div class="overflow-x-auto">
-                                <table class="teacher-table min-w-full divide-y divide-slate-200 text-sm">
-                                    <thead class="bg-slate-50">
-                                        <tr>
-                                            <th class="px-4 py-3 text-left font-semibold text-slate-600">นักเรียน</th>
-                                            <th class="px-4 py-3 text-left font-semibold text-slate-600">ชั้น/ห้อง</th>
-                                            <th class="px-4 py-3 text-left font-semibold text-slate-600">ความคืบหน้า</th>
-                                            <th class="px-4 py-3 text-left font-semibold text-slate-600">คะแนนรวม</th>
-                                            <th class="px-4 py-3 text-left font-semibold text-slate-600">คะแนนเฉลี่ย</th>
-                                            <th class="px-4 py-3 text-left font-semibold text-slate-600">อัปเดตล่าสุด</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="teacherStudentTable" class="divide-y divide-slate-100 bg-white"></tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
-                            <div class="flex flex-col gap-2 mb-4 lg:flex-row lg:items-center lg:justify-between">
-                                <h4 class="text-lg font-semibold text-slate-900">กิจกรรมล่าสุด</h4>
-                                <span class="text-xs text-slate-500" id="teacherTimelineMeta"></span>
-                            </div>
-                            <div id="teacherActivityTimeline" class="teacher-activity-list space-y-4"></div>
-                        </div>
-
-                        <div class="bg-white/90 backdrop-blur border border-slate-200 rounded-3xl p-6 md:p-8 space-y-6 shadow-lg">
-                            <div class="space-y-2">
-                                <p class="text-sm text-slate-500 uppercase tracking-wider">ภาพรวมระบบ</p>
-                                <p class="text-lg md:text-xl font-semibold text-slate-900">ข้อมูลสำคัญของวันนี้</p>
-                            </div>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
-                                <div class="rounded-2xl p-4 bg-slate-50 border border-slate-200">
-                                    <p class="text-slate-500">คะแนนรวมสะสม</p>
-                                    <p class="text-2xl font-bold text-slate-900" id="teacherQuickTotal">-</p>
-                                </div>
-                                <div class="rounded-2xl p-4 bg-slate-50 border border-slate-200">
-                                    <p class="text-slate-500">คะแนนเฉลี่ย</p>
-                                    <p class="text-2xl font-bold text-slate-900" id="teacherQuickAverage">-</p>
-                                </div>
-                                <div class="rounded-2xl p-4 bg-slate-50 border border-slate-200">
-                                    <p class="text-slate-500">นักเรียนลงทะเบียน</p>
-                                    <p class="text-2xl font-bold text-slate-900" id="teacherQuickStudents">-</p>
-                                </div>
-                                <div class="rounded-2xl p-4 bg-slate-50 border border-slate-200">
-                                    <p class="text-slate-500">ภารกิจสำเร็จ</p>
-                                    <p class="text-2xl font-bold text-slate-900" id="teacherQuickCompleted">-</p>
-                                </div>
-                                <div class="rounded-2xl p-4 bg-slate-50 border border-slate-200">
-                                    <p class="text-slate-500">เข้าสู่ระบบวันนี้</p>
-                                    <p class="text-2xl font-bold text-slate-900" id="teacherQuickActive">-</p>
-                                </div>
-                            </div>
-                            <div class="text-xs text-slate-500 space-y-1">
-                                <p class="uppercase tracking-wider">บัญชีทดลอง</p>
-                                <p class="font-semibold text-slate-700">อีเมล: teacher@thailit.app • รหัสผ่าน: litpass123</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
     </div>
 
     <!-- Teacher Portal Section -->
@@ -2246,6 +2111,7 @@
             showNotification('ออกจากระบบครูเรียบร้อย', 'success');
         }
 
+
         async function renderTeacherDashboard() {
             const loading = document.getElementById('teacherDashboardLoading');
             const summary = document.getElementById('teacherSummaryCards');
@@ -2282,102 +2148,38 @@
 
             if (loading) loading.classList.add('hidden');
 
+            const studentRows = buildStudentRows(students, sessions);
             const completedSessions = sessions.filter(session => session.completed);
-            const totalScore = sessions.reduce((sum, item) => sum + (item.totalScore || item.comprehensionScore || 0), 0);
+            const totalScore = sessions.reduce((sum, session) => sum + (Number(session.totalScore) || 0), 0);
             const averageScore = sessions.length ? Math.round(totalScore / sessions.length) : 0;
             const activeToday = sessions.filter(session => {
-                if (!session.lastUpdated && !session.timestamp) return false;
-                const time = new Date(session.lastUpdated || session.timestamp);
+                const activityDate = session.lastUpdatedAt || session.timestampAt || session.lastUpdated || session.timestamp;
+                const parsed = parseDate(activityDate);
+                if (!parsed) return false;
                 const now = new Date();
-                return time.getDate() === now.getDate() && time.getMonth() === now.getMonth() && time.getFullYear() === now.getFullYear();
+                return parsed.getFullYear() === now.getFullYear() && parsed.getMonth() === now.getMonth() && parsed.getDate() === now.getDate();
             });
 
-            if (quickTotal) quickTotal.textContent = sessions.length ? totalScore.toLocaleString('th-TH') : '0';
+            if (quickTotal) quickTotal.textContent = totalScore ? totalScore.toLocaleString('th-TH') : '0';
             if (quickAverage) quickAverage.textContent = sessions.length ? `${averageScore}` : '0';
             if (quickCompleted) quickCompleted.textContent = completedSessions.length.toString();
             if (quickActive) quickActive.textContent = activeToday.length.toString();
+            if (quickStudents) quickStudents.textContent = studentRows.length.toString();
 
-            if (students.length === 0 && sessions.length === 0) {
+            if (studentRows.length === 0 && sessions.length === 0) {
                 if (emptyState) emptyState.classList.remove('hidden');
                 return;
             }
 
-            const sessionsByStudent = new Map();
-            sessions.forEach(session => {
-                const key = session.userId || session.studentId || session.userEmail || session.userName;
-                if (!key) return;
-                if (!sessionsByStudent.has(key)) {
-                    sessionsByStudent.set(key, []);
-                }
-                sessionsByStudent.get(key).push(session);
-            });
-
-            const studentRowMap = new Map();
-            sessionsByStudent.forEach((group, key) => {
-                const sortedSessions = [...group].sort((a, b) => new Date(b.lastUpdated || b.timestamp || 0) - new Date(a.lastUpdated || a.timestamp || 0));
-                const latestSession = sortedSessions[0];
-                const totalForStudent = group.reduce((sum, item) => sum + (item.totalScore || item.comprehensionScore || 0), 0);
-                const average = group.length ? Math.round(totalForStudent / group.length) : 0;
-                const completionCount = group.filter(item => item.completed).length;
-
-                studentRowMap.set(key, {
-                    name: latestSession?.userName || 'นักเรียนไม่ระบุชื่อ',
-                    grade: latestSession?.grade || '-',
-                    room: latestSession?.room || '-',
-                    number: latestSession?.number || '-',
-                    studentId: latestSession?.studentId || key,
-                    totalScore: totalForStudent,
-                    averageScore: average,
-                    latestSession,
-                    completionCount,
-                    sessions: group
-                });
-            });
-
-            students.forEach(student => {
-                const key = student.studentId || student.id || student.email || student.name;
-                if (!key) return;
-
-                if (studentRowMap.has(key)) {
-                    const row = studentRowMap.get(key);
-                    row.name = student.name || row.name;
-                    row.grade = student.grade || row.grade;
-                    row.room = student.room || row.room;
-                    row.number = student.number || row.number;
-                    row.studentId = student.studentId || row.studentId;
-                    row.studentRecord = student;
-                } else {
-                    studentRowMap.set(key, {
-                        name: student.name || 'นักเรียนไม่ระบุชื่อ',
-                        grade: student.grade || '-',
-                        room: student.room || '-',
-                        number: student.number || '-',
-                        studentId: student.studentId || student.id || student.email || key,
-                        totalScore: 0,
-                        averageScore: 0,
-                        latestSession: null,
-                        completionCount: 0,
-                        sessions: [],
-                        studentRecord: student
-                    });
-                }
-            });
-
-            if (quickStudents) {
-                const participantCount = studentRowMap.size || students.length;
-                quickStudents.textContent = participantCount.toString();
-            }
-
-            const studentRows = Array.from(studentRowMap.values());
-
-            studentRows.sort((a, b) => {
+            const sortedStudentRows = [...studentRows].sort((a, b) => {
                 const totalDiff = (b.totalScore || 0) - (a.totalScore || 0);
                 if (totalDiff !== 0) return totalDiff;
                 const scoreDiff = (b.averageScore || 0) - (a.averageScore || 0);
                 if (scoreDiff !== 0) return scoreDiff;
-                const aTime = new Date(a.latestSession?.lastUpdated || a.latestSession?.timestamp || 0).getTime();
-                const bTime = new Date(b.latestSession?.lastUpdated || b.latestSession?.timestamp || 0).getTime();
-                return bTime - aTime;
+
+                const aDate = parseDate(a.latestSession?.lastUpdatedAt || a.latestSession?.timestampAt || a.latestSession?.lastUpdated || a.latestSession?.timestamp);
+                const bDate = parseDate(b.latestSession?.lastUpdatedAt || b.latestSession?.timestampAt || b.latestSession?.lastUpdated || b.latestSession?.timestamp);
+                return (bDate?.getTime() || 0) - (aDate?.getTime() || 0);
             });
 
             if (summary) {
@@ -2385,15 +2187,15 @@
                 const summaryData = [
                     {
                         label: 'คะแนนรวมทั้งหมด',
-                        value: sessions.length ? totalScore.toLocaleString('th-TH') : '0',
+                        value: totalScore ? totalScore.toLocaleString('th-TH') : '0',
                         description: 'รวมคะแนนจากทุกกิจกรรมที่บันทึก',
                         gradient: 'from-amber-500 to-orange-500',
                         icon: '🏅'
                     },
                     {
                         label: 'นักเรียนที่ลงทะเบียน',
-                        value: students.length,
-                        description: 'มีโปรไฟล์ในระบบ',
+                        value: studentRows.length,
+                        description: 'มีโปรไฟล์หรือบันทึกคะแนนในระบบ',
                         gradient: 'from-blue-500 to-indigo-500',
                         icon: '👨‍🎓'
                     },
@@ -2406,7 +2208,7 @@
                     },
                     {
                         label: 'กำลังทำอยู่',
-                        value: inProgress,
+                        value: Math.max(inProgress, 0),
                         description: 'อยู่ระหว่างภารกิจ',
                         gradient: 'from-sky-500 to-indigo-500',
                         icon: '⏳'
@@ -2440,15 +2242,12 @@
             }
 
             if (tableBody) {
-                tableBody.innerHTML = studentRows.map(row => {
+                tableBody.innerHTML = sortedStudentRows.map(row => {
                     const gradeRoom = row.grade ? `${row.grade}${row.room ? `/${row.room}` : ''}` : '-';
                     const progressPercent = Math.min(100, Math.round(((row.latestSession?.currentStep || 1) / 6) * 100));
                     const studentTotalScore = row.totalScore ? Math.round(row.totalScore) : 0;
-                    const latestScore = row.latestSession ? Math.round(row.latestSession.totalScore || row.latestSession.comprehensionScore || 0) : 0;
-                    const updatedAt = row.latestSession ? new Date(row.latestSession.lastUpdated || row.latestSession.timestamp || Date.now()).toLocaleString('th-TH', {
-                        dateStyle: 'short',
-                        timeStyle: 'short'
-                    }) : '-';
+                    const latestScore = row.latestSession ? Math.round(Number(row.latestSession.totalScore) || Number(row.latestSession.comprehensionScore) || 0) : 0;
+                    const updatedAt = row.latestSession ? formatDateTime(row.latestSession.lastUpdatedAt || row.latestSession.timestampAt || row.latestSession.lastUpdated || row.latestSession.timestamp) : '-';
                     const completionBadge = row.completionCount > 0 ? `<span class="px-2 py-1 rounded-full text-xs bg-emerald-100 text-emerald-700">เสร็จ ${row.completionCount} ครั้ง</span>` : `<span class="px-2 py-1 rounded-full text-xs bg-amber-100 text-amber-700">กำลังทำ</span>`;
 
                     return `
@@ -2478,14 +2277,14 @@
                             </td>
                             <td class="px-4 py-3 text-slate-600" data-label="คะแนนรวม">
                                 <div class="flex flex-col gap-1">
-                                    <span class="font-semibold text-slate-900">${studentTotalScore}</span>
+                                    <span class="font-semibold text-slate-900">${studentTotalScore.toLocaleString('th-TH')}</span>
                                     <span class="text-xs text-slate-500">จาก ${row.sessions.length} ภารกิจ</span>
                                 </div>
                             </td>
                             <td class="px-4 py-3 text-slate-600" data-label="คะแนนเฉลี่ย">
                                 <div class="flex flex-col gap-1">
-                                    <span class="font-semibold text-slate-900">${row.averageScore || latestScore}</span>
-                                    <span class="text-xs text-slate-500">ล่าสุด ${latestScore}</span>
+                                    <span class="font-semibold text-slate-900">${(row.averageScore || latestScore).toLocaleString('th-TH')}</span>
+                                    <span class="text-xs text-slate-500">ล่าสุด ${latestScore.toLocaleString('th-TH')}</span>
                                 </div>
                             </td>
                             <td class="px-4 py-3 text-slate-600 text-sm" data-label="อัปเดตล่าสุด">${updatedAt}</td>
@@ -2495,36 +2294,40 @@
             }
 
             if (tableMeta) {
-                const totalRecordedScore = sessions.length ? totalScore.toLocaleString('th-TH') : '0';
-                tableMeta.textContent = `${studentRows.length} รายการ • คะแนนรวม ${totalRecordedScore} • อัปเดต ${new Date().toLocaleString('th-TH', { timeStyle: 'short', dateStyle: 'short' })}`;
+                const totalRecordedScore = totalScore ? totalScore.toLocaleString('th-TH') : '0';
+                tableMeta.textContent = `${sortedStudentRows.length} รายการ • คะแนนรวม ${totalRecordedScore} • อัปเดต ${formatDateTime(new Date())}`;
             }
 
             if (timeline) {
                 const recentActivities = [...sessions]
-                    .sort((a, b) => new Date(b.lastUpdated || b.timestamp || 0) - new Date(a.lastUpdated || a.timestamp || 0))
+                    .sort((a, b) => {
+                        const aDate = parseDate(a.lastUpdatedAt || a.timestampAt || a.lastUpdated || a.timestamp);
+                        const bDate = parseDate(b.lastUpdatedAt || b.timestampAt || b.lastUpdated || b.timestamp);
+                        return (bDate?.getTime() || 0) - (aDate?.getTime() || 0);
+                    })
                     .slice(0, 6);
 
                 if (recentActivities.length === 0) {
                     timeline.innerHTML = '<p class="text-sm text-slate-500 text-center">ยังไม่มีกิจกรรมล่าสุด</p>';
                 } else {
                     timeline.innerHTML = recentActivities.map(activity => {
-                        const activityTime = new Date(activity.lastUpdated || activity.timestamp || Date.now()).toLocaleString('th-TH', {
-                            dateStyle: 'short',
-                            timeStyle: 'short'
-                        });
+                        const activityTime = formatDateTime(activity.lastUpdatedAt || activity.timestampAt || activity.lastUpdated || activity.timestamp);
                         const status = activity.completed ? 'เสร็จสิ้นภารกิจ' : `อยู่ที่ขั้นตอน ${activity.currentStep || '-'}`;
-                        const score = activity.totalScore || activity.comprehensionScore || 0;
+                        const total = Math.round(Number(activity.totalScore) || Number(activity.comprehensionScore) || 0);
+                        const initials = activity.userName ? activity.userName.trim().charAt(0) : 'น';
+
                         return `
-                            <div class="flex flex-col sm:flex-row gap-3">
-                                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 text-white flex items-center justify-center text-lg">
-                                    📘
-                                </div>
-                                <div class="flex-1 border-b border-dashed border-slate-200 pb-3">
-                                    <div class="flex items-center justify-between">
-                                        <p class="font-semibold text-slate-900">${activity.userName || 'นักเรียนไม่ระบุชื่อ'}</p>
-                                        <span class="text-xs text-slate-500">${activityTime}</span>
+                            <div class="flex gap-4 p-4 bg-slate-50 border border-slate-200 rounded-2xl">
+                                <div class="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xl">${initials}</div>
+                                <div class="flex-1">
+                                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                                        <div>
+                                            <p class="font-semibold text-slate-900">${activity.userName || 'นักเรียนไม่ระบุชื่อ'}</p>
+                                            <p class="text-xs text-slate-500">${status}</p>
+                                        </div>
+                                        <div class="text-xs text-slate-500">${activityTime}</div>
                                     </div>
-                                    <p class="text-sm text-slate-600">${status} • คะแนน ${Math.round(score)}</p>
+                                    <div class="mt-2 text-sm text-slate-600">คะแนนรวม ${total.toLocaleString('th-TH')} แต้ม</div>
                                 </div>
                             </div>
                         `;
@@ -2535,6 +2338,190 @@
             if (timelineMeta) {
                 timelineMeta.textContent = `${sessions.length} บันทึกกิจกรรม`;
             }
+        }
+        function parseDate(value) {
+            if (!value) return null;
+            if (value instanceof Date) {
+                return isNaN(value.getTime()) ? null : value;
+            }
+            if (typeof value === 'number') {
+                const numberDate = new Date(value);
+                return isNaN(numberDate.getTime()) ? null : numberDate;
+            }
+            if (typeof value === 'string') {
+                const stringDate = new Date(value);
+                return isNaN(stringDate.getTime()) ? null : stringDate;
+            }
+            if (value && typeof value.toDate === 'function') {
+                const viaToDate = value.toDate();
+                return viaToDate instanceof Date && !isNaN(viaToDate.getTime()) ? viaToDate : null;
+            }
+            if (value && typeof value === 'object' && typeof value.seconds === 'number') {
+                const ms = value.seconds * 1000 + (value.nanoseconds || 0) / 1e6;
+                const timestampDate = new Date(ms);
+                return isNaN(timestampDate.getTime()) ? null : timestampDate;
+            }
+            return null;
+        }
+
+        function normalizeFirestoreValue(value) {
+            if (value === null || value === undefined) return value;
+            if (Array.isArray(value)) {
+                return value.map(item => normalizeFirestoreValue(item));
+            }
+            if (typeof value === 'object') {
+                const asDate = parseDate(value);
+                if (asDate) {
+                    return asDate.toISOString();
+                }
+                const normalized = {};
+                Object.entries(value).forEach(([key, val]) => {
+                    normalized[key] = normalizeFirestoreValue(val);
+                });
+                return normalized;
+            }
+            return value;
+        }
+
+        function normalizeStudentRecord(rawStudent = {}) {
+            const student = normalizeFirestoreValue(rawStudent) || {};
+            const key = student.studentId || student.id || student.uid || student.userId || student.email || student.name || '';
+            return {
+                ...student,
+                key,
+                studentId: student.studentId || student.id || student.uid || student.userId || key,
+                name: student.name || student.displayName || 'นักเรียนไม่ระบุชื่อ',
+                grade: student.grade || student.gradeLevel || student.classLevel || student.level || '-',
+                room: student.room || student.classroom || student.class || student.section || '-',
+                number: student.number || student.studentNumber || student.no || student.index || '-',
+            };
+        }
+
+        function calculateVocabularyScore(translatedWords = {}) {
+            return Object.values(translatedWords).reduce((sum, entry) => {
+                if (!entry || typeof entry !== 'object') return sum;
+                return sum + (Number(entry.points) || 0);
+            }, 0);
+        }
+
+        function normalizeSessionRecord(rawSession = {}) {
+            const session = normalizeFirestoreValue(rawSession) || {};
+            const lastUpdatedAt = parseDate(session.lastUpdated || session.updatedAt || session.finishedAt || session.completedAt);
+            const timestampAt = parseDate(session.timestamp || session.createdAt || session.startedAt || lastUpdatedAt);
+            const vocabScore = calculateVocabularyScore(session.translatedWords);
+            const comprehensionScore = Number(session.comprehensionScore) || 0;
+            const matchingScore = Number(session.matchingScore) || 0;
+            const totalScore = typeof session.totalScore === 'number'
+                ? Number(session.totalScore) || 0
+                : vocabScore + comprehensionScore + matchingScore;
+            const key = session.studentId || session.userId || session.userEmail || session.userName || session.id || '';
+            return {
+                ...session,
+                key,
+                studentId: session.studentId || session.userId || key,
+                userId: session.userId || session.studentId || key,
+                userName: session.userName || session.displayName || session.studentName || 'นักเรียนไม่ระบุชื่อ',
+                grade: session.grade || session.gradeLevel || session.classLevel || '-',
+                room: session.room || session.classroom || session.class || '-',
+                number: session.number || session.studentNumber || session.no || '-',
+                currentStep: session.currentStep || session.step || 1,
+                totalScore,
+                comprehensionScore,
+                matchingScore,
+                vocabScore,
+                completed: Boolean(session.completed),
+                lastUpdatedAt,
+                timestampAt,
+            };
+        }
+
+        function formatDateTime(value) {
+            const date = parseDate(value);
+            if (!date) return '-';
+            try {
+                return date.toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' });
+            } catch (error) {
+                return date.toLocaleString();
+            }
+        }
+
+        function buildStudentRows(students = [], sessions = []) {
+            const studentMap = new Map();
+            students.forEach(student => {
+                if (!student || !student.key) return;
+                studentMap.set(student.key, student);
+            });
+
+            const rows = new Map();
+
+            sessions.forEach(session => {
+                if (!session || !session.key) return;
+                if (!rows.has(session.key)) {
+                    const baseStudent = studentMap.get(session.key);
+                    rows.set(session.key, {
+                        key: session.key,
+                        name: session.userName || baseStudent?.name || 'นักเรียนไม่ระบุชื่อ',
+                        grade: session.grade || baseStudent?.grade || '-',
+                        room: session.room || baseStudent?.room || '-',
+                        number: session.number || baseStudent?.number || '-',
+                        studentId: session.studentId || baseStudent?.studentId || session.key,
+                        totalScore: 0,
+                        averageScore: 0,
+                        latestSession: null,
+                        completionCount: 0,
+                        sessions: [],
+                    });
+                }
+                const entry = rows.get(session.key);
+                entry.sessions.push(session);
+                entry.totalScore += Number(session.totalScore) || 0;
+                if (session.completed) {
+                    entry.completionCount += 1;
+                }
+                if (!entry.latestSession) {
+                    entry.latestSession = session;
+                } else {
+                    const existingDate = entry.latestSession.lastUpdatedAt || entry.latestSession.timestampAt;
+                    const incomingDate = session.lastUpdatedAt || session.timestampAt;
+                    if (incomingDate && (!existingDate || incomingDate > existingDate)) {
+                        entry.latestSession = session;
+                    }
+                }
+            });
+
+            rows.forEach(entry => {
+                if (entry.sessions.length > 0) {
+                    entry.averageScore = Math.round(entry.totalScore / entry.sessions.length);
+                }
+            });
+
+            students.forEach(student => {
+                if (!student || !student.key) return;
+                if (!rows.has(student.key)) {
+                    rows.set(student.key, {
+                        key: student.key,
+                        name: student.name || 'นักเรียนไม่ระบุชื่อ',
+                        grade: student.grade || '-',
+                        room: student.room || '-',
+                        number: student.number || '-',
+                        studentId: student.studentId || student.key,
+                        totalScore: 0,
+                        averageScore: 0,
+                        latestSession: null,
+                        completionCount: 0,
+                        sessions: [],
+                    });
+                } else {
+                    const entry = rows.get(student.key);
+                    entry.name = student.name || entry.name;
+                    entry.grade = student.grade || entry.grade;
+                    entry.room = student.room || entry.room;
+                    entry.number = student.number || entry.number;
+                    entry.studentId = student.studentId || entry.studentId;
+                }
+            });
+
+            return Array.from(rows.values());
         }
 
         const sampleStudents = [
@@ -2605,7 +2592,6 @@
                 timestamp: new Date(Date.now() - 1000 * 60 * 240).toISOString()
             }
         ];
-
         async function fetchTeacherData() {
             let students = [];
             let sessions = [];
@@ -2668,20 +2654,29 @@
             } else if (students.length === 0 && sessions.length > 0) {
                 const synthesizedStudents = new Map();
                 sessions.forEach(session => {
-                    const key = session.studentId || session.userId || session.userEmail || session.userName;
+                    const normalizedSession = normalizeSessionRecord(session);
+                    const key = normalizedSession.key;
                     if (!key || synthesizedStudents.has(key)) return;
                     synthesizedStudents.set(key, {
-                        studentId: session.studentId || key,
-                        name: session.userName || 'นักเรียนไม่ระบุชื่อ',
-                        grade: session.grade || '-',
-                        room: session.room || '-',
-                        number: session.number || '-'
+                        studentId: normalizedSession.studentId || key,
+                        name: normalizedSession.userName || 'นักเรียนไม่ระบุชื่อ',
+                        grade: normalizedSession.grade || '-',
+                        room: normalizedSession.room || '-',
+                        number: normalizedSession.number || '-',
                     });
                 });
                 students = Array.from(synthesizedStudents.values());
             }
 
-            return { students, sessions };
+            const normalizedStudents = students
+                .map(student => normalizeStudentRecord(student))
+                .filter(student => student && student.key);
+
+            const normalizedSessions = sessions
+                .map(session => normalizeSessionRecord(session))
+                .filter(session => session && session.key);
+
+            return { students: normalizedStudents, sessions: normalizedSessions };
         }
 
         function loadLocalStudents() {
