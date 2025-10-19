@@ -58,7 +58,7 @@
         
         /* Landing page background */
         #landingPage {
-            background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.22), rgba(236, 233, 254, 0.08)), url('https://img2.pic.in.th/pic/742215688----.jpg');
+            background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(236, 233, 254, 0.04)), url('https://img2.pic.in.th/pic/742215688----.jpg');
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
@@ -73,7 +73,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(224, 231, 255, 0.03));
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.02), rgba(224, 231, 255, 0.01));
             z-index: 1;
             pointer-events: none;
             transition: background 0.3s ease;
@@ -172,8 +172,8 @@
             content: '';
             position: absolute;
             inset: 0;
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(236, 72, 153, 0.08));
-            opacity: 0.9;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(236, 72, 153, 0.06));
+            opacity: 0.6;
             z-index: 0;
         }
 
@@ -291,6 +291,8 @@
             border-radius: 20px;
             position: relative;
             overflow: hidden;
+            display: flex;
+            justify-content: center;
         }
         
         .poem-container::before {
@@ -308,6 +310,21 @@
             line-height: 1.8;
             font-weight: 400;
             font-family: 'IBM Plex Sans Thai Looped', sans-serif;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+
+        .poem-text .kloang-container {
+            margin: 0 auto;
+            text-align: left;
+        }
+
+        .teacher-detail-card {
+            background: rgba(255, 255, 255, 0.92);
+            border-radius: 24px;
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            box-shadow: 0 25px 45px -30px rgba(15, 23, 42, 0.35);
         }
         
         .kloang-container {
@@ -718,10 +735,9 @@
             z-index: 50 !important;
         }
 
-        /* Main Content Proper Spacing */
-        #mainContent {
-            padding-top: 2rem !important;
-            min-height: calc(100vh - 200px) !important;
+            .teacher-activity-list {
+                gap: 1.5rem;
+            }
         }
 
     </style>
@@ -837,7 +853,19 @@
                                 <h4 class="text-lg font-semibold text-slate-900">กิจกรรมล่าสุด</h4>
                                 <span class="text-xs text-slate-500" id="teacherTimelineMeta"></span>
                             </div>
-                            <div id="teacherActivityTimeline" class="teacher-activity-list space-y-4"></div>
+                            <div id="teacherActivityTimeline" class="teacher-activity-list grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+                        </div>
+
+                        <div id="teacherStudentDetail" class="teacher-detail-card p-6 md:p-8 space-y-6">
+                            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                                <div>
+                                    <h4 class="text-lg font-semibold text-slate-900">รายงานนักเรียนรายบุคคล</h4>
+                                    <p class="text-sm text-slate-500">คลิกชื่อนักเรียนจากตารางเพื่อดูรายละเอียด</p>
+                                </div>
+                            </div>
+                            <div id="teacherStudentDetailContent" class="text-sm text-slate-500 text-center">
+                                กรุณาเลือกชื่อนักเรียนจากตารางเพื่อดูข้อมูลเชิงลึก
+                            </div>
                         </div>
 
                         <div class="bg-white/90 backdrop-blur border border-slate-200 rounded-3xl p-6 md:p-8 space-y-6 shadow-lg">
@@ -846,25 +874,40 @@
                                 <p class="text-lg md:text-xl font-semibold text-slate-900">ข้อมูลสำคัญของวันนี้</p>
                             </div>
                             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
-                                <div class="rounded-2xl p-4 bg-slate-50 border border-slate-200">
-                                    <p class="text-slate-500">คะแนนรวมสะสม</p>
-                                    <p class="text-2xl font-bold text-slate-900" id="teacherQuickTotal">-</p>
+                                <div class="rounded-2xl p-4 bg-slate-50 border border-slate-200 flex items-start gap-3">
+                                    <div class="text-xl">🏅</div>
+                                    <div>
+                                        <p class="text-slate-500 text-sm">คะแนนรวมสะสม</p>
+                                        <p class="text-2xl font-bold text-slate-900" id="teacherQuickTotal">-</p>
+                                    </div>
                                 </div>
-                                <div class="rounded-2xl p-4 bg-slate-50 border border-slate-200">
-                                    <p class="text-slate-500">คะแนนเฉลี่ย</p>
-                                    <p class="text-2xl font-bold text-slate-900" id="teacherQuickAverage">-</p>
+                                <div class="rounded-2xl p-4 bg-slate-50 border border-slate-200 flex items-start gap-3">
+                                    <div class="text-xl">📊</div>
+                                    <div>
+                                        <p class="text-slate-500 text-sm">คะแนนเฉลี่ย</p>
+                                        <p class="text-2xl font-bold text-slate-900" id="teacherQuickAverage">-</p>
+                                    </div>
                                 </div>
-                                <div class="rounded-2xl p-4 bg-slate-50 border border-slate-200">
-                                    <p class="text-slate-500">นักเรียนลงทะเบียน</p>
-                                    <p class="text-2xl font-bold text-slate-900" id="teacherQuickStudents">-</p>
+                                <div class="rounded-2xl p-4 bg-slate-50 border border-slate-200 flex items-start gap-3">
+                                    <div class="text-xl">👩‍🎓</div>
+                                    <div>
+                                        <p class="text-slate-500 text-sm">นักเรียนลงทะเบียน</p>
+                                        <p class="text-2xl font-bold text-slate-900" id="teacherQuickStudents">-</p>
+                                    </div>
                                 </div>
-                                <div class="rounded-2xl p-4 bg-slate-50 border border-slate-200">
-                                    <p class="text-slate-500">ภารกิจสำเร็จ</p>
-                                    <p class="text-2xl font-bold text-slate-900" id="teacherQuickCompleted">-</p>
+                                <div class="rounded-2xl p-4 bg-slate-50 border border-slate-200 flex items-start gap-3">
+                                    <div class="text-xl">✅</div>
+                                    <div>
+                                        <p class="text-slate-500 text-sm">ภารกิจสำเร็จ</p>
+                                        <p class="text-2xl font-bold text-slate-900" id="teacherQuickCompleted">-</p>
+                                    </div>
                                 </div>
-                                <div class="rounded-2xl p-4 bg-slate-50 border border-slate-200">
-                                    <p class="text-slate-500">เข้าสู่ระบบวันนี้</p>
-                                    <p class="text-2xl font-bold text-slate-900" id="teacherQuickActive">-</p>
+                                <div class="rounded-2xl p-4 bg-slate-50 border border-slate-200 flex items-start gap-3">
+                                    <div class="text-xl">🕒</div>
+                                    <div>
+                                        <p class="text-slate-500 text-sm">เข้าสู่ระบบวันนี้</p>
+                                        <p class="text-2xl font-bold text-slate-900" id="teacherQuickActive">-</p>
+                                    </div>
                                 </div>
                             </div>
                             <div class="text-xs text-slate-500 space-y-1">
@@ -945,19 +988,16 @@
                                         </button>
                                     </div>
 
-                                    <div class="p-4 rounded-2xl bg-gradient-to-r from-blue-50/80 via-indigo-50/80 to-purple-50/80 border border-blue-100/70">
-                                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                                            <div class="text-left">
-                                                <p class="text-sm font-semibold text-blue-900">สำหรับครูผู้สอน</p>
-                                                <p class="text-xs text-blue-600">เข้าสู่ระบบเพื่อดูคะแนนและความคืบหน้านักเรียน</p>
-                                            </div>
-                                            <button onclick="openTeacherPortal()" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-4 rounded-xl transition-all duration-200 shadow-lg flex items-center justify-center gap-2">
-                                                👩‍🏫 พื้นที่ครู
-                                            </button>
-                                        </div>
+                                    <div id="teacherLoginCta" class="text-center sm:text-right text-xs text-blue-700/80 space-y-1">
+                                        <p class="font-semibold text-blue-900/90">สำหรับครูผู้สอน</p>
+                                        <button onclick="openTeacherPortal()" class="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 font-semibold tracking-wide">
+                                            👩‍🏫 พื้นที่ครู
+                                            <span class="hidden sm:inline">(เข้าสู่ระบบเพื่อดูคะแนน)</span>
+                                        </button>
+                                        <p class="text-[11px] text-blue-600/80">เข้าสู่ระบบเพื่อดูคะแนนและความคืบหน้านักเรียน</p>
                                     </div>
                                 </div>
-                                
+
                                 <!-- Student Registration Form -->
                                 <div id="studentForm" class="hidden space-y-4">
                                     <div class="text-center mb-4">
@@ -1154,6 +1194,10 @@
                                 </div>
                             </div>
                         </div>
+
+                        <div class="pt-4 mt-6 border-t border-blue-100/60 text-center text-[13px] leading-relaxed text-blue-900/90">
+                            พัฒนาโดย : นัชนันท์  นครคง  / นุสรา  พึ่งบ้านเกาะ / ราม แสงมณี / สุทธิชา กะรัมย์ หลักสูตรและการสอน (การสอนภาษาไทย) คณะครุศาสตร์ จุฬาลงกรณ์มหาวิทยาลัย
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1268,7 +1312,7 @@
     <!-- Notification Container -->
     <div id="notificationContainer"></div>
 
-    <footer class="bg-slate-900 text-white text-sm text-center py-6 mt-12">
+    <footer id="siteFooter" class="bg-slate-900 text-white text-sm text-center py-6 mt-12 hidden">
         พัฒนาโดย : นัชนันท์  นครคง  / นุสรา  พึ่งบ้านเกาะ / ราม แสงมณี /สุทธิชา กะรัมย์ หลักสูตรและการสอน (การสอนภาษาไทย) คณะครุศาสตร์ จุฬาลงกรณ์มหาวิทยาลัย
     </footer>
 
@@ -1368,6 +1412,27 @@
         };
 
         let currentTeacher = null;
+        const teacherDashboardState = {
+            rows: [],
+            sessions: []
+        };
+
+        const STEP_LABELS = {
+            1: '📚 ประวัติศาสตร์',
+            2: '📖 แสดงโคลง',
+            2.5: '🎯 เกมจับคู่คำศัพท์',
+            3: '📝 ถอดความ',
+            4: '🖼️ เปิดภาพจริง',
+            5: '📝 ทบทวน',
+            6: '🏆 สรุปผล'
+        };
+
+        function getStepLabel(step) {
+            if (step === undefined || step === null) {
+                return 'ยังไม่เริ่ม';
+            }
+            return STEP_LABELS[step] || `ขั้นที่ ${step}`;
+        }
 
         function refreshTeacherViewIfNeeded() {
             if (currentTeacher) {
@@ -1382,38 +1447,38 @@
                 historicalBackground: {
                     title: "ประวัติศาสตร์: สมเด็จพระสุริโยทัย",
                     content: `
-                        <div class="space-y-6">
-                            <div class="bg-gradient-to-r from-amber-50 to-yellow-50 border-2 border-amber-200 rounded-2xl p-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <article class="bg-gradient-to-r from-amber-50 to-yellow-50 border-2 border-amber-200 rounded-2xl p-6 h-full">
                                 <h4 class="text-xl font-bold text-amber-900 mb-4">👑 สมเด็จพระสุริโยทัย</h4>
                                 <p class="text-amber-800 leading-relaxed">
-                                    สมเด็จพระสุริโยทัย เป็นพระมเหสีของสมเด็จพระมหาจักรพรรดิแห่งกรุงศรีอยุธยา 
+                                    สมเด็จพระสุริโยทัย เป็นพระมเหสีของสมเด็จพระมหาจักรพรรดิ (พระราเมศวร) แห่งกรุงศรีอยุธยา
                                     ทรงเป็นบุคคลสำคัญในประวัติศาสตร์ไทย ที่ทรงแสดงความกล้าหาญในการปกป้องแผ่นดิน
                                 </p>
-                            </div>
-                            
-                            <div class="bg-gradient-to-r from-red-50 to-pink-50 border-2 border-red-200 rounded-2xl p-6">
+                            </article>
+
+                            <article class="bg-gradient-to-r from-red-50 to-pink-50 border-2 border-red-200 rounded-2xl p-6 h-full">
                                 <h4 class="text-xl font-bold text-red-900 mb-4">⚔️ สงครามกับพม่า (พ.ศ. 2091)</h4>
                                 <p class="text-red-800 leading-relaxed">
-                                    เมื่อพระเจ้าแปร (พระเจ้าตะโดธรรมราชาที่ 1) แห่งพม่ายกทัพมาตีกรุงศรีอยุธยา 
+                                    เมื่อพระเจ้าแปร (พระเจ้าตะบิงชเวตี) แห่งพม่ายกทัพมาตีกรุงศรีอยุธยา
                                     สมเด็จพระสุริโยทัยทรงแต่งกายเป็นทหาร ขี่ช้างออกรบเพื่อช่วยเหลือพระราชสามี
                                 </p>
-                            </div>
-                            
-                            <div class="bg-gradient-to-r from-purple-50 to-indigo-50 border-2 border-purple-200 rounded-2xl p-6">
+                            </article>
+
+                            <article class="bg-gradient-to-r from-purple-50 to-indigo-50 border-2 border-purple-200 rounded-2xl p-6 h-full">
                                 <h4 class="text-xl font-bold text-purple-900 mb-4">🐘 การสิ้นพระชนม์อย่างกล้าหาญ</h4>
                                 <p class="text-purple-800 leading-relaxed">
-                                    ในระหว่างการรบ สมเด็จพระสุริโยทัยทรงขี่ช้างเข้าไปช่วยเหลือพระราชสามีที่ตกอยู่ในอันตราย 
+                                    ในระหว่างการรบ สมเด็จพระสุริโยทัยทรงขี่ช้างเข้าไปช่วยเหลือพระราชสามีที่ตกอยู่ในอันตราย
                                     แต่ทรงถูกพระเจ้าแปรใช้ง้าวฟันจนสิ้นพระชนม์บนหลังช้าง เป็นการเสียสละเพื่อแผ่นดิน
                                 </p>
-                            </div>
-                            
-                            <div class="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-2xl p-6">
+                            </article>
+
+                            <article class="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-2xl p-6 h-full">
                                 <h4 class="text-xl font-bold text-green-900 mb-4">📜 บันทึกในพระราชพงศาวดาร</h4>
                                 <p class="text-green-800 leading-relaxed">
-                                    เหตุการณ์นี้ได้รับการบันทึกไว้ในพระราชพงศาวดารกรุงศรีอยุธยา 
+                                    เหตุการณ์นี้ได้รับการบันทึกไว้ในพระราชพงศาวดารกรุงศรีอยุธยา
                                     และได้รับการประพันธ์เป็นโคลงสี่สุภาพ เพื่อสรรเสริญพระเกียรติคุณและความกล้าหาญ
                                 </p>
-                            </div>
+                            </article>
                         </div>
                     `
                 },
@@ -1989,7 +2054,8 @@
             const userInfo = document.getElementById('userInfo');
             const startGameBtn = document.getElementById('startGameBtn');
             const landingPage = document.getElementById('landingPage');
-            
+            const teacherCta = document.getElementById('teacherLoginCta');
+
             if (user) {
                 // Hide all forms
                 if (loginButtons) loginButtons.classList.add('hidden');
@@ -1997,7 +2063,8 @@
                 if (loginForm) loginForm.classList.add('hidden');
                 if (userInfo) userInfo.classList.remove('hidden');
                 if (startGameBtn) startGameBtn.disabled = false;
-                
+                if (teacherCta) teacherCta.classList.add('hidden');
+
                 // Add class to make background more transparent when logged in
                 if (landingPage) landingPage.classList.add('user-logged-in');
                 
@@ -2024,7 +2091,8 @@
                 if (loginForm) loginForm.classList.add('hidden');
                 if (userInfo) userInfo.classList.add('hidden');
                 if (startGameBtn) startGameBtn.disabled = true;
-                
+                if (teacherCta) teacherCta.classList.remove('hidden');
+
                 // Remove class to show background clearly when not logged in
                 if (landingPage) landingPage.classList.remove('user-logged-in');
                 
@@ -2036,10 +2104,12 @@
         function openTeacherPortal() {
             const portal = document.getElementById('teacherPortal');
             const landing = document.getElementById('landingPage');
+            const footer = document.getElementById('siteFooter');
             if (!portal) return;
 
             portal.classList.remove('hidden');
             if (landing) landing.classList.add('hidden');
+            if (footer) footer.classList.remove('hidden');
             window.scrollTo({ top: 0, behavior: 'smooth' });
 
             const loginPanel = document.getElementById('teacherLoginPanel');
@@ -2059,10 +2129,12 @@
         function closeTeacherPortal() {
             const portal = document.getElementById('teacherPortal');
             const landing = document.getElementById('landingPage');
+            const footer = document.getElementById('siteFooter');
             if (!portal) return;
 
             portal.classList.add('hidden');
             if (landing) landing.classList.remove('hidden');
+            if (footer) footer.classList.add('hidden');
         }
 
         function resetTeacherLoginForm() {
@@ -2190,6 +2262,10 @@
                     return (bDate?.getTime() || 0) - (aDate?.getTime() || 0);
                 });
 
+                teacherDashboardState.sessions = sessions;
+                teacherDashboardState.rows = sortedStudentRows;
+                resetTeacherStudentDetail();
+
                 if (summary) {
                     const inProgress = sessions.length - completedSessions.length;
                     const summaryData = [
@@ -2262,7 +2338,9 @@
                             <tr class="hover:bg-slate-50 transition-colors">
                                 <td class="px-4 py-3" data-label="นักเรียน">
                                     <div class="flex flex-col">
-                                        <span class="font-semibold text-slate-900">${row.name || 'ไม่ระบุชื่อ'}</span>
+                                        <button type="button" data-student-key="${row.key || row.studentId}" class="teacher-student-link text-left font-semibold text-slate-900 hover:text-blue-600 focus:outline-none focus:text-blue-700 transition">
+                                            ${row.name || 'ไม่ระบุชื่อ'}
+                                        </button>
                                         <span class="text-xs text-slate-500">${row.studentId || '-'}</span>
                                     </div>
                                 </td>
@@ -2299,6 +2377,13 @@
                             </tr>
                         `;
                     }).join('');
+
+                    tableBody.querySelectorAll('.teacher-student-link').forEach(button => {
+                        button.addEventListener('click', () => {
+                            const key = button.getAttribute('data-student-key');
+                            showTeacherStudentDetail(key);
+                        });
+                    });
                 }
 
                 if (tableMeta) {
@@ -2346,6 +2431,7 @@
                 if (timelineMeta) {
                     timelineMeta.textContent = `${sessions.length} บันทึกกิจกรรม`;
                 }
+
             } catch (error) {
                 console.error('Teacher dashboard render failed:', error);
                 if (loading) loading.classList.add('hidden');
@@ -2363,8 +2449,134 @@
                         </div>
                     `;
                 }
+                resetTeacherStudentDetail();
                 showNotification('ไม่สามารถโหลดแดชบอร์ดครูได้ กรุณาลองใหม่อีกครั้ง', 'error');
             }
+        }
+
+        function resetTeacherStudentDetail() {
+            const container = document.getElementById('teacherStudentDetailContent');
+            if (!container) return;
+            container.classList.add('text-center');
+            container.innerHTML = '<p class="text-sm text-slate-500">คลิกชื่อนักเรียนจากตารางเพื่อดูข้อมูลเชิงลึก</p>';
+        }
+
+        function showTeacherStudentDetail(studentKey) {
+            const container = document.getElementById('teacherStudentDetailContent');
+            if (!container || !studentKey) {
+                resetTeacherStudentDetail();
+                return;
+            }
+
+            const studentRow = teacherDashboardState.rows.find(row => row.key === studentKey || row.studentId === studentKey);
+            if (!studentRow) {
+                resetTeacherStudentDetail();
+                return;
+            }
+
+            const sessions = [...(studentRow.sessions || [])].sort((a, b) => {
+                const aDate = parseDate(a.lastUpdatedAt || a.timestampAt || a.lastUpdated || a.timestamp);
+                const bDate = parseDate(b.lastUpdatedAt || b.timestampAt || b.lastUpdated || b.timestamp);
+                return (bDate?.getTime() || 0) - (aDate?.getTime() || 0);
+            });
+
+            const latestSession = sessions[0] || null;
+            const latestScore = latestSession ? Math.round(Number(latestSession.totalScore) || Number(latestSession.comprehensionScore) || 0) : 0;
+            const currentStep = latestSession ? latestSession.currentStep : null;
+            const gradeRoom = studentRow.grade ? `${studentRow.grade}${studentRow.room ? `/${studentRow.room}` : ''}` : '-';
+            const studentTotalScore = studentRow.totalScore ? Math.round(studentRow.totalScore) : 0;
+            const averageScore = studentRow.averageScore ? Math.round(studentRow.averageScore) : (studentRow.sessions.length ? Math.round(studentTotalScore / studentRow.sessions.length) : 0);
+            const lastActivity = latestSession ? formatDateTime(latestSession.lastUpdatedAt || latestSession.timestampAt || latestSession.lastUpdated || latestSession.timestamp) : '-';
+
+            const today = new Date();
+            const todaySessions = sessions.filter(session => {
+                const sessionDate = parseDate(session.lastUpdatedAt || session.timestampAt || session.lastUpdated || session.timestamp);
+                return sessionDate ? isSameDay(sessionDate, today) : false;
+            });
+
+            const todayScore = todaySessions.reduce((sum, session) => sum + (Number(session.totalScore) || Number(session.comprehensionScore) || 0), 0);
+            const todayCompleted = todaySessions.filter(session => session.completed).length;
+
+            const headerStats = [
+                { label: 'คะแนนสะสม', value: studentTotalScore.toLocaleString('th-TH'), icon: '🎯' },
+                { label: 'คะแนนเฉลี่ย', value: averageScore.toLocaleString('th-TH'), icon: '📊' },
+                { label: 'คะแนนล่าสุด', value: latestScore.toLocaleString('th-TH'), icon: '📈' },
+                { label: 'ภารกิจสำเร็จ', value: studentRow.completionCount || 0, icon: '🏆' },
+                { label: 'ขั้นปัจจุบัน', value: getStepLabel(currentStep), icon: '🧭' }
+            ];
+
+            const recentActivities = sessions.slice(0, 5);
+
+            const activityCards = recentActivities.length
+                ? recentActivities.map(activity => {
+                    const activityDate = formatDateTime(activity.lastUpdatedAt || activity.timestampAt || activity.lastUpdated || activity.timestamp);
+                    const activityScore = Math.round(Number(activity.totalScore) || Number(activity.comprehensionScore) || 0);
+                    const stepLabel = getStepLabel(activity.currentStep);
+                    const status = activity.completed ? 'เสร็จสิ้นภารกิจ' : `กำลังเรียนรู้: ${stepLabel}`;
+                    return `
+                        <div class="rounded-2xl border border-slate-200 bg-white/90 p-4 flex flex-col gap-2 shadow-sm">
+                            <div class="flex items-start justify-between gap-3">
+                                <div class="font-semibold text-slate-900 leading-tight">${activity.userName || studentRow.name}</div>
+                                <span class="text-xs text-slate-500 whitespace-nowrap">${activityDate}</span>
+                            </div>
+                            <p class="text-sm text-slate-600">${status}</p>
+                            <div class="text-sm font-semibold text-blue-700">คะแนน ${activityScore.toLocaleString('th-TH')} แต้ม</div>
+                        </div>
+                    `;
+                }).join('')
+                : '<p class="text-sm text-slate-500">ยังไม่มีบันทึกกิจกรรมของนักเรียนคนนี้</p>';
+
+            const todaySummary = [
+                { label: 'กิจกรรมที่บันทึกวันนี้', value: todaySessions.length || 0, icon: '🗓️' },
+                { label: 'คะแนนที่ได้วันนี้', value: todayScore ? todayScore.toLocaleString('th-TH') : '0', icon: '⭐' },
+                { label: 'ภารกิจสำเร็จวันนี้', value: todayCompleted || 0, icon: '✅' },
+                { label: 'อัปเดตล่าสุด', value: lastActivity, icon: '⏱️' }
+            ];
+
+            container.classList.remove('text-center');
+            container.innerHTML = `
+                <div class="space-y-6 text-left">
+                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+                        <div>
+                            <p class="text-xs uppercase tracking-wide text-slate-500">นักเรียน</p>
+                            <h5 class="text-2xl font-bold text-slate-900">${studentRow.name || 'ไม่ระบุชื่อ'}</h5>
+                            <p class="text-sm text-slate-500">${gradeRoom} • เลขที่ ${studentRow.number || '-'}</p>
+                        </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                            ${headerStats.map(stat => `
+                                <div class="rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
+                                    <div class="text-lg">${stat.icon}</div>
+                                    <p class="text-xs text-slate-500 mt-1">${stat.label}</p>
+                                    <p class="text-lg font-semibold text-slate-900">${stat.value}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h5 class="text-base font-semibold text-slate-900">กิจกรรมล่าสุด</h5>
+                            <span class="text-xs text-slate-500">ทั้งหมด ${studentRow.sessions.length} กิจกรรม</span>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+                            ${activityCards}
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <h5 class="text-base font-semibold text-slate-900">ข้อมูลสำคัญของวันนี้</h5>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                            ${todaySummary.map(stat => `
+                                <div class="rounded-2xl border border-slate-200 bg-white/90 p-4">
+                                    <div class="text-lg">${stat.icon}</div>
+                                    <p class="text-xs text-slate-500 mt-1">${stat.label}</p>
+                                    <p class="text-lg font-semibold text-slate-900">${stat.value}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
         }
         function parseDate(value) {
             if (!value) return null;
@@ -2470,6 +2682,13 @@
             } catch (error) {
                 return date.toLocaleString();
             }
+        }
+
+        function isSameDay(dateA, dateB) {
+            if (!dateA || !dateB) return false;
+            return dateA.getFullYear() === dateB.getFullYear() &&
+                dateA.getMonth() === dateB.getMonth() &&
+                dateA.getDate() === dateB.getDate();
         }
 
         function buildStudentRows(students = [], sessions = []) {
@@ -2898,10 +3117,12 @@
             const landingPage = document.getElementById('landingPage');
             const header = document.getElementById('header');
             const mainContent = document.getElementById('mainContent');
-            
+            const footer = document.getElementById('siteFooter');
+
             if (landingPage) landingPage.classList.remove('hidden');
             if (header) header.classList.add('hidden');
             if (mainContent) mainContent.classList.add('hidden');
+            if (footer) footer.classList.add('hidden');
             
             // Update background transparency based on login status
             if (landingPage) {
@@ -3110,7 +3331,9 @@
             document.getElementById('landingPage').classList.add('hidden');
             document.getElementById('header').classList.remove('hidden');
             document.getElementById('mainContent').classList.remove('hidden');
-            
+            const footer = document.getElementById('siteFooter');
+            if (footer) footer.classList.remove('hidden');
+
             updatePlayerProfile();
             updateProgress();
             updateUserNameDisplay();
@@ -3430,48 +3653,45 @@
                     
                 case 3:
                     mainContent.innerHTML = `
-                        <!-- Poem Display -->
-                        <div class="modern-card rounded-3xl p-4 md:p-6 mb-6">
-                            <div class="poem-container p-4 md:p-6">
-                                <div class="mb-4">
-                                    <span class="badge-modern">โคลงสี่สุภาพ - อ้างอิง</span>
-                                </div>
-                                <div class="poem-text text-gray-800 max-w-4xl mx-auto text-base md:text-lg">
-                                    ${mission.poem}
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="modern-card rounded-3xl p-4 md:p-8">
-                            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                        <div class="modern-card rounded-3xl p-4 md:p-8 space-y-6">
+                            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                                 <h2 class="text-2xl md:text-3xl font-bold text-gray-900">
                                     📝 ถอดความและจินตนาการ
                                 </h2>
                                 <span class="badge-modern">หน้าที่ 3</span>
                             </div>
-                            
-                            <div class="bg-gradient-to-r from-indigo-50 to-blue-50 border-2 border-indigo-200 p-4 rounded-xl mb-6">
+
+                            <div class="bg-gradient-to-r from-indigo-50 to-blue-50 border-2 border-indigo-200 p-4 rounded-xl">
                                 <div class="flex items-center gap-2 mb-2">
                                     <span class="text-xl">✍️</span>
                                     <h4 class="text-lg font-bold text-indigo-900">จุดประสงค์การเรียนรู้</h4>
                                 </div>
                                 <p class="text-indigo-800">หน้านี้เป็นการฝึกทักษะการถอดความและการใช้จินตนาการ เพื่อให้เข้าใจเนื้อหาของโคลงและสามารถสื่อสารด้วยภาษาของตนเอง</p>
                             </div>
-                            
-                            <!-- Interpretation Section -->
-                            <div class="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 p-6 rounded-2xl mb-6">
-                                <h3 class="text-xl font-bold text-green-900 mb-4">📝 ถอดความ</h3>
-                                <p class="text-green-800 mb-4">ถอดความโคลงเป็นร้อยแก้วด้วยภาษาของคุณเอง</p>
-                                <textarea id="interpretationInput" class="w-full h-48 modern-input p-4 text-base resize-none" placeholder="ถอดความโคลงเป็นร้อยแก้วด้วยภาษาของคุณเอง...&#10;&#10;เช่น: สมเด็จพระสุริโยทัยทรงเป็นพระมเหสีที่งดงาม ทรงมีจิตใจที่กตัญญูต่อพระราชสามี..."></textarea>
+
+                            <div class="grid gap-6 lg:grid-cols-2 items-start">
+                                <div class="poem-container p-4 md:p-6 h-full">
+                                    <div class="mb-4">
+                                        <span class="badge-modern">โคลงสี่สุภาพ - อ้างอิง</span>
+                                    </div>
+                                    <div class="poem-text text-gray-800 text-base md:text-lg">
+                                        ${mission.poem}
+                                    </div>
+                                </div>
+
+                                <div class="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 p-6 rounded-2xl h-full flex flex-col">
+                                    <h3 class="text-xl font-bold text-green-900 mb-4">📝 ถอดความ</h3>
+                                    <p class="text-green-800 mb-4">ถอดความโคลงเป็นร้อยแก้วด้วยภาษาของคุณเอง</p>
+                                    <textarea id="interpretationInput" class="w-full min-h-[14rem] lg:min-h-[18rem] modern-input p-4 text-base resize-none flex-1" placeholder="ถอดความโคลงเป็นร้อยแก้วด้วยภาษาของคุณเอง...&#10;&#10;เช่น: สมเด็จพระสุริโยทัยทรงเป็นพระมเหสีที่งดงาม ทรงมีจิตใจที่กตัญญูต่อพระราชสามี..."></textarea>
+                                </div>
                             </div>
-                            
-                            <!-- Imagination Section -->
-                            <div class="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 p-6 rounded-2xl mb-6">
+
+                            <div class="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 p-6 rounded-2xl">
                                 <h3 class="text-xl font-bold text-purple-900 mb-4">🎨 จินตนาการภาพ</h3>
                                 <p class="text-purple-800 mb-4">บรรยายภาพที่เกิดขึ้นในจินตนาการของคุณจากโคลงนี้</p>
                                 <textarea id="imaginationInput" class="w-full h-40 modern-input p-4 text-base resize-none" placeholder="🖼️ วาดภาพด้วยคำพูด... อธิบายสิ่งที่คุณเห็นในใจ&#10;&#10;เช่น: ฉันเห็นภาพสมเด็จพระสุริโยทัยทรงขี่ช้างสีขาวขนาดใหญ่ ในท่ามกลางสนามรบที่เต็มไปด้วยควัน..."></textarea>
                             </div>
-                            
+
                             <div class="text-center space-y-4">
                                 <div class="flex flex-col md:flex-row justify-center gap-4">
                                     <button onclick="goBack()" class="modern-button px-6 py-3 text-lg rounded-2xl bg-gray-500 hover:bg-gray-600 w-full md:w-auto">
@@ -3481,8 +3701,7 @@
                                         ➡️ ไปขั้นตอนถัดไป
                                     </button>
                                 </div>
-                                
-                                <!-- Quick Navigation -->
+
                                 <div class="mt-6">
                                     <p class="text-gray-600 mb-4">หรือข้ามไปหน้าอื่น:</p>
                                     <div class="flex flex-wrap justify-center gap-3">
@@ -5747,7 +5966,7 @@
                         <div class="bg-gradient-to-r from-orange-50 to-red-50 border-2 border-orange-200 p-6 rounded-xl">
                             <h3 class="text-xl font-bold text-orange-900 mb-4 text-center">รูปฉันทลักษณ์โคลงสี่สุภาพ</h3>
                             <div class="text-center">
-                                <img src="https://img5.pic.in.th/file/secure-sv1/--04.png" alt="รูปฉันทลักษณ์โคลงสี่สุภาพ" class="w-full max-w-3xl mx-auto rounded-xl border-2 border-orange-300 shadow-lg" onerror="this.src=''; this.alt='ไม่สามารถโหลดภาพได้'; this.style.display='none';">
+                                <img src="https://img5.pic.in.th/file/secure-sv1/Screenshot-2025-10-19-234603.png" alt="รูปฉันทลักษณ์โคลงสี่สุภาพ" class="w-full max-w-3xl mx-auto rounded-xl border-2 border-orange-300 shadow-lg" onerror="this.src=''; this.alt='ไม่สามารถโหลดภาพได้'; this.style.display='none';">
                                 <p class="text-orange-700 text-sm mt-3">รูปแบบฉันทลักษณ์โคลงสี่สุภาพ แสดงตำแหน่งวรรณยุกต์เอก (●) โท (●) และตำแหน่งอิสระ (○)</p>
                             </div>
                         </div>
