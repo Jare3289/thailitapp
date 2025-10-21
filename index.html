@@ -30,6 +30,7 @@
             min-height: 100vh;
             color: #111827;
             overflow-x: hidden;
+            padding-bottom: 7rem;
         }
 
         body::before,
@@ -39,8 +40,8 @@
             width: 420px;
             height: 420px;
             border-radius: 9999px;
-            filter: blur(120px);
-            opacity: 0.45;
+            filter: blur(110px);
+            opacity: 0.35;
             z-index: -1;
         }
 
@@ -73,14 +74,14 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.02), rgba(224, 231, 255, 0.01));
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(224, 231, 255, 0.02));
             z-index: 1;
             pointer-events: none;
             transition: background 0.3s ease;
         }
 
         #landingPage.user-logged-in::before {
-            background: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.45);
         }
         
         #landingPage > * {
@@ -172,8 +173,8 @@
             content: '';
             position: absolute;
             inset: 0;
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(236, 72, 153, 0.06));
-            opacity: 0.6;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(236, 72, 153, 0.04));
+            opacity: 0.5;
             z-index: 0;
         }
 
@@ -287,14 +288,14 @@
         
         .poem-container {
             background: linear-gradient(145deg, #f8fafc 0%, #e2e8f0 100%);
-            border: 2px solid rgba(148, 163, 184, 0.3);
+            border: 2px solid rgba(148, 163, 184, 0.25);
             border-radius: 20px;
             position: relative;
             overflow: hidden;
             display: flex;
             justify-content: center;
         }
-        
+
         .poem-container::before {
             content: '';
             position: absolute;
@@ -303,6 +304,16 @@
             right: 0;
             height: 4px;
             background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899, #f59e0b);
+        }
+
+        .poem-container.plain-poem {
+            background: transparent;
+            border: none;
+            box-shadow: none;
+        }
+
+        .poem-container.plain-poem::before {
+            display: none;
         }
         
         .poem-text {
@@ -318,6 +329,7 @@
         .poem-text .kloang-container {
             margin: 0 auto;
             text-align: left;
+            max-width: 640px;
         }
 
         .teacher-detail-card {
@@ -440,45 +452,6 @@
         @keyframes shimmer {
             0% { transform: translateX(-100%); }
             100% { transform: translateX(100%); }
-        }
-        
-        .step-indicator {
-            background: rgba(59, 130, 246, 0.9);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 1rem;
-        }
-        
-        .step-circle {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 1.1rem;
-            transition: all 0.3s ease;
-            border: 3px solid transparent;
-        }
-        
-        .step-active {
-            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-            color: white;
-            box-shadow: 0 8px 15px -3px rgba(59, 130, 246, 0.4);
-            transform: scale(1.1);
-        }
-        
-        .step-completed {
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
-            box-shadow: 0 8px 15px -3px rgba(16, 185, 129, 0.4);
-        }
-        
-        .step-inactive {
-            background: rgba(255, 255, 255, 0.3);
-            color: rgba(255, 255, 255, 0.7);
-            border-color: rgba(255, 255, 255, 0.2);
         }
         
         .notification {
@@ -735,9 +708,62 @@
             z-index: 50 !important;
         }
 
-            .teacher-activity-list {
-                gap: 1.5rem;
-            }
+        /* Main Content Proper Spacing */
+        #mainContent {
+            padding-top: 2rem !important;
+            padding-bottom: 6rem !important;
+            min-height: calc(100vh - 220px) !important;
+        }
+
+        .progress-wrapper {
+            transition: margin 0.3s ease;
+        }
+
+        .step-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.45rem 0.75rem;
+            border-radius: 9999px;
+            background: rgba(255, 255, 255, 0.18);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            color: #f8fafc;
+            font-weight: 600;
+            font-size: 0.75rem;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .step-chip span {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .step-chip-active {
+            background: rgba(255, 255, 255, 0.28);
+            color: #fff7ed;
+            box-shadow: 0 15px 30px -18px rgba(15, 23, 42, 0.6);
+        }
+
+        .step-chip-completed {
+            opacity: 0.7;
+        }
+
+        #header {
+            transition: all 0.3s ease;
+        }
+
+        #header.header-compact {
+            padding-top: 0.5rem !important;
+            padding-bottom: 0.75rem !important;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.95), rgba(76, 29, 149, 0.9));
+            backdrop-filter: blur(16px);
+        }
+
+        #header.header-compact .step-chip {
+            padding: 0.3rem 0.6rem;
+            font-size: 0.7rem;
         }
 
     </style>
@@ -973,18 +999,14 @@
                                 </div>
                                 <p class="text-gray-600 text-center mb-6 leading-relaxed">เข้าสู่ระบบเพื่อบันทึกความคืบหน้า เชื่อมต่อคะแนน และรับคำแนะนำเฉพาะตัวในแต่ละภารกิจ</p>
 
-                                <div id="loginButtons" class="space-y-4">
-                                    <div class="grid grid-cols-3 gap-2 login-actions">
+                                <div id="loginButtons" class="space-y-3">
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 login-actions">
                                         <button onclick="showStudentForm()" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-2 rounded-xl transition-all duration-200 text-sm">
                                             📝 ลงทะเบียน
                                         </button>
 
                                         <button onclick="showLoginForm()" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-2 rounded-xl transition-all duration-200 text-sm">
                                             🔑 เข้าสู่ระบบ
-                                        </button>
-
-                                        <button id="startGameBtn" onclick="startGame()" class="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-3 px-2 rounded-xl transition-all duration-200 text-sm disabled:bg-gray-400 disabled:cursor-not-allowed disabled:opacity-50 transform hover:scale-105 enabled:shadow-2xl enabled:animate-pulse" disabled>
-                                            ✨ เริ่มเลย
                                         </button>
                                     </div>
 
@@ -996,6 +1018,22 @@
                                         </button>
                                         <p class="text-[11px] text-blue-600/80">เข้าสู่ระบบเพื่อดูคะแนนและความคืบหน้านักเรียน</p>
                                     </div>
+                                </div>
+
+                                <div id="startButtonWrapper" class="mt-4">
+                                    <button id="startGameBtn" onclick="startGame()" class="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-3 rounded-xl transition-all duration-200 text-sm disabled:bg-gray-400 disabled:cursor-not-allowed disabled:opacity-50" disabled>
+                                        ✨ เริ่มเลย
+                                    </button>
+                                    <p class="text-[11px] text-purple-700/70 mt-2" id="startButtonHint">เข้าสู่ระบบก่อนเพื่อเปิดภารกิจ</p>
+                                </div>
+
+                                <div id="teacherLoginCta" class="mt-4 text-xs text-blue-700/70 text-center sm:text-right space-y-1">
+                                    <p class="font-semibold text-blue-900/80">สำหรับครูผู้สอน</p>
+                                    <button onclick="openTeacherPortal()" class="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 font-semibold">
+                                        👩‍🏫 พื้นที่ครู
+                                        <span class="hidden sm:inline">(เข้าสู่ระบบเพื่อดูคะแนน)</span>
+                                    </button>
+                                    <p class="text-[11px] text-blue-600/70">เข้าสู่ระบบเพื่อดูคะแนนและความคืบหน้านักเรียน</p>
                                 </div>
 
                                 <!-- Student Registration Form -->
@@ -1205,101 +1243,64 @@
     </div>
 
     <!-- Header Dashboard (Hidden initially) -->
-    <header id="header" class="bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 shadow-lg border-b border-blue-300 p-2 md:p-3 hidden overflow-hidden">
-        <!-- Background decoration -->
-        <div class="absolute inset-0 opacity-10">
-            <div class="absolute top-2 left-2 text-2xl animate-pulse">📚</div>
-            <div class="absolute top-2 right-2 text-2xl animate-pulse" style="animation-delay: 1s;">✨</div>
-            <div class="absolute bottom-2 left-2 text-2xl animate-pulse" style="animation-delay: 2s;">🔍</div>
-            <div class="absolute bottom-2 right-2 text-2xl animate-pulse" style="animation-delay: 3s;">💭</div>
-        </div>
-        
-        <div class="max-w-6xl mx-auto relative z-10">
-            <!-- Top Row: Title and Controls -->
-            <div class="flex flex-col lg:flex-row justify-between items-center gap-2 md:gap-3 mb-2">
-                <div class="text-center lg:text-left">
-                    <h1 class="text-xl md:text-2xl font-bold text-white mb-1">
-                        📚 ไขรหัสวรรณคดี
-                    </h1>
-                    <p class="text-white text-sm md:text-base opacity-90">แอปพลิเคชันเรียนรู้วรรณคดีไทยแบบโต้ตอบ</p>
-                    <div id="headerUserName" class="mt-1 text-xs text-slate-200 font-semibold hidden cursor-pointer hover:text-slate-100 transition-colors duration-200" onclick="showUserMenu()">
+    <header id="header" class="bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 shadow-lg border-b border-blue-300 px-3 md:px-4 py-2 md:py-3 hidden">
+        <div class="max-w-6xl mx-auto">
+            <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3">
+                <div class="space-y-1 text-white">
+                    <div class="flex items-center gap-2 text-xs uppercase tracking-[0.25em] text-blue-100/80">
+                        <span class="text-base">📚</span>
+                        <span>ไขรหัสวรรณคดี</span>
+                    </div>
+                    <h1 class="text-xl md:text-2xl font-semibold leading-snug">เรียนรู้วรรณคดีไทยแบบโต้ตอบ</h1>
+                    <div id="headerUserName" class="text-xs text-slate-100/90 font-semibold hidden cursor-pointer hover:text-white transition-colors duration-200" onclick="showUserMenu()">
                         👤 <span id="currentUserName">ผู้ใช้</span> ▼
                     </div>
                 </div>
-                
-                <!-- Player Profile -->
-                <div class="flex items-center gap-2 md:gap-4">
-                    <div class="bg-white bg-opacity-20 rounded-xl px-3 md:px-4 py-2 md:py-3 border border-white border-opacity-30">
-                        <div class="flex items-center gap-2 md:gap-4">
-                            <div class="text-center">
-                                <p class="text-slate-100 font-bold text-lg md:text-xl"><span id="playerExp">0</span> แต้ม</p>
-                                <p class="text-xs text-white opacity-75">คะแนนสะสม</p>
-                            </div>
-                            <div class="w-px h-6 md:h-8 bg-white bg-opacity-30"></div>
-                            <div class="text-center">
-                                <p class="bg-gradient-to-r from-blue-400 to-indigo-400 text-white px-2 py-1 rounded-full font-bold text-xs"><span id="playerRank">มือใหม่</span></p>
-                                <p class="text-xs text-white opacity-75 mt-1">ระดับ</p>
-                            </div>
-                        </div>
+
+                <div class="flex flex-wrap items-center gap-2 md:gap-3">
+                    <div class="rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-white">
+                        <p class="text-sm font-semibold">คะแนน <span id="playerExp">0</span></p>
+                        <p class="text-xs text-blue-100">ระดับ <span id="playerRank">มือใหม่</span></p>
                     </div>
-                    
-                    <!-- Game Menu -->
                     <div class="flex gap-1">
-                        <button id="backBtn" onclick="goBack()" class="bg-white bg-opacity-20 px-2 md:px-3 py-1 md:py-2 text-xs text-white hover:bg-white hover:bg-opacity-30 rounded-lg hidden transition-all duration-200">
+                        <button id="backBtn" onclick="goBack()" class="bg-white/15 px-3 py-1 text-xs text-white rounded-lg hidden hover:bg-white/25 transition-all duration-200">
                             ← ย้อนกลับ
                         </button>
-                        <button onclick="showLandingPage()" class="bg-white bg-opacity-20 px-2 md:px-3 py-1 md:py-2 text-xs text-white hover:bg-white hover:bg-opacity-30 rounded-lg transition-all duration-200 border border-white border-opacity-30">
+                        <button onclick="showLandingPage()" class="bg-white/15 px-3 py-1 text-xs text-white rounded-lg hover:bg-white/25 transition-all duration-200 border border-white/30">
                             🔄 เริ่มใหม่
                         </button>
-                        <button onclick="showLandingPage()" class="bg-white bg-opacity-20 px-2 md:px-3 py-1 md:py-2 text-xs text-white hover:bg-white hover:bg-opacity-30 rounded-lg transition-all duration-200 border border-white border-opacity-30">
+                        <button onclick="showLandingPage()" class="bg-white/15 px-3 py-1 text-xs text-white rounded-lg hover:bg-white/25 transition-all duration-200 border border-white/30">
                             🏠 หน้าหลัก
                         </button>
                     </div>
                 </div>
             </div>
-            
-            <!-- Progress Bar -->
-            <div class="mb-2">
-                <div class="flex justify-between items-center mb-1">
-                    <span class="text-white font-semibold text-xs md:text-sm">ความคืบหน้า</span>
-                    <span id="progressText" class="text-white font-bold text-xs md:text-sm">0%</span>
+
+            <div class="mt-3">
+                <div class="progress-wrapper mb-3">
+                    <div class="flex justify-between items-center text-white text-xs md:text-sm mb-1">
+                        <span class="font-semibold">ความคืบหน้า</span>
+                        <span id="progressText" class="font-bold">0%</span>
+                    </div>
+                    <div class="bg-white/30 rounded-full h-2 overflow-hidden">
+                        <div id="mainProgressFill" class="bg-gradient-to-r from-yellow-400 to-orange-400 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
                 </div>
-                <div class="bg-white bg-opacity-30 rounded-full h-2 overflow-hidden">
-                    <div id="mainProgressFill" class="bg-gradient-to-r from-yellow-400 to-orange-400 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+
+                <div id="stepIndicatorContainer" class="flex flex-wrap justify-center gap-2">
+                    <span class="step-chip step-chip-active" data-step="1"><span class="font-bold">1</span><span>📚 ประวัติศาสตร์</span></span>
+                    <span class="step-chip" data-step="2"><span class="font-bold">2</span><span>📖 แสดงโคลง</span></span>
+                    <span class="step-chip" data-step="2.5"><span class="font-bold">2.5</span><span>🎯 จับคู่คำศัพท์</span></span>
+                    <span class="step-chip" data-step="3"><span class="font-bold">3</span><span>✍️ ถอดความ</span></span>
+                    <span class="step-chip" data-step="4"><span class="font-bold">4</span><span>🖼️ เปิดภาพจริง</span></span>
+                    <span class="step-chip" data-step="5"><span class="font-bold">5</span><span>📝 ทบทวน</span></span>
+                    <span class="step-chip" data-step="6"><span class="font-bold">6</span><span>🏆 สรุปผล</span></span>
                 </div>
-            </div>
-        </div>
-        
-        <!-- Step Indicators -->
-        <div class="max-w-6xl mx-auto mt-2 md:mt-3">
-            <div class="glass-card rounded-2xl p-2 border border-white border-opacity-30">
-                <div class="flex justify-center items-center gap-1 md:gap-2 mb-2">
-                    <div id="step-1" class="step-circle step-active">1</div>
-                    <div class="w-2 md:w-4 h-1 bg-gradient-to-r from-white to-transparent bg-opacity-40 rounded-full"></div>
-                    <div id="step-2" class="step-circle step-inactive">2</div>
-                    <div class="w-2 md:w-4 h-1 bg-gradient-to-r from-white to-transparent bg-opacity-40 rounded-full"></div>
-                    <div id="step-3" class="step-circle step-inactive">3</div>
-                    <div class="w-2 md:w-4 h-1 bg-gradient-to-r from-white to-transparent bg-opacity-40 rounded-full"></div>
-                    <div id="step-4" class="step-circle step-inactive">4</div>
-                    <div class="w-2 md:w-4 h-1 bg-gradient-to-r from-white to-transparent bg-opacity-40 rounded-full"></div>
-                    <div id="step-5" class="step-circle step-inactive">5</div>
-                    <div class="w-2 md:w-4 h-1 bg-gradient-to-r from-white to-transparent bg-opacity-40 rounded-full"></div>
-                    <div id="step-6" class="step-circle step-inactive">6</div>
-                </div>
-                <div class="hidden md:flex justify-center items-center gap-2 text-white font-semibold text-xs opacity-90">
-                    <span>📚 ประวัติศาสตร์</span>
-                    <span>📖 แสดงโคลง</span>
-                    <span>✍️ ถอดถอดความ</span>
-                    <span>🖼️ เปิดภาพจริง</span>
-                    <span>📝 ทบทวน</span>
-                    <span>🏆 สรุปผล</span>
-                </div>
-                <div class="md:hidden text-center text-white font-semibold text-xs opacity-90">
-                    <span id="currentStepText">📚 ประวัติศาสตร์</span>
-                </div>
+                <div class="md:hidden text-center text-white text-xs mt-2" id="currentStepLabel">📚 ประวัติศาสตร์</div>
             </div>
         </div>
     </header>
+
 
     <!-- Main Content -->
     <main id="mainContent" class="max-w-6xl mx-auto p-3 md:p-6 hidden">
@@ -1312,7 +1313,7 @@
     <!-- Notification Container -->
     <div id="notificationContainer"></div>
 
-    <footer id="siteFooter" class="bg-slate-900 text-white text-sm text-center py-6 mt-12 hidden">
+    <footer id="siteFooter" class="bg-slate-900 text-white text-sm text-center py-4 px-3 hidden fixed bottom-0 inset-x-0 z-40 shadow-lg">
         พัฒนาโดย : นัชนันท์  นครคง  / นุสรา  พึ่งบ้านเกาะ / ราม แสงมณี /สุทธิชา กะรัมย์ หลักสูตรและการสอน (การสอนภาษาไทย) คณะครุศาสตร์ จุฬาลงกรณ์มหาวิทยาลัย
     </footer>
 
@@ -1886,22 +1887,30 @@
         function showStudentForm() {
             document.getElementById('loginButtons').classList.add('hidden');
             document.getElementById('studentForm').classList.remove('hidden');
+            const startWrapper = document.getElementById('startButtonWrapper');
+            if (startWrapper) startWrapper.classList.add('hidden');
         }
-        
+
         function hideStudentForm() {
             document.getElementById('loginButtons').classList.remove('hidden');
             document.getElementById('studentForm').classList.add('hidden');
+            const startWrapper = document.getElementById('startButtonWrapper');
+            if (startWrapper) startWrapper.classList.remove('hidden');
             clearStudentForm();
         }
-        
+
         function showLoginForm() {
             document.getElementById('loginButtons').classList.add('hidden');
             document.getElementById('loginForm').classList.remove('hidden');
+            const startWrapper = document.getElementById('startButtonWrapper');
+            if (startWrapper) startWrapper.classList.add('hidden');
         }
-        
+
         function hideLoginForm() {
             document.getElementById('loginButtons').classList.remove('hidden');
             document.getElementById('loginForm').classList.add('hidden');
+            const startWrapper = document.getElementById('startButtonWrapper');
+            if (startWrapper) startWrapper.classList.remove('hidden');
             clearLoginForm();
         }
         
@@ -2053,8 +2062,11 @@
             const loginForm = document.getElementById('loginForm');
             const userInfo = document.getElementById('userInfo');
             const startGameBtn = document.getElementById('startGameBtn');
+            const startWrapper = document.getElementById('startButtonWrapper');
+            const startHint = document.getElementById('startButtonHint');
             const landingPage = document.getElementById('landingPage');
             const teacherCta = document.getElementById('teacherLoginCta');
+            const footer = document.getElementById('siteFooter');
 
             if (user) {
                 // Hide all forms
@@ -2063,7 +2075,14 @@
                 if (loginForm) loginForm.classList.add('hidden');
                 if (userInfo) userInfo.classList.remove('hidden');
                 if (startGameBtn) startGameBtn.disabled = false;
+                if (startWrapper) startWrapper.classList.remove('hidden');
+                if (startHint) {
+                    startHint.textContent = 'พร้อมเริ่มภารกิจได้เลย';
+                    startHint.classList.remove('text-purple-700/70');
+                    startHint.classList.add('text-emerald-700/80');
+                }
                 if (teacherCta) teacherCta.classList.add('hidden');
+                if (footer) footer.classList.remove('hidden');
 
                 // Add class to make background more transparent when logged in
                 if (landingPage) landingPage.classList.add('user-logged-in');
@@ -2091,7 +2110,14 @@
                 if (loginForm) loginForm.classList.add('hidden');
                 if (userInfo) userInfo.classList.add('hidden');
                 if (startGameBtn) startGameBtn.disabled = true;
+                if (startWrapper) startWrapper.classList.remove('hidden');
+                if (startHint) {
+                    startHint.textContent = 'เข้าสู่ระบบก่อนเพื่อเปิดภารกิจ';
+                    startHint.classList.remove('text-emerald-700/80');
+                    startHint.classList.add('text-purple-700/70');
+                }
                 if (teacherCta) teacherCta.classList.remove('hidden');
+                if (footer) footer.classList.add('hidden');
 
                 // Remove class to show background clearly when not logged in
                 if (landingPage) landingPage.classList.remove('user-logged-in');
@@ -2134,7 +2160,13 @@
 
             portal.classList.add('hidden');
             if (landing) landing.classList.remove('hidden');
-            if (footer) footer.classList.add('hidden');
+            if (footer) {
+                if (gameState.userId) {
+                    footer.classList.remove('hidden');
+                } else {
+                    footer.classList.add('hidden');
+                }
+            }
         }
 
         function resetTeacherLoginForm() {
@@ -3036,6 +3068,8 @@
                     localStorage.removeItem('lastStudentId');
                 }
             }
+
+            refreshHeaderCompactState();
         });
 
         // Navigation Functions
@@ -3120,10 +3154,19 @@
             const footer = document.getElementById('siteFooter');
 
             if (landingPage) landingPage.classList.remove('hidden');
-            if (header) header.classList.add('hidden');
+            if (header) {
+                header.classList.add('hidden');
+                header.classList.remove('header-compact');
+            }
             if (mainContent) mainContent.classList.add('hidden');
-            if (footer) footer.classList.add('hidden');
-            
+            if (footer) {
+                if (gameState.userId) {
+                    footer.classList.remove('hidden');
+                } else {
+                    footer.classList.add('hidden');
+                }
+            }
+
             // Update background transparency based on login status
             if (landingPage) {
                 if (gameState.userId) {
@@ -3135,8 +3178,24 @@
             
             // Make sure start button is enabled if user is logged in
             const startGameBtn = document.getElementById('startGameBtn');
+            const startWrapper = document.getElementById('startButtonWrapper');
+            const startHint = document.getElementById('startButtonHint');
             if (startGameBtn && gameState.userId) {
                 startGameBtn.disabled = false;
+                if (startWrapper) startWrapper.classList.remove('hidden');
+                if (startHint) {
+                    startHint.textContent = 'พร้อมเริ่มภารกิจได้เลย';
+                    startHint.classList.remove('text-purple-700/70');
+                    startHint.classList.add('text-emerald-700/80');
+                }
+            } else if (startGameBtn) {
+                startGameBtn.disabled = true;
+                if (startWrapper) startWrapper.classList.remove('hidden');
+                if (startHint) {
+                    startHint.textContent = 'เข้าสู่ระบบก่อนเพื่อเปิดภารกิจ';
+                    startHint.classList.remove('text-emerald-700/80');
+                    startHint.classList.add('text-purple-700/70');
+                }
             }
         }
 
@@ -3329,7 +3388,11 @@
             }
             
             document.getElementById('landingPage').classList.add('hidden');
-            document.getElementById('header').classList.remove('hidden');
+            const headerEl = document.getElementById('header');
+            if (headerEl) {
+                headerEl.classList.remove('hidden');
+                refreshHeaderCompactState();
+            }
             document.getElementById('mainContent').classList.remove('hidden');
             const footer = document.getElementById('siteFooter');
             if (footer) footer.classList.remove('hidden');
@@ -3572,10 +3635,10 @@
                                 <p class="text-purple-800">หน้านี้เป็นการศึกษาโคลงสี่สุภาพและค้นหาความหมายของคำศัพท์ยาก เพื่อฝึกทักษะการสืบค้นข้อมูลและเข้าใจความหมายของวรรณคดี</p>
                             </div>
                             
-                            <div class="poem-container p-6 mb-6">
-                                <div class="mb-4">
-                                    <span class="badge-modern">โคลงสี่สุภาพ</span>
-                                </div>
+                            <div class="mb-4 text-center">
+                                <span class="badge-modern inline-flex items-center justify-center">โคลงสี่สุภาพ</span>
+                            </div>
+                            <div class="poem-container p-6 mb-6 mx-auto max-w-3xl">
                                 <div class="poem-text text-gray-800">
                                     ${mission.poem}
                                 </div>
@@ -3670,12 +3733,14 @@
                             </div>
 
                             <div class="grid gap-6 lg:grid-cols-2 items-start">
-                                <div class="poem-container p-4 md:p-6 h-full">
-                                    <div class="mb-4">
-                                        <span class="badge-modern">โคลงสี่สุภาพ - อ้างอิง</span>
+                                <div class="space-y-4">
+                                    <div class="mb-1 text-center lg:text-left">
+                                        <span class="badge-modern inline-flex items-center justify-center">โคลงสี่สุภาพ - อ้างอิง</span>
                                     </div>
-                                    <div class="poem-text text-gray-800 text-base md:text-lg">
-                                        ${mission.poem}
+                                    <div class="poem-container plain-poem h-full mx-auto lg:mx-0">
+                                        <div class="poem-text text-gray-800 text-base md:text-lg">
+                                            ${mission.poem}
+                                        </div>
                                     </div>
                                 </div>
 
@@ -3998,42 +4063,40 @@
 
         // Update Step Indicators
         function updateStepIndicators() {
-            const stepTextMap = {
-                1: '📚 ประวัติศาสตร์',
-                2: '📖 แสดงโคลง',
-                '2.5': '🎯 จับคู่คำศัพท์',
-                3: '✍️ จินตนาการ & ถอดความ',
-                4: '🖼️ เปิดภาพจริง',
-                5: '📝 ทบทวน',
-                6: '🏆 สรุปผล'
-            };
+            const rawStep = Number(gameState.currentStep || 1);
+            const chips = document.querySelectorAll('#stepIndicatorContainer .step-chip');
+            const effectiveStep = Number.isFinite(rawStep) ? rawStep : 1;
 
-            const rawStep = gameState.currentStep || 1;
-            const isIntermediateStep = !Number.isInteger(rawStep);
-            const activeStep = Math.min(6, Math.max(1, isIntermediateStep ? Math.floor(rawStep) : rawStep));
-            const completedThreshold = Math.max(0, activeStep - 1);
+            chips.forEach(chip => {
+                const chipStep = parseFloat(chip.dataset.step || '0');
+                chip.classList.remove('step-chip-active', 'step-chip-completed');
 
-            for (let i = 1; i <= 6; i++) {
-                const stepElement = document.getElementById(`step-${i}`);
-                if (!stepElement) continue;
-
-                stepElement.classList.remove('step-active', 'step-completed', 'step-inactive');
-
-                if (i <= completedThreshold) {
-                    stepElement.classList.add('step-completed');
-                } else if (i === activeStep) {
-                    stepElement.classList.add('step-active');
-                } else {
-                    stepElement.classList.add('step-inactive');
+                if (Math.abs(chipStep - effectiveStep) < 0.01) {
+                    chip.classList.add('step-chip-active');
+                } else if (chipStep < effectiveStep) {
+                    chip.classList.add('step-chip-completed');
                 }
-            }
+            });
 
-            const currentStepText = document.getElementById('currentStepText');
-            if (currentStepText) {
-                const stepKey = stepTextMap[rawStep] ? rawStep : activeStep;
-                currentStepText.textContent = stepTextMap[stepKey] || stepTextMap[1];
+            const currentStepLabel = document.getElementById('currentStepLabel');
+            if (currentStepLabel) {
+                currentStepLabel.textContent = getStepLabel(rawStep);
             }
         }
+
+        function refreshHeaderCompactState() {
+            const header = document.getElementById('header');
+            if (!header || header.classList.contains('hidden')) return;
+            if (window.scrollY > 120) {
+                header.classList.add('header-compact');
+            } else {
+                header.classList.remove('header-compact');
+            }
+        }
+
+        window.addEventListener('scroll', () => {
+            window.requestAnimationFrame(refreshHeaderCompactState);
+        }, { passive: true });
 
         // Attach Word Click Handlers
         function attachWordClickHandlers() {
