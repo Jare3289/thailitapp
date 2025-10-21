@@ -19,7 +19,7 @@
         * {
             box-sizing: border-box;
         }
-        
+
         body {
             box-sizing: border-box;
             font-family: 'IBM Plex Sans Thai Looped', sans-serif;
@@ -74,7 +74,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(224, 231, 255, 0.02));
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.03), rgba(224, 231, 255, 0.01));
             z-index: 1;
             pointer-events: none;
             transition: background 0.3s ease;
@@ -337,6 +337,31 @@
             border-radius: 24px;
             border: 1px solid rgba(148, 163, 184, 0.3);
             box-shadow: 0 25px 45px -30px rgba(15, 23, 42, 0.35);
+        }
+
+        .teacher-rank-card {
+            border-radius: 1.5rem;
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 18px 35px -28px rgba(30, 64, 175, 0.35);
+            padding: 1rem 1.1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            min-height: 120px;
+        }
+
+        .teacher-rank-card .rank-tier {
+            font-size: 1.25rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .teacher-rank-card .rank-meta {
+            font-size: 0.8rem;
+            color: #475569;
         }
         
         .kloang-container {
@@ -716,7 +741,46 @@
         }
 
         .progress-wrapper {
-            transition: margin 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.35rem 0.75rem;
+            border-radius: 9999px;
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid rgba(148, 163, 184, 0.35);
+            box-shadow: 0 12px 24px -18px rgba(15, 23, 42, 0.25);
+            backdrop-filter: blur(12px);
+            transition: all 0.3s ease;
+        }
+
+        .progress-track {
+            flex: 1;
+            height: 0.4rem;
+            border-radius: 9999px;
+            background: rgba(148, 163, 184, 0.35);
+            overflow: hidden;
+        }
+
+        .progress-track-fill {
+            height: 100%;
+            border-radius: 9999px;
+            background: linear-gradient(90deg, #f59e0b, #f97316, #ef4444);
+            transition: width 0.4s ease;
+        }
+
+        .progress-percent {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #1f2937;
+            min-width: 2.5rem;
+            text-align: right;
+        }
+
+        #stepUtilityBar {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.28), rgba(191, 219, 254, 0.18));
+            backdrop-filter: blur(18px);
+            border-bottom: 1px solid rgba(148, 163, 184, 0.3);
+            color: #1f2937;
         }
 
         .step-chip {
@@ -725,9 +789,9 @@
             gap: 0.35rem;
             padding: 0.45rem 0.75rem;
             border-radius: 9999px;
-            background: rgba(255, 255, 255, 0.18);
-            border: 1px solid rgba(255, 255, 255, 0.25);
-            color: #f8fafc;
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid rgba(148, 163, 184, 0.35);
+            color: #1f2937;
             font-weight: 600;
             font-size: 0.75rem;
             transition: all 0.3s ease;
@@ -741,13 +805,16 @@
         }
 
         .step-chip-active {
-            background: rgba(255, 255, 255, 0.28);
-            color: #fff7ed;
+            background: rgba(59, 130, 246, 0.12);
+            border-color: rgba(59, 130, 246, 0.35);
+            color: #1d4ed8;
             box-shadow: 0 15px 30px -18px rgba(15, 23, 42, 0.6);
         }
 
         .step-chip-completed {
-            opacity: 0.7;
+            background: rgba(226, 232, 240, 0.95);
+            border-color: rgba(148, 163, 184, 0.35);
+            color: #475569;
         }
 
         #header {
@@ -766,7 +833,19 @@
             font-size: 0.7rem;
         }
 
-    </style>
+        .modal-card {
+            width: min(100%, 960px);
+            max-height: min(90vh, 860px);
+            min-height: min(82vh, 680px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-card.scrollable {
+            overflow-y: auto;
+        }
+
+        </style>
 </head>
 <body class="bg-gray-50 text-gray-900 min-h-screen">
     <!-- Floating Background Elements -->
@@ -872,6 +951,13 @@
                                     <tbody id="teacherStudentTable" class="divide-y divide-slate-100 bg-white"></tbody>
                                 </table>
                             </div>
+                            <div class="border-t border-slate-200 bg-slate-50/60 px-6 py-4 space-y-3">
+                                <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                                    <h5 class="text-base font-semibold text-slate-900">ระบบอันดับนักสืบ</h5>
+                                    <span class="text-xs text-slate-500" id="teacherRankingMeta"></span>
+                                </div>
+                                <div id="teacherRankingSummary" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 text-sm"></div>
+                            </div>
                         </div>
 
                         <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
@@ -886,18 +972,18 @@
                             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                                 <div>
                                     <h4 class="text-lg font-semibold text-slate-900">รายงานนักเรียนรายบุคคล</h4>
-                                    <p class="text-sm text-slate-500">คลิกชื่อนักเรียนจากตารางเพื่อดูรายละเอียด</p>
+                                    <p class="text-sm text-slate-500">คลิกชื่อนักเรียนจากตารางเพื่อเปิดหน้าต่างรายงาน</p>
                                 </div>
                             </div>
                             <div id="teacherStudentDetailContent" class="text-sm text-slate-500 text-center">
-                                กรุณาเลือกชื่อนักเรียนจากตารางเพื่อดูข้อมูลเชิงลึก
+                                คลิกชื่อนักเรียนจากตารางเพื่อเปิดหน้าต่างรายงาน
                             </div>
                         </div>
 
                         <div class="bg-white/90 backdrop-blur border border-slate-200 rounded-3xl p-6 md:p-8 space-y-6 shadow-lg">
                             <div class="space-y-2">
                                 <p class="text-sm text-slate-500 uppercase tracking-wider">ภาพรวมระบบ</p>
-                                <p class="text-lg md:text-xl font-semibold text-slate-900">ข้อมูลสำคัญของวันนี้</p>
+                                <p class="text-lg md:text-xl font-semibold text-slate-900">ข้อมูลสำคัญ</p>
                             </div>
                             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
                                 <div class="rounded-2xl p-4 bg-slate-50 border border-slate-200 flex items-start gap-3">
@@ -1236,7 +1322,7 @@
     <!-- Header Dashboard (Hidden initially) -->
     <header id="header" class="bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 shadow-lg border-b border-blue-300 px-3 md:px-4 py-2 md:py-3 hidden">
         <div class="max-w-6xl mx-auto">
-            <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3">
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
                 <div class="space-y-1 text-white">
                     <div class="flex items-center gap-2 text-xs uppercase tracking-[0.25em] text-blue-100/80">
                         <span class="text-base">📚</span>
@@ -1267,30 +1353,30 @@
                 </div>
             </div>
 
-            <div class="mt-3">
-                <div class="progress-wrapper mb-3">
-                    <div class="flex justify-between items-center text-white text-xs md:text-sm mb-1">
-                        <span class="font-semibold">ความคืบหน้า</span>
-                        <span id="progressText" class="font-bold">0%</span>
-                    </div>
-                    <div class="bg-white/30 rounded-full h-2 overflow-hidden">
-                        <div id="mainProgressFill" class="bg-gradient-to-r from-yellow-400 to-orange-400 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
-                    </div>
-                </div>
-
-                <div id="stepIndicatorContainer" class="flex flex-wrap justify-center gap-2">
-                    <span class="step-chip step-chip-active" data-step="1"><span class="font-bold">1</span><span>📚 ประวัติศาสตร์</span></span>
-                    <span class="step-chip" data-step="2"><span class="font-bold">2</span><span>📖 แสดงโคลง</span></span>
-                    <span class="step-chip" data-step="2.5"><span class="font-bold">2.5</span><span>🎯 จับคู่คำศัพท์</span></span>
-                    <span class="step-chip" data-step="3"><span class="font-bold">3</span><span>✍️ ถอดความ</span></span>
-                    <span class="step-chip" data-step="4"><span class="font-bold">4</span><span>🖼️ เปิดภาพจริง</span></span>
-                    <span class="step-chip" data-step="5"><span class="font-bold">5</span><span>📝 ทบทวน</span></span>
-                    <span class="step-chip" data-step="6"><span class="font-bold">6</span><span>🏆 สรุปผล</span></span>
-                </div>
-                <div class="md:hidden text-center text-white text-xs mt-2" id="currentStepLabel">📚 ประวัติศาสตร์</div>
-            </div>
         </div>
     </header>
+
+
+    <div id="stepUtilityBar" class="hidden px-3 md:px-6 py-3">
+        <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3">
+            <div class="progress-wrapper">
+                <span class="hidden sm:inline text-xs font-semibold text-slate-600 tracking-wide uppercase">ความคืบหน้า</span>
+                <div class="progress-track">
+                    <div id="mainProgressFill" class="progress-track-fill" style="width: 0%"></div>
+                </div>
+                <span id="progressText" class="progress-percent">0%</span>
+            </div>
+            <div id="stepIndicatorContainer" class="flex flex-wrap justify-center gap-2">
+                <span class="step-chip step-chip-active" data-step="1"><span class="font-bold">1</span><span>📚 ประวัติศาสตร์</span></span>
+                <span class="step-chip" data-step="2"><span class="font-bold">2</span><span>📖 แสดงโคลง &amp; คำศัพท์</span></span>
+                <span class="step-chip" data-step="3"><span class="font-bold">3</span><span>✍️ ถอดความ</span></span>
+                <span class="step-chip" data-step="4"><span class="font-bold">4</span><span>🖼️ เปิดภาพจริง</span></span>
+                <span class="step-chip" data-step="5"><span class="font-bold">5</span><span>📝 ทบทวน</span></span>
+                <span class="step-chip" data-step="6"><span class="font-bold">6</span><span>🏆 สรุปผล</span></span>
+            </div>
+        </div>
+        <div class="md:hidden text-center text-slate-700 text-xs mt-2" id="currentStepLabel">📚 ประวัติศาสตร์</div>
+    </div>
 
 
     <!-- Main Content -->
@@ -1304,7 +1390,7 @@
     <!-- Notification Container -->
     <div id="notificationContainer"></div>
 
-    <footer id="siteFooter" class="bg-slate-900 text-white text-sm text-center py-4 px-3 hidden fixed bottom-0 inset-x-0 z-40 shadow-lg">
+    <footer id="siteFooter" class="bg-slate-900 text-white text-xs sm:text-sm text-center py-3 px-3 hidden fixed bottom-0 inset-x-0 z-40 shadow-lg">
         พัฒนาโดย : นัชนันท์  นครคง  / นุสรา  พึ่งบ้านเกาะ / ราม แสงมณี /สุทธิชา กะรัมย์ หลักสูตรและการสอน (การสอนภาษาไทย) คณะครุศาสตร์ จุฬาลงกรณ์มหาวิทยาลัย
     </footer>
 
@@ -1364,6 +1450,7 @@
         // Game State Management
         const gameState = {
             currentStep: 1,
+            maxStepReached: 1,
             translatedWords: {},
             incorrectWords: {},
             wordAttempts: {}, // Track number of incorrect attempts per word
@@ -1409,10 +1496,22 @@
             sessions: []
         };
 
+        const RANK_TIERS = [
+            { id: 'legend', label: 'นักสืบเซียน', icon: '🥇', minScore: 1000, description: '1000+ แต้ม' },
+            { id: 'pro', label: 'นักสืบชำนาญ', icon: '🥈', minScore: 500, description: '500+ แต้ม' },
+            { id: 'adept', label: 'นักสืบฝึกหัด', icon: '🥉', minScore: 200, description: '200+ แต้ม' },
+            { id: 'rookie', label: 'มือใหม่', icon: '🌟', minScore: 0, description: '0+ แต้ม' }
+        ];
+
+        const SORTED_RANK_TIERS = [...RANK_TIERS].sort((a, b) => b.minScore - a.minScore);
+
+        function determineRankTier(score = 0) {
+            return SORTED_RANK_TIERS.find(tier => score >= tier.minScore) || SORTED_RANK_TIERS[SORTED_RANK_TIERS.length - 1];
+        }
+
         const STEP_LABELS = {
             1: '📚 ประวัติศาสตร์',
-            2: '📖 แสดงโคลง',
-            2.5: '🎯 เกมจับคู่คำศัพท์',
+            2: '📖 แสดงโคลง & เกมคำศัพท์',
             3: '📝 ถอดความ',
             4: '🖼️ เปิดภาพจริง',
             5: '📝 ทบทวน',
@@ -1422,6 +1521,9 @@
         function getStepLabel(step) {
             if (step === undefined || step === null) {
                 return 'ยังไม่เริ่ม';
+            }
+            if (step === 2.5) {
+                return STEP_LABELS[2];
             }
             return STEP_LABELS[step] || `ขั้นที่ ${step}`;
         }
@@ -1848,6 +1950,7 @@
                 
                 // Reset game state
                 gameState.currentStep = 1;
+                gameState.maxStepReached = 1;
                 gameState.translatedWords = {};
                 gameState.incorrectWords = {};
                 gameState.imaginationText = '';
@@ -2122,11 +2225,14 @@
             const portal = document.getElementById('teacherPortal');
             const landing = document.getElementById('landingPage');
             const footer = document.getElementById('siteFooter');
+            const stepBar = document.getElementById('stepUtilityBar');
             if (!portal) return;
 
             portal.classList.remove('hidden');
             if (landing) landing.classList.add('hidden');
             if (footer) footer.classList.remove('hidden');
+            if (stepBar) stepBar.classList.add('hidden');
+            closeTeacherStudentModal();
             window.scrollTo({ top: 0, behavior: 'smooth' });
 
             const loginPanel = document.getElementById('teacherLoginPanel');
@@ -2147,6 +2253,7 @@
             const portal = document.getElementById('teacherPortal');
             const landing = document.getElementById('landingPage');
             const footer = document.getElementById('siteFooter');
+            const stepBar = document.getElementById('stepUtilityBar');
             if (!portal) return;
 
             portal.classList.add('hidden');
@@ -2156,6 +2263,15 @@
                     footer.classList.remove('hidden');
                 } else {
                     footer.classList.add('hidden');
+                }
+            }
+            closeTeacherStudentModal();
+            if (stepBar) {
+                const landingVisible = landing ? !landing.classList.contains('hidden') : false;
+                if (gameState.userId && !landingVisible) {
+                    stepBar.classList.remove('hidden');
+                } else {
+                    stepBar.classList.add('hidden');
                 }
             }
         }
@@ -2222,6 +2338,8 @@
             const emptyState = document.getElementById('teacherEmptyState');
             const tableMeta = document.getElementById('teacherTableMeta');
             const timelineMeta = document.getElementById('teacherTimelineMeta');
+            const rankingContainer = document.getElementById('teacherRankingSummary');
+            const rankingMeta = document.getElementById('teacherRankingMeta');
             const quickTotal = document.getElementById('teacherQuickTotal');
             const quickAverage = document.getElementById('teacherQuickAverage');
             const quickStudents = document.getElementById('teacherQuickStudents');
@@ -2365,6 +2483,9 @@
                                             ${row.name || 'ไม่ระบุชื่อ'}
                                         </button>
                                         <span class="text-xs text-slate-500">${row.studentId || '-'}</span>
+                                        <span class="inline-flex items-center gap-1 text-xs font-semibold text-blue-600">
+                                            ${row.rankTier?.icon || '🌟'} ${row.rankTier?.label || 'มือใหม่'}
+                                        </span>
                                     </div>
                                 </td>
                                 <td class="px-4 py-3 text-slate-600" data-label="ชั้น/ห้อง">
@@ -2412,6 +2533,33 @@
                 if (tableMeta) {
                     const totalRecordedScore = totalScore ? totalScore.toLocaleString('th-TH') : '0';
                     tableMeta.textContent = `${sortedStudentRows.length} รายการ • คะแนนรวม ${totalRecordedScore} • อัปเดต ${formatDateTime(new Date())}`;
+                }
+
+                if (rankingContainer) {
+                    const tierStats = RANK_TIERS.map(tier => {
+                        const members = sortedStudentRows.filter(row => row.rankTier?.id === tier.id);
+                        const topMember = members.length
+                            ? [...members].sort((a, b) => (b.totalScore || 0) - (a.totalScore || 0))[0]
+                            : null;
+                        return { tier, count: members.length, topMember };
+                    });
+
+                    rankingContainer.innerHTML = tierStats.map(({ tier, count, topMember }) => {
+                        const topLabel = topMember
+                            ? ` • สูงสุด ${topMember.name || 'ไม่ระบุชื่อ'} (${Math.round(topMember.totalScore || 0).toLocaleString('th-TH')} แต้ม)`
+                            : '';
+                        return `
+                            <div class="teacher-rank-card">
+                                <div class="rank-tier">${tier.icon} ${tier.label}</div>
+                                <div class="text-2xl font-bold text-slate-900">${count.toLocaleString('th-TH')}</div>
+                                <div class="rank-meta">${tier.description}${topLabel}</div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+
+                if (rankingMeta) {
+                    rankingMeta.textContent = `${sortedStudentRows.length} รายชื่อ • อัปเดต ${formatDateTime(new Date())}`;
                 }
 
                 if (timeline) {
@@ -2463,6 +2611,8 @@
                 if (timeline) timeline.innerHTML = '';
                 if (tableMeta) tableMeta.textContent = '';
                 if (timelineMeta) timelineMeta.textContent = '';
+                if (rankingContainer) rankingContainer.innerHTML = '';
+                if (rankingMeta) rankingMeta.textContent = '';
                 if (emptyState) {
                     emptyState.classList.remove('hidden');
                     emptyState.innerHTML = `
@@ -2481,7 +2631,8 @@
             const container = document.getElementById('teacherStudentDetailContent');
             if (!container) return;
             container.classList.add('text-center');
-            container.innerHTML = '<p class="text-sm text-slate-500">คลิกชื่อนักเรียนจากตารางเพื่อดูข้อมูลเชิงลึก</p>';
+            container.innerHTML = '<p class="text-sm text-slate-500">คลิกชื่อนักเรียนจากตารางเพื่อเปิดหน้าต่างรายงาน</p>';
+            closeTeacherStudentModal();
         }
 
         function showTeacherStudentDetail(studentKey) {
@@ -2556,8 +2707,7 @@
                 { label: 'อัปเดตล่าสุด', value: lastActivity, icon: '⏱️' }
             ];
 
-            container.classList.remove('text-center');
-            container.innerHTML = `
+            const detailHtml = `
                 <div class="space-y-6 text-left">
                     <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
                         <div>
@@ -2587,7 +2737,7 @@
                     </div>
 
                     <div class="space-y-3">
-                        <h5 class="text-base font-semibold text-slate-900">ข้อมูลสำคัญของวันนี้</h5>
+                        <h5 class="text-base font-semibold text-slate-900">ข้อมูลสำคัญ</h5>
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                             ${todaySummary.map(stat => `
                                 <div class="rounded-2xl border border-slate-200 bg-white/90 p-4">
@@ -2600,7 +2750,43 @@
                     </div>
                 </div>
             `;
+
+            container.classList.remove('text-center');
+            container.innerHTML = detailHtml;
+            openTeacherStudentModal(detailHtml);
         }
+
+        function closeTeacherStudentModal() {
+            const existing = document.getElementById('teacherStudentModal');
+            if (existing) {
+                existing.remove();
+                document.body.classList.remove('overflow-hidden');
+            }
+        }
+
+        function openTeacherStudentModal(content) {
+            closeTeacherStudentModal();
+
+            const modal = document.createElement('div');
+            modal.id = 'teacherStudentModal';
+            modal.className = 'fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4';
+            modal.innerHTML = `
+                <div class="modal-card scrollable bg-white rounded-3xl p-6 md:p-8 shadow-2xl relative">
+                    <button type="button" class="absolute top-4 right-4 text-slate-500 hover:text-slate-700" aria-label="ปิดรายงาน" onclick="closeTeacherStudentModal()">✕</button>
+                    <div class="space-y-6">${content}</div>
+                </div>
+            `;
+
+            modal.addEventListener('click', event => {
+                if (event.target === modal) {
+                    closeTeacherStudentModal();
+                }
+            });
+
+            document.body.appendChild(modal);
+            document.body.classList.add('overflow-hidden');
+        }
+
         function parseDate(value) {
             if (!value) return null;
             if (value instanceof Date) {
@@ -2762,6 +2948,7 @@
                 if (entry.sessions.length > 0) {
                     entry.averageScore = Math.round(entry.totalScore / entry.sessions.length);
                 }
+                entry.rankTier = determineRankTier(entry.totalScore || 0);
             });
 
             students.forEach(student => {
@@ -3061,6 +3248,7 @@
             }
 
             refreshHeaderCompactState();
+            initializeStepChipEvents();
         });
 
         // Navigation Functions
@@ -3115,6 +3303,7 @@
                     
                     // Reset game state completely
                     gameState.currentStep = 1;
+                    gameState.maxStepReached = 1;
                     gameState.translatedWords = {};
                     gameState.incorrectWords = {};
                     gameState.wordAttempts = {};
@@ -3143,6 +3332,7 @@
             const header = document.getElementById('header');
             const mainContent = document.getElementById('mainContent');
             const footer = document.getElementById('siteFooter');
+            const stepBar = document.getElementById('stepUtilityBar');
 
             if (landingPage) landingPage.classList.remove('hidden');
             if (header) {
@@ -3150,6 +3340,7 @@
                 header.classList.remove('header-compact');
             }
             if (mainContent) mainContent.classList.add('hidden');
+            if (stepBar) stepBar.classList.add('hidden');
             if (footer) {
                 if (gameState.userId) {
                     footer.classList.remove('hidden');
@@ -3348,6 +3539,7 @@
                 if (savedGame && savedGame.currentStep > 1) {
                     // Restore saved game state
                     gameState.currentStep = savedGame.currentStep;
+                    gameState.maxStepReached = Math.max(1, Math.floor(savedGame.currentStep === 2.5 ? 2 : savedGame.currentStep));
                     gameState.translatedWords = savedGame.translatedWords || {};
                     gameState.incorrectWords = savedGame.incorrectWords || {};
                     gameState.wordAttempts = savedGame.wordAttempts || {};
@@ -3365,24 +3557,30 @@
                     // Start fresh game
                     gameState.gameId = generateGameId();
                     gameState.currentStep = 1;
+                    gameState.maxStepReached = 1;
                     gameState.startTime = Date.now();
                     showNotification('เริ่มเกมใหม่!', 'success');
                 }
-                
+
             } catch (error) {
                 console.error('Error loading saved game:', error);
                 // Start fresh if loading fails
                 gameState.gameId = generateGameId();
                 gameState.currentStep = 1;
+                gameState.maxStepReached = 1;
                 gameState.startTime = Date.now();
                 showNotification('เริ่มเกมใหม่!', 'success');
             }
             
             document.getElementById('landingPage').classList.add('hidden');
             const headerEl = document.getElementById('header');
+            const stepBar = document.getElementById('stepUtilityBar');
             if (headerEl) {
                 headerEl.classList.remove('hidden');
                 refreshHeaderCompactState();
+            }
+            if (stepBar) {
+                stepBar.classList.remove('hidden');
             }
             document.getElementById('mainContent').classList.remove('hidden');
             const footer = document.getElementById('siteFooter');
@@ -3397,8 +3595,9 @@
         // Update Progress
         function updateProgress() {
             const totalSteps = 6;
-            const currentProgress = ((gameState.currentStep - 1) / (totalSteps - 1)) * 100;
-            
+            const logicalStep = gameState.currentStep === 2.5 ? 2 : gameState.currentStep;
+            const currentProgress = ((logicalStep - 1) / (totalSteps - 1)) * 100;
+
             document.getElementById('mainProgressFill').style.width = currentProgress + '%';
             document.getElementById('progressText').textContent = Math.round(currentProgress) + '%';
         }
@@ -3459,8 +3658,10 @@
             if (step > gameState.currentStep) {
                 gameState.stepHistory.push(gameState.currentStep);
             }
-            
+
             gameState.currentStep = step;
+            const logicalStep = step === 2.5 ? 2 : step;
+            gameState.maxStepReached = Math.max(gameState.maxStepReached || 1, logicalStep);
             updateStepIndicators();
             updateProgress();
             updateBackButton();
@@ -4057,7 +4258,8 @@
         function updateStepIndicators() {
             const rawStep = Number(gameState.currentStep || 1);
             const chips = document.querySelectorAll('#stepIndicatorContainer .step-chip');
-            const effectiveStep = Number.isFinite(rawStep) ? rawStep : 1;
+            const normalizedStep = rawStep === 2.5 ? 2 : rawStep;
+            const effectiveStep = Number.isFinite(normalizedStep) ? normalizedStep : 1;
 
             chips.forEach(chip => {
                 const chipStep = parseFloat(chip.dataset.step || '0');
@@ -4074,6 +4276,28 @@
             if (currentStepLabel) {
                 currentStepLabel.textContent = getStepLabel(rawStep);
             }
+        }
+
+        function initializeStepChipEvents() {
+            const container = document.getElementById('stepIndicatorContainer');
+            if (!container) return;
+
+            container.querySelectorAll('.step-chip').forEach(chip => {
+                chip.addEventListener('click', () => {
+                    const stepValue = parseFloat(chip.dataset.step || '0');
+                    if (!Number.isFinite(stepValue)) return;
+                    const logicalStep = stepValue === 2.5 ? 2 : stepValue;
+                    const currentLogical = gameState.currentStep === 2.5 ? 2 : gameState.currentStep;
+
+                    if (logicalStep > (gameState.maxStepReached || 1)) return;
+                    if (logicalStep === currentLogical) return;
+
+                    goToStep(stepValue).catch(error => {
+                        console.error('Failed to navigate via step chip:', error);
+                        showNotification('ไม่สามารถเปิดขั้นตอนนี้ได้', 'error');
+                    });
+                });
+            });
         }
 
         function refreshHeaderCompactState() {
@@ -5460,9 +5684,10 @@
                 if (gameState.gameId) {
                     await clearGameSession(gameState.gameId);
                 }
-                
+
                 // Reset game state completely
                 gameState.currentStep = 1;
+                gameState.maxStepReached = 1;
                 gameState.translatedWords = {};
                 gameState.incorrectWords = {};
                 gameState.wordAttempts = {};
@@ -5503,7 +5728,7 @@
             });
             
             modal.innerHTML = `
-                <div class="bg-white rounded-3xl p-6 md:p-10 max-w-4xl w-full max-h-90vh overflow-y-auto animate-bounce-in relative">
+                <div class="modal-card scrollable bg-white rounded-3xl p-6 md:p-10 max-w-4xl w-full animate-bounce-in relative">
                     <button onclick="closeCertificateModal()" class="absolute top-4 right-4 w-10 h-10 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center font-bold transition-all duration-200 shadow-lg text-lg z-10">
                         ×
                     </button>
@@ -5942,7 +6167,7 @@
             const wordsArray = Object.entries(mission.hardWords);
             
             modal.innerHTML = `
-                <div class="bg-white rounded-3xl p-6 max-w-4xl w-full max-h-90vh overflow-y-auto animate-bounce-in relative">
+                <div class="modal-card scrollable bg-white rounded-3xl p-6 max-w-4xl w-full animate-bounce-in relative">
                     <button onclick="closeWordHintsModal()" class="absolute top-4 right-4 w-10 h-10 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center font-bold">×</button>
                     
                     <div class="text-center mb-6">
@@ -6000,7 +6225,7 @@
             modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
             
             modal.innerHTML = `
-                <div class="bg-white rounded-3xl p-6 max-w-4xl w-full max-h-90vh overflow-y-auto animate-bounce-in relative">
+                <div class="modal-card scrollable bg-white rounded-3xl p-6 max-w-4xl w-full animate-bounce-in relative">
                     <button onclick="closeKloangModal()" class="absolute top-4 right-4 w-10 h-10 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center font-bold">×</button>
                     
                     <div class="text-center mb-6">
