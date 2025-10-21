@@ -1542,8 +1542,58 @@
     </footer>
 
     <script>
-        // Firebase Configuration - ปรับค่าได้จาก window.FIREBASE_CONFIG หากต้องการเชื่อมต่อจริง
-        const firebaseConfig = (typeof window !== 'undefined' && window.FIREBASE_CONFIG) ? window.FIREBASE_CONFIG : null;
+        function parseJsonSafely(rawValue) {
+            if (!rawValue) return null;
+            try {
+                return JSON.parse(rawValue);
+            } catch (error) {
+                console.warn('Unable to parse JSON value', error);
+                return null;
+            }
+        }
+
+        function resolveFirebaseConfig() {
+            if (typeof window !== 'undefined') {
+                if (window.FIREBASE_CONFIG && window.FIREBASE_CONFIG.apiKey) {
+                    return window.FIREBASE_CONFIG;
+                }
+                if (window.__FIREBASE_CONFIG__ && window.__FIREBASE_CONFIG__.apiKey) {
+                    return window.__FIREBASE_CONFIG__;
+                }
+            }
+
+            const embeddedScript = document.getElementById('firebase-config');
+            if (embeddedScript && embeddedScript.textContent?.trim()) {
+                const parsed = parseJsonSafely(embeddedScript.textContent.trim());
+                if (parsed && parsed.apiKey) {
+                    return parsed;
+                }
+            }
+
+            const metaTag = document.querySelector('meta[name="firebase-config"]');
+            if (metaTag) {
+                const parsed = parseJsonSafely(metaTag.getAttribute('content'));
+                if (parsed && parsed.apiKey) {
+                    return parsed;
+                }
+            }
+
+            return null;
+        }
+
+        function getElement(id) {
+            return document.getElementById(id);
+        }
+
+        function updateText(id, value) {
+            const el = getElement(id);
+            if (el) {
+                el.textContent = value;
+            }
+        }
+
+        // Firebase Configuration - ปรับค่าได้จาก window.FIREBASE_CONFIG หรือแท็กฝังในเอกสาร
+        const firebaseConfig = resolveFirebaseConfig();
 
         // Initialize Firebase
         let db = null;
@@ -3338,6 +3388,1054 @@ function initializeStepChipEvents() {
 
             return { students: normalizedStudents, sessions: normalizedSessions };
         }
+        
+        function updateLoginUI(user) {
+            const loginButtons = document.getElementById('loginButtons');
+            const studentForm = document.getElementById('studentForm');
+            const loginForm = document.getElementById('loginForm');
+            const userInfo = document.getElementById('userInfo');
+            const startGameBtn = document.getElementById('startGameBtn');
+            const startWrapper = document.getElementById('startButtonWrapper');
+            const startHint = document.getElementById('startButtonHint');
+            const landingPage = document.getElementById('landingPage');
+            const teacherCta = document.getElementById('teacherLoginCta');
+            const footer = document.getElementById('siteFooter');
+
+            if (user) {
+                // Hide all forms
+                if (loginButtons) loginButtons.classList.add('hidden');
+                if (studentForm) studentForm.classList.add('hidden');
+                if (loginForm) loginForm.classList.add('hidden');
+                if (userInfo) userInfo.classList.remove('hidden');
+                if (startGameBtn) startGameBtn.disabled = false;
+                if (startWrapper) startWrapper.classList.remove('hidden');
+                if (startHint) {
+                    startHint.textContent = 'พร้อมเริ่มภารกิจได้เลย';
+                    startHint.classList.remove('text-purple-700/70');
+                    startHint.classList.add('text-emerald-700/80');
+                }
+                if (teacherCta) teacherCta.classList.add('hidden');
+                if (footer) footer.classList.remove('hidden');
+
+                // Add class to make background more transparent when logged in
+                if (landingPage) landingPage.classList.add('user-logged-in');
+                
+                // Update user info
+                const userName = document.getElementById('userName');
+                const userDetails = document.getElementById('userDetails');
+                const userStats = document.getElementById('userStats');
+                const userPhoto = document.getElementById('userPhoto');
+                
+                if (userName) userName.textContent = user.displayName;
+                if (userDetails) userDetails.textContent = user.email;
+                if (userStats) userStats.textContent = `EXP: ${playerProfile.exp} | เกม: ${playerProfile.totalGamesPlayed}`;
+                
+                // Set student avatar
+                if (userPhoto) {
+                    userPhoto.src = DEFAULT_AVATAR;
+                }
+                
+                gameState.userId = gameState.userId;
+            } else {
+                // Show login options
+                if (loginButtons) loginButtons.classList.remove('hidden');
+                if (studentForm) studentForm.classList.add('hidden');
+                if (loginForm) loginForm.classList.add('hidden');
+                if (userInfo) userInfo.classList.add('hidden');
+                if (startGameBtn) startGameBtn.disabled = true;
+                if (startWrapper) startWrapper.classList.remove('hidden');
+                if (startHint) {
+                    startHint.textContent = 'เข้าสู่ระบบก่อนเพื่อเปิดภารกิจ';
+                    startHint.classList.remove('text-emerald-700/80');
+                    startHint.classList.add('text-purple-700/70');
+                }
+                if (teacherCta) teacherCta.classList.remove('hidden');
+                if (footer) footer.classList.add('hidden');
+
+                // Remove class to show background clearly when not logged in
+                if (landingPage) landingPage.classList.remove('user-logged-in');
+                
+                gameState.userId = null;
+                gameState.currentUser = null;
+            }
+            return result;
+        }
+
+        function openTeacherPortal() {
+            const portal = document.getElementById('teacherPortal');
+            const landing = document.getElementById('landingPage');
+            const footer = document.getElementById('siteFooter');
+            const stepBar = document.getElementById('stepUtilityBar');
+            const playerBar = document.getElementById('playerStatusBar');
+            const floatingActions = document.getElementById('floatingActionButtons');
+            if (!portal) return;
+
+            portal.classList.remove('hidden');
+            if (landing) landing.classList.add('hidden');
+            if (footer) footer.classList.remove('hidden');
+            if (stepBar) stepBar.classList.add('hidden');
+            if (playerBar) playerBar.classList.add('hidden');
+            if (floatingActions) {
+                floatingActions.classList.add('hidden');
+                floatingActions.classList.remove('show');
+                floatingActions.setAttribute('aria-hidden', 'true');
+            }
+            closeTeacherStudentModal();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            const loginPanel = document.getElementById('teacherLoginPanel');
+            const dashboard = document.getElementById('teacherDashboard');
+
+            if (currentTeacher) {
+                if (loginPanel) loginPanel.classList.add('hidden');
+                if (dashboard) dashboard.classList.remove('hidden');
+                renderTeacherDashboard();
+            } else {
+                if (loginPanel) loginPanel.classList.remove('hidden');
+                if (dashboard) dashboard.classList.add('hidden');
+                resetTeacherLoginForm();
+            }
+        }
+
+        function closeTeacherPortal() {
+            const portal = document.getElementById('teacherPortal');
+            const landing = document.getElementById('landingPage');
+            const footer = document.getElementById('siteFooter');
+            const stepBar = document.getElementById('stepUtilityBar');
+            const playerBar = document.getElementById('playerStatusBar');
+            const floatingActions = document.getElementById('floatingActionButtons');
+            if (!portal) return;
+
+            portal.classList.add('hidden');
+            if (landing) landing.classList.remove('hidden');
+            if (footer) {
+                if (gameState.userId) {
+                    footer.classList.remove('hidden');
+                } else {
+                    footer.classList.add('hidden');
+                }
+            }
+            closeTeacherStudentModal();
+            if (stepBar || playerBar) {
+                const landingVisible = landing ? !landing.classList.contains('hidden') : false;
+                const shouldShowPlayer = gameState.userId && !landingVisible;
+                if (stepBar) stepBar.classList.toggle('hidden', !shouldShowPlayer);
+                if (playerBar) playerBar.classList.toggle('hidden', !shouldShowPlayer);
+                if (floatingActions) {
+                    floatingActions.classList.toggle('hidden', !shouldShowPlayer);
+                    if (!shouldShowPlayer) {
+                        floatingActions.classList.remove('show');
+                    }
+                    floatingActions.setAttribute('aria-hidden', (!shouldShowPlayer).toString());
+                }
+            }
+        }
+
+        function resetTeacherLoginForm() {
+            const emailInput = document.getElementById('teacherEmail');
+            const passwordInput = document.getElementById('teacherPassword');
+            if (emailInput) emailInput.value = '';
+            if (passwordInput) passwordInput.value = '';
+        }
+
+        async function submitTeacherLogin(event) {
+            event.preventDefault();
+
+            const emailInput = document.getElementById('teacherEmail');
+            const passwordInput = document.getElementById('teacherPassword');
+
+            const email = emailInput?.value.trim().toLowerCase();
+            const password = passwordInput?.value.trim();
+
+            if (!email || !password) {
+                showNotification('กรุณากรอกอีเมลและรหัสผ่านของคุณครู', 'error');
+                return;
+            }
+
+            const credential = teacherCredentials[email];
+            if (!credential) {
+                showNotification('อีเมลหรือรหัสผ่านไม่ถูกต้อง', 'error');
+                if (passwordInput) passwordInput.value = '';
+                return;
+            }
+
+            const inputHash = await hashPasscode(password);
+            const expectedPasscode = reconstructPasscode(credential);
+            let isValid = false;
+
+            if (expectedPasscode) {
+                const expectedHash = await hashPasscode(expectedPasscode);
+                isValid = expectedHash === inputHash;
+            } else if (typeof credential.passcodeHash === 'string' && credential.passcodeHash.length > 0) {
+                isValid = credential.passcodeHash === inputHash;
+            }
+
+            if (!isValid) {
+                showNotification('อีเมลหรือรหัสผ่านไม่ถูกต้อง', 'error');
+                if (passwordInput) passwordInput.value = '';
+                return;
+            }
+
+            const { passcodeSegments, passcode, passcodeHash, ...safeCredential } = credential;
+            currentTeacher = {
+                email,
+                ...safeCredential
+            };
+
+            const loginPanel = document.getElementById('teacherLoginPanel');
+            const dashboard = document.getElementById('teacherDashboard');
+
+            if (loginPanel) loginPanel.classList.add('hidden');
+            if (dashboard) dashboard.classList.remove('hidden');
+
+            showNotification(`ยินดีต้อนรับ ${credential.name}`, 'success');
+            await renderTeacherDashboard();
+        }
+
+        function logoutTeacher() {
+            currentTeacher = null;
+            const loginPanel = document.getElementById('teacherLoginPanel');
+            const dashboard = document.getElementById('teacherDashboard');
+            if (loginPanel) loginPanel.classList.remove('hidden');
+            if (dashboard) dashboard.classList.add('hidden');
+            resetTeacherLoginForm();
+            showNotification('ออกจากระบบครูเรียบร้อย', 'success');
+        }
+
+
+        async function renderTeacherDashboard() {
+            const loading = document.getElementById('teacherDashboardLoading');
+            const summary = document.getElementById('teacherSummaryCards');
+            const tableBody = document.getElementById('teacherStudentTable');
+            const timeline = document.getElementById('teacherActivityTimeline');
+            const emptyState = document.getElementById('teacherEmptyState');
+            const tableMeta = document.getElementById('teacherTableMeta');
+            const timelineMeta = document.getElementById('teacherTimelineMeta');
+            const rankingContainer = document.getElementById('teacherRankingSummary');
+            const rankingMeta = document.getElementById('teacherRankingMeta');
+            const quickTotal = document.getElementById('teacherQuickTotal');
+            const quickAverage = document.getElementById('teacherQuickAverage');
+            const quickStudents = document.getElementById('teacherQuickStudents');
+            const quickCompleted = document.getElementById('teacherQuickCompleted');
+            const quickActive = document.getElementById('teacherQuickActive');
+            const greeting = document.getElementById('teacherGreeting');
+            const classesEl = document.getElementById('teacherClasses');
+            const emailEl = document.getElementById('teacherEmailDisplay');
+
+            try {
+                if (currentTeacher) {
+                    if (greeting) greeting.textContent = `ยินดีต้อนรับ ${currentTeacher.name}`;
+                    if (classesEl) classesEl.textContent = currentTeacher.classes?.length ? `ดูแล: ${currentTeacher.classes.join(', ')}` : 'บัญชีครูภาษาไทย';
+                    if (emailEl) emailEl.textContent = `${currentTeacher.role || 'ครูผู้สอน'} • ${currentTeacher.email}`;
+                }
+
+                if (summary) summary.innerHTML = '';
+                if (tableBody) tableBody.innerHTML = '';
+                if (timeline) timeline.innerHTML = '';
+                if (tableMeta) tableMeta.textContent = '';
+                if (timelineMeta) timelineMeta.textContent = '';
+                if (emptyState) emptyState.classList.add('hidden');
+
+                if (loading) loading.classList.remove('hidden');
+
+                const { students, sessions } = await fetchTeacherData();
+
+                if (loading) loading.classList.add('hidden');
+
+                const studentRows = buildStudentRows(students, sessions);
+                const completedSessions = sessions.filter(session => session.completed);
+                const totalScore = sessions.reduce((sum, session) => sum + (Number(session.totalScore) || 0), 0);
+                const averageScore = sessions.length ? Math.round(totalScore / sessions.length) : 0;
+                const activeToday = sessions.filter(session => {
+                    const activityDate = session.lastUpdatedAt || session.timestampAt || session.lastUpdated || session.timestamp;
+                    const parsed = parseDate(activityDate);
+                    if (!parsed) return false;
+                    const now = new Date();
+                    return parsed.getFullYear() === now.getFullYear() && parsed.getMonth() === now.getMonth() && parsed.getDate() === now.getDate();
+                });
+
+                if (quickTotal) quickTotal.textContent = totalScore ? totalScore.toLocaleString('th-TH') : '0';
+                if (quickAverage) quickAverage.textContent = sessions.length ? `${averageScore}` : '0';
+                if (quickCompleted) quickCompleted.textContent = completedSessions.length.toString();
+                if (quickActive) quickActive.textContent = activeToday.length.toString();
+                if (quickStudents) quickStudents.textContent = studentRows.length.toString();
+
+                if (studentRows.length === 0 && sessions.length === 0) {
+                    if (emptyState) emptyState.classList.remove('hidden');
+                    return;
+                }
+
+                const sortedStudentRows = [...studentRows].sort((a, b) => {
+                    const totalDiff = (b.totalScore || 0) - (a.totalScore || 0);
+                    if (totalDiff !== 0) return totalDiff;
+                    const scoreDiff = (b.averageScore || 0) - (a.averageScore || 0);
+                    if (scoreDiff !== 0) return scoreDiff;
+
+                    const aDate = parseDate(a.latestSession?.lastUpdatedAt || a.latestSession?.timestampAt || a.latestSession?.lastUpdated || a.latestSession?.timestamp);
+                    const bDate = parseDate(b.latestSession?.lastUpdatedAt || b.latestSession?.timestampAt || b.latestSession?.lastUpdated || b.latestSession?.timestamp);
+                    return (bDate?.getTime() || 0) - (aDate?.getTime() || 0);
+                });
+
+                teacherDashboardState.sessions = sessions;
+                teacherDashboardState.rows = sortedStudentRows;
+                resetTeacherStudentDetail();
+
+                if (summary) {
+                    const inProgress = sessions.length - completedSessions.length;
+                    const summaryData = [
+                        {
+                            label: 'คะแนนรวมทั้งหมด',
+                            value: totalScore ? totalScore.toLocaleString('th-TH') : '0',
+                            description: 'รวมคะแนนจากทุกกิจกรรมที่บันทึก',
+                            gradient: 'from-amber-500 to-orange-500',
+                            icon: '🏅'
+                        },
+                        {
+                            label: 'นักเรียนที่ลงทะเบียน',
+                            value: studentRows.length,
+                            description: 'มีโปรไฟล์หรือบันทึกคะแนนในระบบ',
+                            gradient: 'from-blue-500 to-indigo-500',
+                            icon: '👨‍🎓'
+                        },
+                        {
+                            label: 'ภารกิจที่เสร็จสมบูรณ์',
+                            value: completedSessions.length,
+                            description: 'ปิดจบครบทุกขั้น',
+                            gradient: 'from-emerald-500 to-teal-500',
+                            icon: '🏆'
+                        },
+                        {
+                            label: 'กำลังทำอยู่',
+                            value: Math.max(inProgress, 0),
+                            description: 'อยู่ระหว่างภารกิจ',
+                            gradient: 'from-sky-500 to-indigo-500',
+                            icon: '⏳'
+                        },
+                        {
+                            label: 'คะแนนเฉลี่ยรวม',
+                            value: sessions.length ? `${averageScore}` : '0',
+                            description: 'จากทุกเกมที่บันทึก',
+                            gradient: 'from-purple-500 to-pink-500',
+                            icon: '📊'
+                        }
+                    ];
+
+                    summary.innerHTML = summaryData.map(card => `
+                        <div class="teacher-summary-card bg-white border border-slate-200 rounded-3xl p-5 flex flex-col gap-3 shadow-sm">
+                            <div class="flex items-center gap-3">
+                                <span class="text-2xl">${card.icon}</span>
+                                <div>
+                                    <p class="text-xs uppercase tracking-wide text-slate-500">${card.label}</p>
+                                    <p class="text-2xl font-bold text-slate-900">${card.value}</p>
+                                </div>
+                            </div>
+                            <div class="mt-auto">
+                                <div class="h-1.5 rounded-full bg-slate-200 overflow-hidden">
+                                    <div class="h-full bg-gradient-to-r ${card.gradient}"></div>
+                                </div>
+                                <p class="text-xs text-slate-500 mt-2">${card.description}</p>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+
+                if (tableBody) {
+                    tableBody.innerHTML = sortedStudentRows.map(row => {
+                        const gradeRoom = row.grade ? `${row.grade}${row.room ? `/${row.room}` : ''}` : '-';
+                        const progressPercent = Math.min(100, Math.round(((row.latestSession?.currentStep || 1) / 6) * 100));
+                        const studentTotalScore = row.totalScore ? Math.round(row.totalScore) : 0;
+                        const latestScore = row.latestSession ? Math.round(Number(row.latestSession.totalScore) || Number(row.latestSession.comprehensionScore) || 0) : 0;
+                        const updatedAt = row.latestSession ? formatDateTime(row.latestSession.lastUpdatedAt || row.latestSession.timestampAt || row.latestSession.lastUpdated || row.latestSession.timestamp) : '-';
+                        const completionBadge = row.completionCount > 0 ? `<span class="px-2 py-1 rounded-full text-xs bg-emerald-100 text-emerald-700">เสร็จ ${row.completionCount} ครั้ง</span>` : `<span class="px-2 py-1 rounded-full text-xs bg-amber-100 text-amber-700">กำลังทำ</span>`;
+
+                        return `
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="px-4 py-3" data-label="นักเรียน">
+                                    <div class="flex flex-col">
+                                        <button type="button" data-student-key="${row.key || row.studentId}" class="teacher-student-link text-left font-semibold text-slate-900 hover:text-blue-600 focus:outline-none focus:text-blue-700 transition">
+                                            ${row.name || 'ไม่ระบุชื่อ'}
+                                        </button>
+                                        <span class="text-xs text-slate-500">${row.studentId || '-'}</span>
+                                        <span class="inline-flex items-center gap-1 text-xs font-semibold text-blue-600">
+                                            ${row.rankTier?.icon || '🌟'} ${row.rankTier?.label || 'มือใหม่'}
+                                        </span>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3 text-slate-600" data-label="ชั้น/ห้อง">
+                                    <div class="flex flex-col gap-1">
+                                        <span>${gradeRoom}</span>
+                                        <span class="text-xs text-slate-500">เลขที่ ${row.number || '-'}</span>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3" data-label="ความคืบหน้า">
+                                    <div class="flex flex-col gap-1">
+                                        <div class="h-2.5 rounded-full bg-slate-200">
+                                            <div class="h-full rounded-full bg-gradient-to-r from-blue-500 to-indigo-500" style="width: ${progressPercent}%"></div>
+                                        </div>
+                                        <div class="flex items-center justify-between text-xs text-slate-500">
+                                            <span>${progressPercent}%</span>
+                                            ${completionBadge}
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3 text-slate-600" data-label="คะแนนรวม">
+                                    <div class="flex flex-col gap-1">
+                                        <span class="font-semibold text-slate-900">${studentTotalScore.toLocaleString('th-TH')}</span>
+                                        <span class="text-xs text-slate-500">จาก ${row.sessions.length} ภารกิจ</span>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3 text-slate-600" data-label="คะแนนเฉลี่ย">
+                                    <div class="flex flex-col gap-1">
+                                        <span class="font-semibold text-slate-900">${(row.averageScore || latestScore).toLocaleString('th-TH')}</span>
+                                        <span class="text-xs text-slate-500">ล่าสุด ${latestScore.toLocaleString('th-TH')}</span>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3 text-slate-600 text-sm" data-label="อัปเดตล่าสุด">${updatedAt}</td>
+                            </tr>
+                        `;
+                    }).join('');
+
+                    tableBody.querySelectorAll('.teacher-student-link').forEach(button => {
+                        button.addEventListener('click', () => {
+                            const key = button.getAttribute('data-student-key');
+                            showTeacherStudentDetail(key);
+                        });
+                    });
+                }
+
+                if (tableMeta) {
+                    const totalRecordedScore = totalScore ? totalScore.toLocaleString('th-TH') : '0';
+                    tableMeta.textContent = `${sortedStudentRows.length} รายการ • คะแนนรวม ${totalRecordedScore} • อัปเดต ${formatDateTime(new Date())}`;
+                }
+
+                if (rankingContainer) {
+                    const tierStats = RANK_TIERS.map(tier => {
+                        const members = sortedStudentRows.filter(row => row.rankTier?.id === tier.id);
+                        const topMember = members.length
+                            ? [...members].sort((a, b) => (b.totalScore || 0) - (a.totalScore || 0))[0]
+                            : null;
+                        return { tier, count: members.length, topMember };
+                    });
+
+                    rankingContainer.innerHTML = tierStats.map(({ tier, count, topMember }) => {
+                        const topLabel = topMember
+                            ? ` • สูงสุด ${topMember.name || 'ไม่ระบุชื่อ'} (${Math.round(topMember.totalScore || 0).toLocaleString('th-TH')} แต้ม)`
+                            : '';
+                        return `
+                            <div class="teacher-rank-card">
+                                <div class="rank-tier">${tier.icon} ${tier.label}</div>
+                                <div class="text-2xl font-bold text-slate-900">${count.toLocaleString('th-TH')}</div>
+                                <div class="rank-meta">${tier.description}${topLabel}</div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+
+                if (rankingMeta) {
+                    rankingMeta.textContent = `${sortedStudentRows.length} รายชื่อ • อัปเดต ${formatDateTime(new Date())}`;
+                }
+
+                if (timeline) {
+                    const recentActivities = [...sessions]
+                        .sort((a, b) => {
+                            const aDate = parseDate(a.lastUpdatedAt || a.timestampAt || a.lastUpdated || a.timestamp);
+                            const bDate = parseDate(b.lastUpdatedAt || b.timestampAt || b.lastUpdated || b.timestamp);
+                            return (bDate?.getTime() || 0) - (aDate?.getTime() || 0);
+                        })
+                        .slice(0, 6);
+
+                    if (recentActivities.length === 0) {
+                        timeline.innerHTML = '<p class="text-sm text-slate-500 text-center">ยังไม่มีกิจกรรมล่าสุด</p>';
+                    } else {
+                        timeline.innerHTML = recentActivities.map(activity => {
+                            const activityTime = formatDateTime(activity.lastUpdatedAt || activity.timestampAt || activity.lastUpdated || activity.timestamp);
+                            const status = activity.completed ? 'เสร็จสิ้นภารกิจ' : `อยู่ที่ขั้นตอน ${activity.currentStep || '-'}`;
+                            const total = Math.round(Number(activity.totalScore) || Number(activity.comprehensionScore) || 0);
+                            const initials = activity.userName ? activity.userName.trim().charAt(0) : 'น';
+
+                            return `
+                                <div class="flex gap-4 p-4 bg-slate-50 border border-slate-200 rounded-2xl">
+                                    <div class="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xl">${initials}</div>
+                                    <div class="flex-1">
+                                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                                            <div>
+                                                <p class="font-semibold text-slate-900">${activity.userName || 'นักเรียนไม่ระบุชื่อ'}</p>
+                                                <p class="text-xs text-slate-500">${status}</p>
+                                            </div>
+                                            <div class="text-xs text-slate-500">${activityTime}</div>
+                                        </div>
+                                        <div class="mt-2 text-sm text-slate-600">คะแนนรวม ${total.toLocaleString('th-TH')} แต้ม</div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('');
+                    }
+                }
+
+                if (timelineMeta) {
+                    timelineMeta.textContent = `${sessions.length} บันทึกกิจกรรม`;
+                }
+
+            } catch (error) {
+                console.error('Teacher dashboard render failed:', error);
+                if (loading) loading.classList.add('hidden');
+                if (summary) summary.innerHTML = '';
+                if (tableBody) tableBody.innerHTML = '';
+                if (timeline) timeline.innerHTML = '';
+                if (tableMeta) tableMeta.textContent = '';
+                if (timelineMeta) timelineMeta.textContent = '';
+                if (rankingContainer) rankingContainer.innerHTML = '';
+                if (rankingMeta) rankingMeta.textContent = '';
+                if (emptyState) {
+                    emptyState.classList.remove('hidden');
+                    emptyState.innerHTML = `
+                        <div class="space-y-2">
+                            <p class="font-semibold text-slate-700">ไม่สามารถโหลดข้อมูลครูได้ในขณะนี้</p>
+                            <p class="text-sm text-slate-500">กรุณาลองรีเฟรชหรือตรวจสอบการเชื่อมต่ออีกครั้ง</p>
+                        </div>
+                    `;
+                }
+                resetTeacherStudentDetail();
+                showNotification('ไม่สามารถโหลดแดชบอร์ดครูได้ กรุณาลองใหม่อีกครั้ง', 'error');
+            }
+        }
+
+        function resetTeacherStudentDetail() {
+            const container = document.getElementById('teacherStudentDetailContent');
+            if (!container) return;
+            container.classList.add('text-center');
+            container.innerHTML = '<p class="text-sm text-slate-500">คลิกชื่อนักเรียนจากตารางเพื่อเปิดหน้าต่างรายงาน</p>';
+            closeTeacherStudentModal();
+        }
+
+        function showTeacherStudentDetail(studentKey) {
+            const container = document.getElementById('teacherStudentDetailContent');
+            if (!container || !studentKey) {
+                resetTeacherStudentDetail();
+                return;
+            }
+
+            const studentRow = teacherDashboardState.rows.find(row => row.key === studentKey || row.studentId === studentKey);
+            if (!studentRow) {
+                resetTeacherStudentDetail();
+                return;
+            }
+
+            const sessions = [...(studentRow.sessions || [])].sort((a, b) => {
+                const aDate = parseDate(a.lastUpdatedAt || a.timestampAt || a.lastUpdated || a.timestamp);
+                const bDate = parseDate(b.lastUpdatedAt || b.timestampAt || b.lastUpdated || b.timestamp);
+                return (bDate?.getTime() || 0) - (aDate?.getTime() || 0);
+            });
+
+            const latestSession = sessions[0] || null;
+            const latestScore = latestSession ? Math.round(Number(latestSession.totalScore) || Number(latestSession.comprehensionScore) || 0) : 0;
+            const currentStep = latestSession ? latestSession.currentStep : null;
+            const gradeRoom = studentRow.grade ? `${studentRow.grade}${studentRow.room ? `/${studentRow.room}` : ''}` : '-';
+            const studentTotalScore = studentRow.totalScore ? Math.round(studentRow.totalScore) : 0;
+            const averageScore = studentRow.averageScore ? Math.round(studentRow.averageScore) : (studentRow.sessions.length ? Math.round(studentTotalScore / studentRow.sessions.length) : 0);
+            const lastActivity = latestSession ? formatDateTime(latestSession.lastUpdatedAt || latestSession.timestampAt || latestSession.lastUpdated || latestSession.timestamp) : '-';
+
+            const today = new Date();
+            const todaySessions = sessions.filter(session => {
+                const sessionDate = parseDate(session.lastUpdatedAt || session.timestampAt || session.lastUpdated || session.timestamp);
+                return sessionDate ? isSameDay(sessionDate, today) : false;
+            });
+
+            const todayScore = todaySessions.reduce((sum, session) => sum + (Number(session.totalScore) || Number(session.comprehensionScore) || 0), 0);
+            const todayCompleted = todaySessions.filter(session => session.completed).length;
+
+            const headerStats = [
+                { label: 'คะแนนสะสม', value: studentTotalScore.toLocaleString('th-TH'), icon: '🎯' },
+                { label: 'คะแนนเฉลี่ย', value: averageScore.toLocaleString('th-TH'), icon: '📊' },
+                { label: 'คะแนนล่าสุด', value: latestScore.toLocaleString('th-TH'), icon: '📈' },
+                { label: 'ภารกิจสำเร็จ', value: studentRow.completionCount || 0, icon: '🏆' },
+                { label: 'ขั้นปัจจุบัน', value: getStepLabel(currentStep), icon: '🧭' }
+            ];
+
+            const recentActivities = sessions.slice(0, 5);
+
+            const activityCards = recentActivities.length
+                ? recentActivities.map(activity => {
+                    const activityDate = formatDateTime(activity.lastUpdatedAt || activity.timestampAt || activity.lastUpdated || activity.timestamp);
+                    const activityScore = Math.round(Number(activity.totalScore) || Number(activity.comprehensionScore) || 0);
+                    const stepLabel = getStepLabel(activity.currentStep);
+                    const status = activity.completed ? 'เสร็จสิ้นภารกิจ' : `กำลังเรียนรู้: ${stepLabel}`;
+                    return `
+                        <div class="rounded-2xl border border-slate-200 bg-white/90 p-4 flex flex-col gap-2 shadow-sm">
+                            <div class="flex items-start justify-between gap-3">
+                                <div class="font-semibold text-slate-900 leading-tight">${activity.userName || studentRow.name}</div>
+                                <span class="text-xs text-slate-500 whitespace-nowrap">${activityDate}</span>
+                            </div>
+                            <p class="text-sm text-slate-600">${status}</p>
+                            <div class="text-sm font-semibold text-blue-700">คะแนน ${activityScore.toLocaleString('th-TH')} แต้ม</div>
+                        </div>
+                    `;
+                }).join('')
+                : '<p class="text-sm text-slate-500">ยังไม่มีบันทึกกิจกรรมของนักเรียนคนนี้</p>';
+
+            const todaySummary = [
+                { label: 'กิจกรรมที่บันทึกวันนี้', value: todaySessions.length || 0, icon: '🗓️' },
+                { label: 'คะแนนที่ได้วันนี้', value: todayScore ? todayScore.toLocaleString('th-TH') : '0', icon: '⭐' },
+                { label: 'ภารกิจสำเร็จวันนี้', value: todayCompleted || 0, icon: '✅' },
+                { label: 'อัปเดตล่าสุด', value: lastActivity, icon: '⏱️' }
+            ];
+
+            const detailHtml = `
+                <div class="space-y-6 text-left">
+                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+                        <div>
+                            <p class="text-xs uppercase tracking-wide text-slate-500">นักเรียน</p>
+                            <h5 class="text-2xl font-bold text-slate-900">${studentRow.name || 'ไม่ระบุชื่อ'}</h5>
+                            <p class="text-sm text-slate-500">${gradeRoom} • เลขที่ ${studentRow.number || '-'}</p>
+                        </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                            ${headerStats.map(stat => `
+                                <div class="rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
+                                    <div class="text-lg">${stat.icon}</div>
+                                    <p class="text-xs text-slate-500 mt-1">${stat.label}</p>
+                                    <p class="text-lg font-semibold text-slate-900">${stat.value}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h5 class="text-base font-semibold text-slate-900">กิจกรรมล่าสุด</h5>
+                            <span class="text-xs text-slate-500">ทั้งหมด ${studentRow.sessions.length} กิจกรรม</span>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+                            ${activityCards}
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <h5 class="text-base font-semibold text-slate-900">ข้อมูลสำคัญ</h5>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                            ${todaySummary.map(stat => `
+                                <div class="rounded-2xl border border-slate-200 bg-white/90 p-4">
+                                    <div class="text-lg">${stat.icon}</div>
+                                    <p class="text-xs text-slate-500 mt-1">${stat.label}</p>
+                                    <p class="text-lg font-semibold text-slate-900">${stat.value}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            container.classList.remove('text-center');
+            container.innerHTML = detailHtml;
+            openTeacherStudentModal(detailHtml);
+        }
+
+        function closeTeacherStudentModal() {
+            const existing = document.getElementById('teacherStudentModal');
+            if (existing) {
+                existing.remove();
+                document.body.classList.remove('overflow-hidden');
+            }
+        }
+
+        function openTeacherStudentModal(content) {
+            closeTeacherStudentModal();
+
+            const modal = document.createElement('div');
+            modal.id = 'teacherStudentModal';
+            modal.className = 'fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4';
+            modal.innerHTML = `
+                <div class="modal-card scrollable bg-white rounded-3xl p-6 md:p-8 shadow-2xl relative">
+                    <button type="button" class="absolute top-4 right-4 text-slate-500 hover:text-slate-700" aria-label="ปิดรายงาน" onclick="closeTeacherStudentModal()">✕</button>
+                    <div class="space-y-6">${content}</div>
+                </div>
+            `;
+
+            modal.addEventListener('click', event => {
+                if (event.target === modal) {
+                    closeTeacherStudentModal();
+                }
+            });
+
+            document.body.appendChild(modal);
+            document.body.classList.add('overflow-hidden');
+        }
+
+        function parseDate(value) {
+            if (!value) return null;
+            if (value instanceof Date) {
+                return isNaN(value.getTime()) ? null : value;
+            }
+            if (typeof value === 'number') {
+                const numberDate = new Date(value);
+                return isNaN(numberDate.getTime()) ? null : numberDate;
+            }
+            if (typeof value === 'string') {
+                const stringDate = new Date(value);
+                return isNaN(stringDate.getTime()) ? null : stringDate;
+            }
+            if (value && typeof value.toDate === 'function') {
+                const viaToDate = value.toDate();
+                return viaToDate instanceof Date && !isNaN(viaToDate.getTime()) ? viaToDate : null;
+            }
+            if (value && typeof value === 'object' && typeof value.seconds === 'number') {
+                const ms = value.seconds * 1000 + (value.nanoseconds || 0) / 1e6;
+                const timestampDate = new Date(ms);
+                return isNaN(timestampDate.getTime()) ? null : timestampDate;
+            }
+            return null;
+        }
+
+        function normalizeFirestoreValue(value) {
+            if (value === null || value === undefined) return value;
+            if (Array.isArray(value)) {
+                return value.map(item => normalizeFirestoreValue(item));
+            }
+            if (typeof value === 'object') {
+                const asDate = parseDate(value);
+                if (asDate) {
+                    return asDate.toISOString();
+                }
+                const normalized = {};
+                Object.entries(value).forEach(([key, val]) => {
+                    normalized[key] = normalizeFirestoreValue(val);
+                });
+                return normalized;
+            }
+            return value;
+        }
+
+        function normalizeStudentRecord(rawStudent = {}) {
+            const student = normalizeFirestoreValue(rawStudent) || {};
+            const key = student.studentId || student.id || student.uid || student.userId || student.email || student.name || '';
+            return {
+                ...student,
+                key,
+                studentId: student.studentId || student.id || student.uid || student.userId || key,
+                name: student.name || student.displayName || 'นักเรียนไม่ระบุชื่อ',
+                grade: student.grade || student.gradeLevel || student.classLevel || student.level || '-',
+                room: student.room || student.classroom || student.class || student.section || '-',
+                number: student.number || student.studentNumber || student.no || student.index || '-',
+            };
+        }
+
+        function calculateVocabularyScore(translatedWords = {}) {
+            return Object.values(translatedWords).reduce((sum, entry) => {
+                if (!entry || typeof entry !== 'object') return sum;
+                return sum + (Number(entry.points) || 0);
+            }, 0);
+        }
+
+        function normalizeSessionRecord(rawSession = {}) {
+            const session = normalizeFirestoreValue(rawSession) || {};
+            const lastUpdatedAt = parseDate(session.lastUpdated || session.updatedAt || session.finishedAt || session.completedAt);
+            const timestampAt = parseDate(session.timestamp || session.createdAt || session.startedAt || lastUpdatedAt);
+            const vocabScore = calculateVocabularyScore(session.translatedWords);
+            const comprehensionScore = Number(session.comprehensionScore) || 0;
+            const matchingScore = Number(session.matchingScore) || 0;
+            const totalScore = typeof session.totalScore === 'number'
+                ? Number(session.totalScore) || 0
+                : vocabScore + comprehensionScore + matchingScore;
+            const key = session.studentId || session.userId || session.userEmail || session.userName || session.id || '';
+            return {
+                ...session,
+                key,
+                studentId: session.studentId || session.userId || key,
+                userId: session.userId || session.studentId || key,
+                userName: session.userName || session.displayName || session.studentName || 'นักเรียนไม่ระบุชื่อ',
+                grade: session.grade || session.gradeLevel || session.classLevel || '-',
+                room: session.room || session.classroom || session.class || '-',
+                number: session.number || session.studentNumber || session.no || '-',
+                currentStep: session.currentStep || session.step || 1,
+                totalScore,
+                comprehensionScore,
+                matchingScore,
+                vocabScore,
+                completed: Boolean(session.completed),
+                lastUpdatedAt,
+                timestampAt,
+            };
+        }
+
+        function formatDateTime(value) {
+            const date = parseDate(value);
+            if (!date) return '-';
+            try {
+                return date.toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' });
+            } catch (error) {
+                return date.toLocaleString();
+            }
+        }
+
+        function isSameDay(dateA, dateB) {
+            if (!dateA || !dateB) return false;
+            return dateA.getFullYear() === dateB.getFullYear() &&
+                dateA.getMonth() === dateB.getMonth() &&
+                dateA.getDate() === dateB.getDate();
+        }
+
+        function buildStudentRows(students = [], sessions = []) {
+            const studentMap = new Map();
+            students.forEach(student => {
+                if (!student || !student.key) return;
+                studentMap.set(student.key, student);
+            });
+
+            const rows = new Map();
+
+            sessions.forEach(session => {
+                if (!session || !session.key) return;
+                if (!rows.has(session.key)) {
+                    const baseStudent = studentMap.get(session.key);
+                    rows.set(session.key, {
+                        key: session.key,
+                        name: session.userName || baseStudent?.name || 'นักเรียนไม่ระบุชื่อ',
+                        grade: session.grade || baseStudent?.grade || '-',
+                        room: session.room || baseStudent?.room || '-',
+                        number: session.number || baseStudent?.number || '-',
+                        studentId: session.studentId || baseStudent?.studentId || session.key,
+                        totalScore: 0,
+                        averageScore: 0,
+                        latestSession: null,
+                        completionCount: 0,
+                        sessions: [],
+                    });
+                }
+                const entry = rows.get(session.key);
+                entry.sessions.push(session);
+                entry.totalScore += Number(session.totalScore) || 0;
+                if (session.completed) {
+                    entry.completionCount += 1;
+                }
+                if (!entry.latestSession) {
+                    entry.latestSession = session;
+                } else {
+                    const existingDate = entry.latestSession.lastUpdatedAt || entry.latestSession.timestampAt;
+                    const incomingDate = session.lastUpdatedAt || session.timestampAt;
+                    if (incomingDate && (!existingDate || incomingDate > existingDate)) {
+                        entry.latestSession = session;
+                    }
+                }
+            });
+
+            rows.forEach(entry => {
+                if (entry.sessions.length > 0) {
+                    entry.averageScore = Math.round(entry.totalScore / entry.sessions.length);
+                }
+                entry.rankTier = determineRankTier(entry.totalScore || 0);
+            });
+
+            students.forEach(student => {
+                if (!student || !student.key) return;
+                if (!rows.has(student.key)) {
+                    rows.set(student.key, {
+                        key: student.key,
+                        name: student.name || 'นักเรียนไม่ระบุชื่อ',
+                        grade: student.grade || '-',
+                        room: student.room || '-',
+                        number: student.number || '-',
+                        studentId: student.studentId || student.key,
+                        totalScore: 0,
+                        averageScore: 0,
+                        latestSession: null,
+                        completionCount: 0,
+                        sessions: [],
+                    });
+                } else {
+                    const entry = rows.get(student.key);
+                    entry.name = student.name || entry.name;
+                    entry.grade = student.grade || entry.grade;
+                    entry.room = student.room || entry.room;
+                    entry.number = student.number || entry.number;
+                    entry.studentId = student.studentId || entry.studentId;
+                }
+            });
+
+            return Array.from(rows.values());
+        }
+
+        const sampleStudents = [
+            {
+                studentId: 'ST1001',
+                name: 'กชมน ศรีวิชัย',
+                grade: 'ม.5',
+                room: '2',
+                number: '12'
+            },
+            {
+                studentId: 'ST1002',
+                name: 'ชยุต วัฒนะชัย',
+                grade: 'ม.5',
+                room: '2',
+                number: '7'
+            },
+            {
+                studentId: 'ST1003',
+                name: 'ณัฐวดี อินทรา',
+                grade: 'ม.5',
+                room: '2',
+                number: '18'
+            }
+        ];
+
+        const sampleSessions = [
+            {
+                id: 'GS-001',
+                studentId: 'ST1001',
+                userName: 'กชมน ศรีวิชัย',
+                grade: 'ม.5',
+                room: '2',
+                number: '12',
+                totalScore: 1240,
+                comprehensionScore: 1240,
+                completed: true,
+                step: 6,
+                lastUpdated: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
+                timestamp: new Date(Date.now() - 1000 * 60 * 90).toISOString()
+            },
+            {
+                id: 'GS-002',
+                studentId: 'ST1002',
+                userName: 'ชยุต วัฒนะชัย',
+                grade: 'ม.5',
+                room: '2',
+                number: '7',
+                totalScore: 865,
+                comprehensionScore: 865,
+                completed: false,
+                step: 4,
+                lastUpdated: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
+                timestamp: new Date(Date.now() - 1000 * 60 * 55).toISOString()
+            },
+            {
+                id: 'GS-003',
+                studentId: 'ST1003',
+                userName: 'ณัฐวดี อินทรา',
+                grade: 'ม.5',
+                room: '2',
+                number: '18',
+                totalScore: 540,
+                comprehensionScore: 540,
+                completed: true,
+                step: 6,
+                lastUpdated: new Date(Date.now() - 1000 * 60 * 180).toISOString(),
+                timestamp: new Date(Date.now() - 1000 * 60 * 240).toISOString()
+            }
+        ];
+        async function fetchTeacherData() {
+            let students = [];
+            let sessions = [];
+            const fallbackStudents = sampleStudents.map(student => ({ ...student }));
+            const fallbackSessions = sampleSessions.map(session => ({ ...session }));
+
+            try {
+                if (db) {
+                    const [studentSnapshot, sessionSnapshot] = await Promise.all([
+                        db.collection('User').where('isStudent', '==', true).get().catch(() => null),
+                        db.collection('gameSessions').get().catch(() => null)
+                    ]);
+
+                    if (studentSnapshot) {
+                        studentSnapshot.forEach(doc => {
+                            students.push({ id: doc.id, ...doc.data() });
+                        });
+                    }
+
+                    if (sessionSnapshot) {
+                        sessionSnapshot.forEach(doc => {
+                            sessions.push({ id: doc.id, ...doc.data() });
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading data from Firebase for teacher portal:', error);
+            }
+
+            if (sessions.length === 0 || students.length === 0) {
+                try {
+                    const response = await fetch('/gameSessions');
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (Array.isArray(data)) {
+                            sessions = sessions.length === 0 ? data : sessions;
+                        } else {
+                            if (Array.isArray(data.sessions) && sessions.length === 0) {
+                                sessions = data.sessions;
+                            }
+                            if (Array.isArray(data.students) && students.length === 0) {
+                                students = data.students;
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.warn('Fallback fetch to /gameSessions failed:', error);
+                }
+            }
+
+            if (students.length === 0) {
+                students = loadLocalStudents();
+            }
+
+            if (sessions.length === 0) {
+                sessions = loadLocalSessions();
+            }
+
+            if (students.length === 0 && sessions.length === 0) {
+                students = fallbackStudents;
+                sessions = fallbackSessions;
+            } else if (students.length === 0 && sessions.length > 0) {
+                const synthesizedStudents = new Map();
+                sessions.forEach(session => {
+                    const normalizedSession = normalizeSessionRecord(session);
+                    const key = normalizedSession.key;
+                    if (!key || synthesizedStudents.has(key)) return;
+                    synthesizedStudents.set(key, {
+                        studentId: normalizedSession.studentId || key,
+                        name: normalizedSession.userName || 'นักเรียนไม่ระบุชื่อ',
+                        grade: normalizedSession.grade || '-',
+                        room: normalizedSession.room || '-',
+                        number: normalizedSession.number || '-',
+                    });
+                });
+                students = Array.from(synthesizedStudents.values());
+            }
+
+            let normalizedStudents = students
+                .map(student => normalizeStudentRecord(student))
+                .filter(student => student && student.key);
+
+            let normalizedSessions = sessions
+                .map(session => normalizeSessionRecord(session))
+                .filter(session => session && session.key);
+
+            if (normalizedSessions.length === 0) {
+                normalizedSessions = fallbackSessions
+                    .map(session => normalizeSessionRecord(session))
+                    .filter(session => session && session.key);
+            }
+
+            if (normalizedStudents.length === 0) {
+                if (normalizedSessions.length) {
+                    const synthesized = buildStudentRows([], normalizedSessions).map(row => ({
+                        studentId: row.studentId,
+                        name: row.name,
+                        grade: row.grade,
+                        room: row.room,
+                        number: row.number
+                    }));
+                    normalizedStudents = synthesized
+                        .map(student => normalizeStudentRecord(student))
+                        .filter(student => student && student.key);
+                }
+
+                if (normalizedStudents.length === 0) {
+                    normalizedStudents = fallbackStudents
+                        .map(student => normalizeStudentRecord(student))
+                        .filter(student => student && student.key);
+                }
+            }
+
+            return { students: normalizedStudents, sessions: normalizedSessions };
+        }
 
         function loadLocalStudents() {
             const result = [];
@@ -3377,50 +4475,59 @@ function initializeStepChipEvents() {
 
         // Check for existing student login on page load
         document.addEventListener('DOMContentLoaded', async () => {
-            populateDemoTeacherHints();
-            // Try to restore previous student session
-            const lastStudentId = localStorage.getItem('lastStudentId');
-            if (lastStudentId) {
-                try {
-                    // Try to load from database first
-                    let userData = await loadUserData(lastStudentId);
-                    
-                    if (userData) {
-                        gameState.userId = lastStudentId;
-                        gameState.currentUser = userData;
-                        
-                        // Update player profile
-                        playerProfile.exp = userData.exp || 0;
-                        playerProfile.rank = userData.rank || 'มือใหม่';
-                        playerProfile.level = userData.level || 1;
-                        playerProfile.totalGamesPlayed = userData.totalGamesPlayed || 0;
-                        playerProfile.bestScore = userData.bestScore || 0;
-                        
-                        // Update UI
-                        if (userData.isGoogle) {
-                            updateLoginUI({
-                                displayName: userData.name,
-                                email: userData.email,
-                                photoURL: userData.photoURL,
-                                isGoogle: true,
-                                userData: userData
-                            });
-                        } else {
-                            updateLoginUI({
-                                displayName: userData.name,
-                                email: `${userData.grade}/${userData.room} เลขที่ ${userData.number}`,
-                                photoURL: '',
-                                isStudent: true,
-                                studentData: userData
-                            });
+            try {
+                populateDemoTeacherHints();
+                // Try to restore previous student session
+                const lastStudentId = localStorage.getItem('lastStudentId');
+                if (lastStudentId) {
+                    try {
+                        // Try to load from database first
+                        let userData = await loadUserData(lastStudentId);
+
+                        if (userData) {
+                            gameState.userId = lastStudentId;
+                            gameState.currentUser = userData;
+
+                            // Update player profile
+                            playerProfile.exp = userData.exp || 0;
+                            playerProfile.rank = userData.rank || 'มือใหม่';
+                            playerProfile.level = userData.level || 1;
+                            playerProfile.totalGamesPlayed = userData.totalGamesPlayed || 0;
+                            playerProfile.bestScore = userData.bestScore || 0;
+
+                            // Update UI
+                            if (userData.isGoogle) {
+                                updateLoginUI({
+                                    displayName: userData.name,
+                                    email: userData.email,
+                                    photoURL: userData.photoURL,
+                                    isGoogle: true,
+                                    userData: userData
+                                });
+                            } else {
+                                updateLoginUI({
+                                    displayName: userData.name,
+                                    email: `${userData.grade}/${userData.room} เลขที่ ${userData.number}`,
+                                    photoURL: '',
+                                    isStudent: true,
+                                    studentData: userData
+                                });
+                            }
+
+                            console.log('User session restored successfully');
                         }
-                        
-                        console.log('User session restored successfully');
+                    } catch (error) {
+                        console.log('Error restoring user session:', error);
+                        localStorage.removeItem('lastStudentId');
                     }
-                } catch (error) {
-                    console.log('Error restoring user session:', error);
-                    localStorage.removeItem('lastStudentId');
                 }
+
+                refreshHeaderCompactState();
+                initializeStepChipEvents();
+                initializeFloatingActions();
+            } catch (error) {
+                console.error('Initialisation failed', error);
+                showNotification('ไม่สามารถเริ่มต้นระบบได้', 'error');
             }
 
             refreshHeaderCompactState();
@@ -3796,8 +4903,12 @@ function initializeStepChipEvents() {
             const logicalStep = gameState.currentStep === 2.5 ? 2 : gameState.currentStep;
             const currentProgress = ((logicalStep - 1) / (totalSteps - 1)) * 100;
 
-            document.getElementById('mainProgressFill').style.width = currentProgress + '%';
-            document.getElementById('progressText').textContent = Math.round(currentProgress) + '%';
+            const progressFill = getElement('mainProgressFill');
+            if (progressFill) {
+                progressFill.style.width = `${currentProgress}%`;
+            }
+
+            updateText('progressText', `${Math.round(currentProgress)}%`);
         }
 
         // Calculate Level and EXP
@@ -3815,8 +4926,8 @@ function initializeStepChipEvents() {
 
         // Update Player Profile Display
         function updatePlayerProfile() {
-            document.getElementById('playerExp').textContent = playerProfile.exp;
-            document.getElementById('playerRank').textContent = playerProfile.rank;
+            updateText('playerExp', playerProfile.exp);
+            updateText('playerRank', playerProfile.rank);
             
             // Calculate level
             const levelInfo = calculateLevel(playerProfile.exp);
@@ -3853,536 +4964,545 @@ function initializeStepChipEvents() {
 
         // Render Step Content
         async function renderStep(step) {
-            // Save current step to history (except when going back)
-            if (step > gameState.currentStep) {
-                gameState.stepHistory.push(gameState.currentStep);
-            }
+            try {
+                        // Save current step to history (except when going back)
+                        if (step > gameState.currentStep) {
+                            gameState.stepHistory.push(gameState.currentStep);
+                        }
 
-            gameState.currentStep = step;
-            const logicalStep = step === 2.5 ? 2 : step;
-            gameState.maxStepReached = Math.max(gameState.maxStepReached || 1, logicalStep);
-            updateStepIndicators();
-            updateProgress();
-            updateBackButton();
+                        gameState.currentStep = step;
+                        const logicalStep = step === 2.5 ? 2 : step;
+                        gameState.maxStepReached = Math.max(gameState.maxStepReached || 1, logicalStep);
+                        updateStepIndicators();
+                        updateProgress();
+                        updateBackButton();
 
-            const floatingActions = document.getElementById('floatingActionButtons');
-            if (floatingActions) {
-                if (step === 6) {
-                    floatingActions.classList.add('hidden');
-                    floatingActions.classList.remove('show');
-                    floatingActions.setAttribute('aria-hidden', 'true');
-                } else {
-                    floatingActions.classList.remove('hidden');
-                    floatingActions.setAttribute('aria-hidden', 'false');
-                }
-            }
+                        const floatingActions = document.getElementById('floatingActionButtons');
+                        if (floatingActions) {
+                            if (step === 6) {
+                                floatingActions.classList.add('hidden');
+                                floatingActions.classList.remove('show');
+                                floatingActions.setAttribute('aria-hidden', 'true');
+                            } else {
+                                floatingActions.classList.remove('hidden');
+                                floatingActions.setAttribute('aria-hidden', 'false');
+                            }
+                        }
             
-            // Auto-save progress
-            saveCurrentGameState();
+                        // Auto-save progress
+                        saveCurrentGameState();
             
-            const mainContent = document.getElementById('mainContent');
-            const mission = MISSION_DATA.MISSION_01;
+                        const mainContent = document.getElementById('mainContent');
+                        const mission = MISSION_DATA.MISSION_01;
             
-            switch(step) {
-                case 1:
-                    mainContent.innerHTML = `
-                        <div class="modern-card rounded-3xl p-6 md:p-8">
-                            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-                                <div>
-                                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900">
-                                        📚 ${mission.historicalBackground.title}
-                                    </h2>
-                                    <p class="step-subtitle">หน้านี้เป็นการศึกษาประวัติศาสตร์เบื้องหลังของโคลงสี่สุภาพ เพื่อให้เข้าใจบริบทและความสำคัญของเหตุการณ์ก่อนเข้าสู่การศึกษาโคลง</p>
-                                </div>
-                            </div>
+                        switch(step) {
+                            case 1:
+                                mainContent.innerHTML = `
+                                    <div class="modern-card rounded-3xl p-6 md:p-8">
+                                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                                            <div>
+                                                <h2 class="text-2xl md:text-3xl font-bold text-gray-900">
+                                                    📚 ${mission.historicalBackground.title}
+                                                </h2>
+                                                <p class="step-subtitle">หน้านี้เป็นการศึกษาประวัติศาสตร์เบื้องหลังของโคลงสี่สุภาพ เพื่อให้เข้าใจบริบทและความสำคัญของเหตุการณ์ก่อนเข้าสู่การศึกษาโคลง</p>
+                                            </div>
+                                        </div>
                             
-                            <div class="mb-8">
-                                <div class="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-2xl p-6 mb-6">
-                                    <div class="flex items-center gap-3 mb-4">
-                                        <span class="text-3xl">📖</span>
-                                        <h3 class="text-xl font-bold text-blue-900">ความรู้พื้นฐาน</h3>
-                                    </div>
-                                    <p class="text-blue-800 text-lg">อ่านประวัติศาสตร์เพื่อเตรียมความพร้อมก่อนศึกษาโคลง</p>
-                                </div>
+                                        <div class="mb-8">
+                                            <div class="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-2xl p-6 mb-6">
+                                                <div class="flex items-center gap-3 mb-4">
+                                                    <span class="text-3xl">📖</span>
+                                                    <h3 class="text-xl font-bold text-blue-900">ความรู้พื้นฐาน</h3>
+                                                </div>
+                                                <p class="text-blue-800 text-lg">อ่านประวัติศาสตร์เพื่อเตรียมความพร้อมก่อนศึกษาโคลง</p>
+                                            </div>
                                 
-                                ${mission.historicalBackground.content}
-                            </div>
+                                            ${mission.historicalBackground.content}
+                                        </div>
                             
-                            <div class="text-center">
-                                <button id="proceedToPoem" class="modern-button px-8 py-4 text-xl rounded-2xl">
-                                    ➡️ ไปดูโคลงสี่สุภาพ
-                                </button>
-                            </div>
-                        </div>
-                    `;
+                                        <div class="text-center">
+                                            <button id="proceedToPoem" class="modern-button px-8 py-4 text-xl rounded-2xl">
+                                                ➡️ ไปดูโคลงสี่สุภาพ
+                                            </button>
+                                        </div>
+                                    </div>
+                                `;
                     
-                    const proceedButton = document.getElementById('proceedToPoem');
-                    if (proceedButton) {
-                        proceedButton.addEventListener('click', async () => {
-                            await renderStep(2);
-                        });
-                    } else {
-                        console.warn('Proceed button not found when rendering step 1');
-                    }
-                    break;
+                                const proceedButton = document.getElementById('proceedToPoem');
+                                if (proceedButton) {
+                                    proceedButton.addEventListener('click', async () => {
+                                        await renderStep(2);
+                                    });
+                                } else {
+                                    console.warn('Proceed button not found when rendering step 1');
+                                }
+                                break;
                     
-                case 2.5:
-                    // Matching Game Step
-                    mainContent.innerHTML = `
-                        <div class="modern-card rounded-3xl p-6 md:p-10 mt-4 md:mt-8 w-full max-w-6xl mx-auto">
-                            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-8 gap-4">
-                                <div>
-                                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900">
-                                        🎯 จับคู่คำศัพท์
-                                    </h2>
-                                    <p class="step-subtitle">เกมจับคู่คำศัพท์กับความหมาย เพื่อทบทวนและเสริมสร้างความจำ</p>
-                                </div>
-                            </div>
+                            case 2.5:
+                                // Matching Game Step
+                                mainContent.innerHTML = `
+                                    <div class="modern-card rounded-3xl p-6 md:p-10 mt-4 md:mt-8 w-full max-w-6xl mx-auto">
+                                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-8 gap-4">
+                                            <div>
+                                                <h2 class="text-2xl md:text-3xl font-bold text-gray-900">
+                                                    🎯 จับคู่คำศัพท์
+                                                </h2>
+                                                <p class="step-subtitle">เกมจับคู่คำศัพท์กับความหมาย เพื่อทบทวนและเสริมสร้างความจำ</p>
+                                            </div>
+                                        </div>
 
-                            <!-- Instructions -->
-                            <div class="bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-200 p-4 rounded-xl mb-6">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <span class="text-xl">📋</span>
-                                    <h4 class="font-bold text-yellow-900">วิธีเล่น</h4>
-                                </div>
-                                <p class="text-yellow-800">ลากคำศัพท์จากด้านซ้ายไปวางบนความหมายที่ถูกต้องด้านขวา หรือคลิกคำศัพท์แล้วคลิกความหมาย</p>
-                            </div>
+                                        <!-- Instructions -->
+                                        <div class="bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-200 p-4 rounded-xl mb-6">
+                                            <div class="flex items-center gap-2 mb-2">
+                                                <span class="text-xl">📋</span>
+                                                <h4 class="font-bold text-yellow-900">วิธีเล่น</h4>
+                                            </div>
+                                            <p class="text-yellow-800">ลากคำศัพท์จากด้านซ้ายไปวางบนความหมายที่ถูกต้องด้านขวา หรือคลิกคำศัพท์แล้วคลิกความหมาย</p>
+                                        </div>
 
-                            <!-- Matching Game -->
-                            <div class="grid gap-6 lg:grid-cols-2 mb-8">
-                                <!-- Words Column -->
-                                <div class="bg-gradient-to-br from-red-50 to-pink-50 border-2 border-red-200 p-5 rounded-xl h-full">
-                                    <h3 class="text-lg font-bold text-red-900 mb-4 text-center">🔤 คำศัพท์</h3>
-                                    <div id="wordsColumn" class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                                        ${Object.keys(MISSION_DATA.MISSION_01.hardWords).map((word, index) => `
-                                            <div class="word-item bg-gradient-to-r from-red-400 to-red-500 text-white border-2 border-red-600 p-3 rounded-xl cursor-pointer hover:from-red-500 hover:to-red-600 transition-all duration-200 text-center font-bold shadow-lg"
-                                                 data-word="${word}" draggable="true">
-                                                <div class="flex flex-col items-center justify-center gap-2">
-                                                    <img src="${getWordImage(word)}" alt="${word}" class="w-16 h-16 md:w-20 md:h-20 rounded-lg border-2 border-white object-cover shadow-md">
-                                                    <span class="text-sm">${word}</span>
+                                        <!-- Matching Game -->
+                                        <div class="grid gap-6 lg:grid-cols-2 mb-8">
+                                            <!-- Words Column -->
+                                            <div class="bg-gradient-to-br from-red-50 to-pink-50 border-2 border-red-200 p-5 rounded-xl h-full">
+                                                <h3 class="text-lg font-bold text-red-900 mb-4 text-center">🔤 คำศัพท์</h3>
+                                                <div id="wordsColumn" class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                                    ${Object.keys(MISSION_DATA.MISSION_01.hardWords).map((word, index) => `
+                                                        <div class="word-item bg-gradient-to-r from-red-400 to-red-500 text-white border-2 border-red-600 p-3 rounded-xl cursor-pointer hover:from-red-500 hover:to-red-600 transition-all duration-200 text-center font-bold shadow-lg"
+                                                             data-word="${word}" draggable="true">
+                                                            <div class="flex flex-col items-center justify-center gap-2">
+                                                                <img src="${getWordImage(word)}" alt="${word}" class="w-16 h-16 md:w-20 md:h-20 rounded-lg border-2 border-white object-cover shadow-md">
+                                                                <span class="text-sm">${word}</span>
+                                                            </div>
+                                                        </div>
+                                                    `).join('')}
                                                 </div>
                                             </div>
-                                        `).join('')}
-                                    </div>
-                                </div>
 
-                                <!-- Meanings Column -->
-                                <div class="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 p-5 rounded-xl h-full">
-                                    <h3 class="text-lg font-bold text-green-900 mb-4 text-center">💭 ความหมาย</h3>
-                                    <div id="meaningsColumn" class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                                        ${Object.entries(MISSION_DATA.MISSION_01.hardWords).sort(() => Math.random() - 0.5).map(([word, data]) => `
-                                            <div class="meaning-item bg-white border-2 border-green-300 p-3 rounded-xl min-h-[80px] flex items-center justify-center text-center text-green-800 border-dashed hover:bg-green-50 transition-all duration-200"
-                                                 data-word="${word}">
-                                                <span class="font-semibold text-sm">${data.meaning.split(',')[0].trim()}</span>
-                                            </div>
-                                        `).join('')}
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="flex flex-col md:flex-row justify-center gap-4 mt-4 md:mt-6">
-                                <button onclick="goBack()" class="modern-button px-6 md:px-8 py-3 md:py-4 text-lg md:text-xl rounded-2xl bg-gray-500 hover:bg-gray-600 w-full md:w-auto">
-                                    ← ย้อนกลับ
-                                </button>
-                                <button id="resetMatching" class="modern-button px-6 md:px-8 py-3 md:py-4 text-lg md:text-xl rounded-2xl bg-orange-500 hover:bg-orange-600 w-full md:w-auto">
-                                    🔄 เริ่มใหม่
-                                </button>
-                                <button id="finishMatching" class="modern-button px-8 md:px-12 py-3 md:py-4 text-lg md:text-xl rounded-2xl w-full md:w-auto" disabled>
-                                    ➡️ ไปขั้นตอนถัดไป
-                                </button>
-                            </div>
-
-                            <!-- Score Display -->
-                            <div class="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200 p-4 rounded-xl mt-8 text-center">
-                                <h3 class="text-lg font-bold text-blue-900 mb-2">คะแนน</h3>
-                                <div class="text-3xl font-bold text-blue-600" id="matchingScore">0</div>
-                                <div class="text-sm text-blue-700">จาก ${Object.keys(MISSION_DATA.MISSION_01.hardWords).length} คู่</div>
-                            </div>
-                        </div>
-                    `;
-                    setupMatchingGame();
-                    break;
-                    
-                case 2:
-                    mainContent.innerHTML = `
-                        <div class="modern-card rounded-3xl p-6 md:p-8">
-                            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-                                <div>
-                                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900">
-                                        📜 โคลงสี่สุภาพ - พระราชพงศาวดาร
-                                    </h2>
-                                    <p class="step-subtitle">หน้านี้เป็นการศึกษาโคลงสี่สุภาพและค้นหาความหมายของคำศัพท์ยาก เพื่อฝึกทักษะการสืบค้นข้อมูลและเข้าใจความหมายของวรรณคดี</p>
-                                </div>
-                            </div>
-
-                            <div class="bg-white/85 border border-blue-200 rounded-2xl p-4 mb-6 shadow-sm">
-                                <h3 class="text-base font-semibold text-blue-900 mb-1">🎯 คำสั่ง</h3>
-                                <p class="text-sm text-blue-700">คลิกคำศัพท์สีน้ำเงินในโคลง แล้วค้นหาความหมายให้ครบทั้ง ${Object.keys(mission.hardWords).length} คำ พร้อมบันทึกแหล่งอ้างอิง</p>
-                            </div>
-
-                            <div class="mb-4 text-center">
-                                <span class="badge-modern inline-flex items-center justify-center">โคลงสี่สุภาพ</span>
-                            </div>
-                            <div class="poem-container p-6 mb-6 mx-auto max-w-3xl">
-                                <div class="poem-text text-gray-800">
-                                    ${mission.poem}
-                                </div>
-                            </div>
-
-                            <div class="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-2xl p-6 mb-6">
-                                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                                    <div class="flex items-center gap-3">
-                                        <span class="text-3xl">🧭</span>
-                                        <div>
-                                            <h3 class="text-lg font-bold text-blue-900">แนวทางการสืบค้น</h3>
-                                            <p class="text-blue-800 text-sm md:text-base">รวบรวมคำศัพท์สำคัญ ตรวจสอบแหล่งข้อมูล และบันทึกความหมายพร้อมอ้างอิง</p>
-                                        </div>
-                                    </div>
-                                    <div class="flex gap-3">
-                                        <div class="px-4 py-2 rounded-xl bg-white border border-blue-200 text-center">
-                                            <p class="text-xs text-blue-500">คำศัพท์ทั้งหมด</p>
-                                            <p class="text-lg font-semibold text-blue-700">${Object.keys(mission.hardWords).length} คำ</p>
-                                        </div>
-                                        <div class="px-4 py-2 rounded-xl bg-white border border-indigo-200 text-center">
-                                            <p class="text-xs text-indigo-500">อ้างอิงที่แนะนำ</p>
-                                            <p class="text-lg font-semibold text-indigo-700">พจนานุกรมราชบัณฑิตฯ</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Progress Cards -->
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                                <div class="modern-card rounded-xl p-4 text-center">
-                                    <p class="text-gray-600 text-sm mb-2">เป้าหมาย</p>
-                                    <p class="text-xl font-bold text-blue-600">${Object.keys(mission.hardWords).length} คำ</p>
-                                    <div class="progress-bar mt-3 bg-gray-200 h-3">
-                                        <div id="wordProgress" class="progress-fill h-3" style="width: 0%"></div>
-                                    </div>
-                                </div>
-                                <div class="modern-card rounded-xl p-4 text-center">
-                                    <p class="text-gray-600 text-sm mb-2">ค้นพบแล้ว</p>
-                                    <p class="text-xl font-bold text-green-600"><span id="foundWords">0</span> คำ</p>
-                                </div>
-                                <div class="modern-card rounded-xl p-4 text-center">
-                                    <p class="text-gray-600 text-sm mb-2">คำตอบผิด</p>
-                                    <p class="text-xl font-bold text-red-600"><span id="incorrectWords">0</span> คำ</p>
-                                </div>
-                            </div>
-                            
-                            <!-- Dictionary Tools -->
-                            <div class="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-2xl p-6 mb-6">
-                                <div class="text-center">
-                                    <div class="text-5xl mb-4">📚</div>
-                                    <h3 class="text-xl font-bold text-blue-900 mb-4">เครื่องมือค้นหาความหมาย</h3>
-                                    <p class="text-blue-800 text-center mb-6">เลือกเครื่องมือที่ต้องการใช้ค้นหาความหมายคำศัพท์</p>
-
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <button onclick="openDictionaryNewTab()" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200 flex items-center justify-center gap-3">
-                                            <span class="text-2xl">📖</span>
-                                            <span>พจนานุกรมราชบัณฑิตยสถาน</span>
-                                        </button>
-                                        <button onclick="showKloangInfo()" class="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200 flex items-center justify-center gap-3">
-                                            <span class="text-2xl">📋</span>
-                                            <span>ฉันทลักษณ์โคลงสี่สุภาพ</span>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Next Button (Hidden initially) -->
-                            <div class="text-center space-y-4">
-                                <button id="nextToMatching" class="modern-button cta-float px-8 py-4 text-xl rounded-2xl hidden" onclick="showMatchingGame()">
-                                    🎯 ไปจับคู่คำศัพท์
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                    attachWordClickHandlers();
-                    // Load saved data and update UI
-                    setTimeout(() => {
-                        updateWordStatesFromData();
-                        updateWordCounts();
-                        checkAllWordsFound();
-                    }, 100);
-                    break;
-                    
-                case 3:
-                    mainContent.innerHTML = `
-                        <div class="modern-card rounded-3xl p-4 md:p-8 space-y-6">
-                            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                                <div>
-                                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900">
-                                        📝 ถอดความและจินตนาการ
-                                    </h2>
-                                    <p class="step-subtitle">ฝึกถอดความโคลงและใช้จินตนาการเพื่อสื่อสารความเข้าใจด้วยภาษาของตนเอง</p>
-                                </div>
-                            </div>
-
-                            <div class="mb-2 text-center lg:text-left">
-                                <span class="badge-modern inline-flex items-center justify-center">โคลงสี่สุภาพ - อ้างอิง</span>
-                            </div>
-
-                            <div class="grid gap-6 lg:grid-cols-2 items-start">
-                                <div class="space-y-4">
-                                    <div class="poem-container plain-poem h-full mx-auto lg:mx-0">
-                                        <div class="poem-text text-gray-800 text-base md:text-lg">
-                                            ${mission.poem}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 p-6 rounded-2xl h-full flex flex-col">
-                                    <h3 class="text-xl font-bold text-green-900 mb-4">📝 ถอดความ</h3>
-                                    <p class="text-green-800 mb-4">ถอดความโคลงเป็นร้อยแก้วด้วยภาษาของคุณเอง</p>
-                                    <textarea id="interpretationInput" class="w-full min-h-[14rem] lg:min-h-[18rem] modern-input p-4 text-base resize-none flex-1" placeholder="บันทึกความหมายของโคลงในรูปแบบร้อยแก้วด้วยคำของคุณ"></textarea>
-                                </div>
-                            </div>
-
-                            <div class="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 p-6 rounded-2xl">
-                                <h3 class="text-xl font-bold text-purple-900 mb-4">🎨 จินตนาการภาพ</h3>
-                                <p class="text-purple-800 mb-4">บรรยายภาพที่เกิดขึ้นในจินตนาการของคุณจากโคลงนี้</p>
-                                <textarea id="imaginationInput" class="w-full h-40 modern-input p-4 text-base resize-none" placeholder="🖼️ วาดภาพด้วยคำพูด บอกเล่าภาพที่ปรากฏในใจของคุณ"></textarea>
-                            </div>
-
-                            <div class="text-center space-y-4">
-                                <div class="flex flex-col md:flex-row justify-center gap-4">
-                                    <button onclick="goBack()" class="modern-button px-6 py-3 text-lg rounded-2xl bg-gray-500 hover:bg-gray-600 w-full md:w-auto">
-                                        ← ย้อนกลับ
-                                    </button>
-                                    <button id="nextStep3" class="modern-button px-8 py-3 text-lg disabled:opacity-50 disabled:cursor-not-allowed rounded-2xl w-full md:w-auto" disabled>
-                                        ➡️ ไปขั้นตอนถัดไป
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    setupStep3Handlers();
-                    break;
-                    
-                case 4:
-                    mainContent.innerHTML = `
-                        <div class="modern-card rounded-3xl p-6 md:p-8">
-                            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-                                <div>
-                                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900">
-                                        🖼️ เปิดเผยภาพจริง
-                                    </h2>
-                                    <p class="step-subtitle">เปรียบเทียบจินตนาการกับหลักฐานประวัติศาสตร์ เพื่อยืนยันความเข้าใจในเนื้อเรื่อง</p>
-                                </div>
-                            </div>
-
-                            <!-- Historical Image -->
-                            <div class="text-center mb-8">
-                                <h3 class="text-xl font-bold text-blue-900 mb-6">ภาพจริงจากประวัติศาสตร์</h3>
-                                <div class="relative max-w-4xl mx-auto">
-                                    <div class="relative cursor-pointer" id="imageContainer">
-                                        <img id="historicalImage" src="${mission.officialImageURL}" alt="ภาพการต่อสู้ของสมเด็จพระสุริโยทัย" class="w-full aspect-video object-cover rounded-2xl border-2 border-gray-300 shadow-xl blur-lg transition-all duration-1000" onerror="this.src=''; this.alt='ไม่สามารถโหลดภาพได้'; this.style.display='none';">
-                                        <div id="imageOverlay" class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-2xl transition-opacity duration-1000">
-                                            <div class="text-white text-center">
-                                                <div class="text-4xl mb-2 animate-bounce">👆</div>
-                                                <p class="text-lg font-bold">คลิกหรือลูบเพื่อเปิดเผยภาพ</p>
-                                                <p class="text-sm mt-2 opacity-75">ลากเมาส์หรือนิ้วบนภาพ</p>
+                                            <!-- Meanings Column -->
+                                            <div class="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 p-5 rounded-xl h-full">
+                                                <h3 class="text-lg font-bold text-green-900 mb-4 text-center">💭 ความหมาย</h3>
+                                                <div id="meaningsColumn" class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                                    ${Object.entries(MISSION_DATA.MISSION_01.hardWords).sort(() => Math.random() - 0.5).map(([word, data]) => `
+                                                        <div class="meaning-item bg-white border-2 border-green-300 p-3 rounded-xl min-h-[80px] flex items-center justify-center text-center text-green-800 border-dashed hover:bg-green-50 transition-all duration-200"
+                                                             data-word="${word}">
+                                                            <span class="font-semibold text-sm">${data.meaning.split(',')[0].trim()}</span>
+                                                        </div>
+                                                    `).join('')}
+                                                </div>
                                             </div>
                                         </div>
-                                        <canvas id="revealCanvas" class="absolute inset-0 w-full h-full rounded-2xl pointer-events-none opacity-0"></canvas>
+
+                                        <div class="flex flex-col md:flex-row justify-center gap-4 mt-4 md:mt-6">
+                                            <button onclick="goBack()" class="modern-button px-6 md:px-8 py-3 md:py-4 text-lg md:text-xl rounded-2xl bg-gray-500 hover:bg-gray-600 w-full md:w-auto">
+                                                ← ย้อนกลับ
+                                            </button>
+                                            <button id="resetMatching" class="modern-button px-6 md:px-8 py-3 md:py-4 text-lg md:text-xl rounded-2xl bg-orange-500 hover:bg-orange-600 w-full md:w-auto">
+                                                🔄 เริ่มใหม่
+                                            </button>
+                                            <button id="finishMatching" class="modern-button px-8 md:px-12 py-3 md:py-4 text-lg md:text-xl rounded-2xl w-full md:w-auto" disabled>
+                                                ➡️ ไปขั้นตอนถัดไป
+                                            </button>
+                                        </div>
+
+                                        <!-- Score Display -->
+                                        <div class="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200 p-4 rounded-xl mt-8 text-center">
+                                            <h3 class="text-lg font-bold text-blue-900 mb-2">คะแนน</h3>
+                                            <div class="text-3xl font-bold text-blue-600" id="matchingScore">0</div>
+                                            <div class="text-sm text-blue-700">จาก ${Object.keys(MISSION_DATA.MISSION_01.hardWords).length} คู่</div>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 p-6 rounded-2xl mt-6 max-w-4xl mx-auto">
-                                    <p class="text-blue-800 text-lg italic">${mission.officialImageDescription}</p>
-                                </div>
-                            </div>
+                                `;
+                                setupMatchingGame();
+                                break;
+                    
+                            case 2:
+                                mainContent.innerHTML = `
+                                    <div class="modern-card rounded-3xl p-6 md:p-8">
+                                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                                            <div>
+                                                <h2 class="text-2xl md:text-3xl font-bold text-gray-900">
+                                                    📜 โคลงสี่สุภาพ - พระราชพงศาวดาร
+                                                </h2>
+                                                <p class="step-subtitle">หน้านี้เป็นการศึกษาโคลงสี่สุภาพและค้นหาความหมายของคำศัพท์ยาก เพื่อฝึกทักษะการสืบค้นข้อมูลและเข้าใจความหมายของวรรณคดี</p>
+                                            </div>
+                                        </div>
+
+                                        <div class="bg-white/85 border border-blue-200 rounded-2xl p-4 mb-6 shadow-sm">
+                                            <h3 class="text-base font-semibold text-blue-900 mb-1">🎯 คำสั่ง</h3>
+                                            <p class="text-sm text-blue-700">คลิกคำศัพท์สีน้ำเงินในโคลง แล้วค้นหาความหมายให้ครบทั้ง ${Object.keys(mission.hardWords).length} คำ พร้อมบันทึกแหล่งอ้างอิง</p>
+                                        </div>
+
+                                        <div class="mb-4 text-center">
+                                            <span class="badge-modern inline-flex items-center justify-center">โคลงสี่สุภาพ</span>
+                                        </div>
+                                        <div class="poem-container p-6 mb-6 mx-auto max-w-3xl">
+                                            <div class="poem-text text-gray-800">
+                                                ${mission.poem}
+                                            </div>
+                                        </div>
+
+                                        <div class="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-2xl p-6 mb-6">
+                                            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                                                <div class="flex items-center gap-3">
+                                                    <span class="text-3xl">🧭</span>
+                                                    <div>
+                                                        <h3 class="text-lg font-bold text-blue-900">แนวทางการสืบค้น</h3>
+                                                        <p class="text-blue-800 text-sm md:text-base">รวบรวมคำศัพท์สำคัญ ตรวจสอบแหล่งข้อมูล และบันทึกความหมายพร้อมอ้างอิง</p>
+                                                    </div>
+                                                </div>
+                                                <div class="flex gap-3">
+                                                    <div class="px-4 py-2 rounded-xl bg-white border border-blue-200 text-center">
+                                                        <p class="text-xs text-blue-500">คำศัพท์ทั้งหมด</p>
+                                                        <p class="text-lg font-semibold text-blue-700">${Object.keys(mission.hardWords).length} คำ</p>
+                                                    </div>
+                                                    <div class="px-4 py-2 rounded-xl bg-white border border-indigo-200 text-center">
+                                                        <p class="text-xs text-indigo-500">อ้างอิงที่แนะนำ</p>
+                                                        <p class="text-lg font-semibold text-indigo-700">พจนานุกรมราชบัณฑิตฯ</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Progress Cards -->
+                                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                                            <div class="modern-card rounded-xl p-4 text-center">
+                                                <p class="text-gray-600 text-sm mb-2">เป้าหมาย</p>
+                                                <p class="text-xl font-bold text-blue-600">${Object.keys(mission.hardWords).length} คำ</p>
+                                                <div class="progress-bar mt-3 bg-gray-200 h-3">
+                                                    <div id="wordProgress" class="progress-fill h-3" style="width: 0%"></div>
+                                                </div>
+                                            </div>
+                                            <div class="modern-card rounded-xl p-4 text-center">
+                                                <p class="text-gray-600 text-sm mb-2">ค้นพบแล้ว</p>
+                                                <p class="text-xl font-bold text-green-600"><span id="foundWords">0</span> คำ</p>
+                                            </div>
+                                            <div class="modern-card rounded-xl p-4 text-center">
+                                                <p class="text-gray-600 text-sm mb-2">คำตอบผิด</p>
+                                                <p class="text-xl font-bold text-red-600"><span id="incorrectWords">0</span> คำ</p>
+                                            </div>
+                                        </div>
                             
-                            <!-- Comparison Button -->
-                            <div class="text-center mb-8">
-                                <button id="showComparison" class="modern-button px-8 py-4 text-xl rounded-2xl bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600">
-                                    💡 ความจริงก็คือ...
-                                </button>
-                            </div>
+                                        <!-- Dictionary Tools -->
+                                        <div class="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-2xl p-6 mb-6">
+                                            <div class="text-center">
+                                                <div class="text-5xl mb-4">📚</div>
+                                                <h3 class="text-xl font-bold text-blue-900 mb-4">เครื่องมือค้นหาความหมาย</h3>
+                                                <p class="text-blue-800 text-center mb-6">เลือกเครื่องมือที่ต้องการใช้ค้นหาความหมายคำศัพท์</p>
+
+                                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <button onclick="openDictionaryNewTab()" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200 flex items-center justify-center gap-3">
+                                                        <span class="text-2xl">📖</span>
+                                                        <span>พจนานุกรมราชบัณฑิตยสถาน</span>
+                                                    </button>
+                                                    <button onclick="showKloangInfo()" class="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200 flex items-center justify-center gap-3">
+                                                        <span class="text-2xl">📋</span>
+                                                        <span>ฉันทลักษณ์โคลงสี่สุภาพ</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
                             
-                            <!-- Comparison Section (Hidden initially) -->
-                            <div id="comparisonSection" class="hidden mb-8">
-                                <h3 class="text-xl font-bold text-purple-900 mb-6">เทียบภาพกับความจริง</h3>
+                                        <!-- Next Button (Hidden initially) -->
+                                        <div class="text-center space-y-4">
+                                            <button id="nextToMatching" class="modern-button cta-float px-8 py-4 text-xl rounded-2xl hidden" onclick="showMatchingGame()">
+                                                🎯 ไปจับคู่คำศัพท์
+                                            </button>
+                                        </div>
+                                    </div>
+                                `;
+                                attachWordClickHandlers();
+                                // Load saved data and update UI
+                                setTimeout(() => {
+                                    updateWordStatesFromData();
+                                    updateWordCounts();
+                                    checkAllWordsFound();
+                                }, 100);
+                                break;
+                    
+                            case 3:
+                                mainContent.innerHTML = `
+                                    <div class="modern-card rounded-3xl p-4 md:p-8 space-y-6">
+                                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                                            <div>
+                                                <h2 class="text-2xl md:text-3xl font-bold text-gray-900">
+                                                    📝 ถอดความและจินตนาการ
+                                                </h2>
+                                                <p class="step-subtitle">ฝึกถอดความโคลงและใช้จินตนาการเพื่อสื่อสารความเข้าใจด้วยภาษาของตนเอง</p>
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-2 text-center lg:text-left">
+                                            <span class="badge-modern inline-flex items-center justify-center">โคลงสี่สุภาพ - อ้างอิง</span>
+                                        </div>
+
+                                        <div class="grid gap-6 lg:grid-cols-2 items-start">
+                                            <div class="space-y-4">
+                                                <div class="poem-container plain-poem h-full mx-auto lg:mx-0">
+                                                    <div class="poem-text text-gray-800 text-base md:text-lg">
+                                                        ${mission.poem}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 p-6 rounded-2xl h-full flex flex-col">
+                                                <h3 class="text-xl font-bold text-green-900 mb-4">📝 ถอดความ</h3>
+                                                <p class="text-green-800 mb-4">ถอดความโคลงเป็นร้อยแก้วด้วยภาษาของคุณเอง</p>
+                                                <textarea id="interpretationInput" class="w-full min-h-[14rem] lg:min-h-[18rem] modern-input p-4 text-base resize-none flex-1" placeholder="บันทึกความหมายของโคลงในรูปแบบร้อยแก้วด้วยคำของคุณ"></textarea>
+                                            </div>
+                                        </div>
+
+                                        <div class="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 p-6 rounded-2xl">
+                                            <h3 class="text-xl font-bold text-purple-900 mb-4">🎨 จินตนาการภาพ</h3>
+                                            <p class="text-purple-800 mb-4">บรรยายภาพที่เกิดขึ้นในจินตนาการของคุณจากโคลงนี้</p>
+                                            <textarea id="imaginationInput" class="w-full h-40 modern-input p-4 text-base resize-none" placeholder="🖼️ วาดภาพด้วยคำพูด บอกเล่าภาพที่ปรากฏในใจของคุณ"></textarea>
+                                        </div>
+
+                                        <div class="text-center space-y-4">
+                                            <div class="flex flex-col md:flex-row justify-center gap-4">
+                                                <button onclick="goBack()" class="modern-button px-6 py-3 text-lg rounded-2xl bg-gray-500 hover:bg-gray-600 w-full md:w-auto">
+                                                    ← ย้อนกลับ
+                                                </button>
+                                                <button id="nextStep3" class="modern-button px-8 py-3 text-lg disabled:opacity-50 disabled:cursor-not-allowed rounded-2xl w-full md:w-auto" disabled>
+                                                    ➡️ ไปขั้นตอนถัดไป
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                                setupStep3Handlers();
+                                break;
+                    
+                            case 4:
+                                mainContent.innerHTML = `
+                                    <div class="modern-card rounded-3xl p-6 md:p-8">
+                                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                                            <div>
+                                                <h2 class="text-2xl md:text-3xl font-bold text-gray-900">
+                                                    🖼️ เปิดเผยภาพจริง
+                                                </h2>
+                                                <p class="step-subtitle">เปรียบเทียบจินตนาการกับหลักฐานประวัติศาสตร์ เพื่อยืนยันความเข้าใจในเนื้อเรื่อง</p>
+                                            </div>
+                                        </div>
+
+                                        <!-- Historical Image -->
+                                        <div class="text-center mb-8">
+                                            <h3 class="text-xl font-bold text-blue-900 mb-6">ภาพจริงจากประวัติศาสตร์</h3>
+                                            <div class="relative max-w-4xl mx-auto">
+                                                <div class="relative cursor-pointer" id="imageContainer">
+                                                    <img id="historicalImage" src="${mission.officialImageURL}" alt="ภาพการต่อสู้ของสมเด็จพระสุริโยทัย" class="w-full aspect-video object-cover rounded-2xl border-2 border-gray-300 shadow-xl blur-lg transition-all duration-1000" onerror="this.src=''; this.alt='ไม่สามารถโหลดภาพได้'; this.style.display='none';">
+                                                    <div id="imageOverlay" class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-2xl transition-opacity duration-1000">
+                                                        <div class="text-white text-center">
+                                                            <div class="text-4xl mb-2 animate-bounce">👆</div>
+                                                            <p class="text-lg font-bold">คลิกหรือลูบเพื่อเปิดเผยภาพ</p>
+                                                            <p class="text-sm mt-2 opacity-75">ลากเมาส์หรือนิ้วบนภาพ</p>
+                                                        </div>
+                                                    </div>
+                                                    <canvas id="revealCanvas" class="absolute inset-0 w-full h-full rounded-2xl pointer-events-none opacity-0"></canvas>
+                                                </div>
+                                            </div>
+                                            <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 p-6 rounded-2xl mt-6 max-w-4xl mx-auto">
+                                                <p class="text-blue-800 text-lg italic">${mission.officialImageDescription}</p>
+                                            </div>
+                                        </div>
+                            
+                                        <!-- Comparison Button -->
+                                        <div class="text-center mb-8">
+                                            <button id="showComparison" class="modern-button px-8 py-4 text-xl rounded-2xl bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600">
+                                                💡 ความจริงก็คือ...
+                                            </button>
+                                        </div>
+                            
+                                        <!-- Comparison Section (Hidden initially) -->
+                                        <div id="comparisonSection" class="hidden mb-8">
+                                            <h3 class="text-xl font-bold text-purple-900 mb-6">เทียบภาพกับความจริง</h3>
                                 
-                                <div class="space-y-6">
-                                    <div class="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 p-6 rounded-2xl">
-                                        <h4 class="font-bold text-purple-800 mb-4 text-lg">🎨 ที่คุณจินตนาการไว้:</h4>
-                                        <p class="text-purple-700 text-lg leading-relaxed">${gameState.imaginationText}</p>
-                                    </div>
+                                            <div class="space-y-6">
+                                                <div class="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 p-6 rounded-2xl">
+                                                    <h4 class="font-bold text-purple-800 mb-4 text-lg">🎨 ที่คุณจินตนาการไว้:</h4>
+                                                    <p class="text-purple-700 text-lg leading-relaxed">${gameState.imaginationText}</p>
+                                                </div>
                                     
-                                    <div class="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 p-6 rounded-2xl">
-                                        <h4 class="font-bold text-green-800 mb-4 text-lg">📝 ที่คุณถอดความได้:</h4>
-                                        <p class="text-green-700 text-lg leading-relaxed">${gameState.interpretationText}</p>
-                                    </div>
+                                                <div class="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 p-6 rounded-2xl">
+                                                    <h4 class="font-bold text-green-800 mb-4 text-lg">📝 ที่คุณถอดความได้:</h4>
+                                                    <p class="text-green-700 text-lg leading-relaxed">${gameState.interpretationText}</p>
+                                                </div>
                                     
-                                    <div class="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 p-6 rounded-2xl">
-                                        <h4 class="font-bold text-blue-800 mb-4 text-lg">📚 ถอดความที่ถูกต้อง:</h4>
-                                        <p class="text-blue-700 text-lg leading-relaxed">${mission.correctInterpretation}</p>
-                                    </div>
-                                </div>
-                            </div>
+                                                <div class="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 p-6 rounded-2xl">
+                                                    <h4 class="font-bold text-blue-800 mb-4 text-lg">📚 ถอดความที่ถูกต้อง:</h4>
+                                                    <p class="text-blue-700 text-lg leading-relaxed">${mission.correctInterpretation}</p>
+                                                </div>
+                                            </div>
+                                        </div>
                             
-                            <div class="text-center space-y-4">
-                                <div class="flex flex-col md:flex-row justify-center gap-4">
-                                    <button onclick="goBack()" class="modern-button px-6 py-3 text-lg rounded-2xl bg-gray-500 hover:bg-gray-600 w-full md:w-auto">
-                                        ← ย้อนกลับ
-                                    </button>
-                                    <button id="nextStep4" class="modern-button px-8 py-3 text-lg rounded-2xl w-full md:w-auto">
-                                        ➡️ ไปขั้นตอนทบทวน
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    setupStep4Handlers();
-                    // Setup image reveal effect
-                    setTimeout(setupImageReveal, 100);
-                    break;
+                                        <div class="text-center space-y-4">
+                                            <div class="flex flex-col md:flex-row justify-center gap-4">
+                                                <button onclick="goBack()" class="modern-button px-6 py-3 text-lg rounded-2xl bg-gray-500 hover:bg-gray-600 w-full md:w-auto">
+                                                    ← ย้อนกลับ
+                                                </button>
+                                                <button id="nextStep4" class="modern-button px-8 py-3 text-lg rounded-2xl w-full md:w-auto">
+                                                    ➡️ ไปขั้นตอนทบทวน
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                                setupStep4Handlers();
+                                // Setup image reveal effect
+                                setTimeout(setupImageReveal, 100);
+                                break;
                     
-                case 5:
-                    mainContent.innerHTML = `
-                        <div class="modern-card rounded-3xl p-4 md:p-10 mt-4 md:mt-8">
-                            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-8 gap-4">
-                                <div>
-                                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900">
-                                        📝 ทบทวนความรู้
-                                    </h2>
-                                    <p class="step-subtitle">ทดสอบความเข้าใจเกี่ยวกับคำศัพท์และเนื้อหาเพื่อสรุปผลการเรียนรู้</p>
-                                </div>
-                            </div>
+                            case 5:
+                                mainContent.innerHTML = `
+                                    <div class="modern-card rounded-3xl p-4 md:p-10 mt-4 md:mt-8">
+                                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-8 gap-4">
+                                            <div>
+                                                <h2 class="text-2xl md:text-3xl font-bold text-gray-900">
+                                                    📝 ทบทวนความรู้
+                                                </h2>
+                                                <p class="step-subtitle">ทดสอบความเข้าใจเกี่ยวกับคำศัพท์และเนื้อหาเพื่อสรุปผลการเรียนรู้</p>
+                                            </div>
+                                        </div>
 
-                            <!-- Score Display -->
-                            <div class="bg-gradient-to-r from-blue-50 to-green-50 border-2 border-blue-200 p-4 rounded-xl mb-6 text-center">
-                                <h3 class="text-lg font-bold text-blue-900 mb-2">คะแนน</h3>
-                                <div class="text-3xl font-bold text-blue-600" id="quizScore">0</div>
-                                <div class="text-sm text-blue-700">จาก ${mission.comprehensionQuestions.length} ข้อ</div>
-                            </div>
+                                        <!-- Score Display -->
+                                        <div class="bg-gradient-to-r from-blue-50 to-green-50 border-2 border-blue-200 p-4 rounded-xl mb-6 text-center">
+                                            <h3 class="text-lg font-bold text-blue-900 mb-2">คะแนน</h3>
+                                            <div class="text-3xl font-bold text-blue-600" id="quizScore">0</div>
+                                            <div class="text-sm text-blue-700">จาก ${mission.comprehensionQuestions.length} ข้อ</div>
+                                        </div>
                             
-                            <!-- Quiz Questions -->
-                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                                ${mission.comprehensionQuestions.map((q, index) => `
-                                    <div class="bg-gradient-to-br from-white to-gray-50 border-2 border-gray-200 p-4 rounded-xl">
-                                        <h4 class="font-bold text-gray-900 mb-3">ข้อ ${index + 1}. ${q.question}</h4>
-                                        <div class="space-y-2">
-                                            ${q.options.map((option, optIndex) => `
-                                                <label class="flex items-center p-2 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors duration-200">
-                                                    <input type="radio" name="question_${index}" value="${optIndex}" class="mr-3 text-blue-600">
-                                                    <span class="text-gray-700">${option}</span>
-                                                </label>
+                                        <!-- Quiz Questions -->
+                                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                                            ${mission.comprehensionQuestions.map((q, index) => `
+                                                <div class="bg-gradient-to-br from-white to-gray-50 border-2 border-gray-200 p-4 rounded-xl">
+                                                    <h4 class="font-bold text-gray-900 mb-3">ข้อ ${index + 1}. ${q.question}</h4>
+                                                    <div class="space-y-2">
+                                                        ${q.options.map((option, optIndex) => `
+                                                            <label class="flex items-center p-2 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors duration-200">
+                                                                <input type="radio" name="question_${index}" value="${optIndex}" class="mr-3 text-blue-600">
+                                                                <span class="text-gray-700">${option}</span>
+                                                            </label>
+                                                        `).join('')}
+                                                    </div>
+                                                    <div id="result_${index}" class="mt-3 hidden"></div>
+                                                </div>
                                             `).join('')}
                                         </div>
-                                        <div id="result_${index}" class="mt-3 hidden"></div>
-                                    </div>
-                                `).join('')}
-                            </div>
                             
-                            <div class="flex flex-col md:flex-row justify-center gap-4 mt-6 md:mt-10">
-                                <button onclick="goBack()" class="modern-button px-6 md:px-8 py-3 md:py-4 text-lg md:text-xl rounded-2xl bg-gray-500 hover:bg-gray-600 w-full md:w-auto">
-                                    ← ย้อนกลับ
-                                </button>
-                                <button id="checkAnswers" class="modern-button px-8 md:px-12 py-3 md:py-4 text-lg md:text-xl rounded-2xl w-full md:w-auto" onclick="checkQuizAnswers()">
-                                    ✅ ตรวจคำตอบ
-                                </button>
-                                <button id="retryQuiz" class="modern-button px-8 md:px-12 py-3 md:py-4 text-lg md:text-xl rounded-2xl w-full md:w-auto bg-orange-500 hover:bg-orange-600 hidden" onclick="retryQuiz()">
-                                    🔄 ทำใหม่
-                                </button>
-                                <button id="finishQuiz" class="modern-button px-8 md:px-12 py-3 md:py-4 text-lg md:text-xl rounded-2xl w-full md:w-auto hidden" onclick="finishQuiz()">
-                                    ➡️ เสร็จสิ้น
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                    setupQuiz();
-                    break;
+                                        <div class="flex flex-col md:flex-row justify-center gap-4 mt-6 md:mt-10">
+                                            <button onclick="goBack()" class="modern-button px-6 md:px-8 py-3 md:py-4 text-lg md:text-xl rounded-2xl bg-gray-500 hover:bg-gray-600 w-full md:w-auto">
+                                                ← ย้อนกลับ
+                                            </button>
+                                            <button id="checkAnswers" class="modern-button px-8 md:px-12 py-3 md:py-4 text-lg md:text-xl rounded-2xl w-full md:w-auto" onclick="checkQuizAnswers()">
+                                                ✅ ตรวจคำตอบ
+                                            </button>
+                                            <button id="retryQuiz" class="modern-button px-8 md:px-12 py-3 md:py-4 text-lg md:text-xl rounded-2xl w-full md:w-auto bg-orange-500 hover:bg-orange-600 hidden" onclick="retryQuiz()">
+                                                🔄 ทำใหม่
+                                            </button>
+                                            <button id="finishQuiz" class="modern-button px-8 md:px-12 py-3 md:py-4 text-lg md:text-xl rounded-2xl w-full md:w-auto hidden" onclick="finishQuiz()">
+                                                ➡️ เสร็จสิ้น
+                                            </button>
+                                        </div>
+                                    </div>
+                                `;
+                                setupQuiz();
+                                break;
                     
-                case 6:
-                    const finalScore = await calculateFinalScore();
-                    updatePlayerProfile();
-                    const praiseMessage = finalScore.total >= 900
-                        ? 'ยอดเยี่ยม! คุณรักษามาตรฐานระดับนักสืบเซียนได้อย่างมั่นคง'
-                        : finalScore.total >= 600
-                            ? 'ทำได้ดีมาก การวิเคราะห์ของคุณมีความแม่นยำและครบถ้วน'
-                            : 'ยังคงมีพัฒนาการที่ดีต่อเนื่อง ขอให้เพิ่มการทบทวนอีกเล็กน้อย';
-                    const focusMessage = finalScore.comprehension >= finalScore.vocabulary
-                        ? 'เน้นย้ำการสืบค้นคำศัพท์เพิ่มเติมเพื่อเพิ่มความหลากหลายของแหล่งอ้างอิง'
-                        : 'เสริมการวิเคราะห์เชิงลึกในส่วนถอดความเพื่อยกระดับความเข้าใจเชิงโครงสร้าง';
+                            case 6:
+                                const finalScore = await calculateFinalScore();
+                                updatePlayerProfile();
+                                const praiseMessage = finalScore.total >= 900
+                                    ? 'ยอดเยี่ยม! คุณรักษามาตรฐานระดับนักสืบเซียนได้อย่างมั่นคง'
+                                    : finalScore.total >= 600
+                                        ? 'ทำได้ดีมาก การวิเคราะห์ของคุณมีความแม่นยำและครบถ้วน'
+                                        : 'ยังคงมีพัฒนาการที่ดีต่อเนื่อง ขอให้เพิ่มการทบทวนอีกเล็กน้อย';
+                                const focusMessage = finalScore.comprehension >= finalScore.vocabulary
+                                    ? 'เน้นย้ำการสืบค้นคำศัพท์เพิ่มเติมเพื่อเพิ่มความหลากหลายของแหล่งอ้างอิง'
+                                    : 'เสริมการวิเคราะห์เชิงลึกในส่วนถอดความเพื่อยกระดับความเข้าใจเชิงโครงสร้าง';
 
-                    mainContent.innerHTML = `
-                        <div class="modern-card rounded-3xl p-4 md:p-10 mt-4 md:mt-8 space-y-10">
-                            <div class="text-center space-y-3">
-                                <div class="text-6xl md:text-7xl">🏅</div>
-                                <h2 class="text-3xl md:text-4xl font-bold text-gray-900">รายงานสรุปผลการเรียนรู้</h2>
-                                <p class="text-base md:text-lg text-gray-600">ผู้เรียนได้ผ่านกิจกรรม “ไขรหัสวรรณคดี” ครบถ้วนและได้รับการประเมินตามเกณฑ์ของหลักสูตร</p>
-                                <p class="text-sm text-indigo-600 font-semibold">${praiseMessage}</p>
-                            </div>
-
-                            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                                <div class="lg:col-span-2 bg-gradient-to-br from-blue-50 to-purple-50 border-2 border-blue-200 p-6 rounded-2xl">
-                                    <h3 class="text-xl font-bold text-blue-900 mb-4">สรุปคะแนน</h3>
-                                    <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
-                                        <div>
-                                            <p class="text-sm text-blue-700">คะแนนรวมสะสม</p>
-                                            <p class="text-4xl font-extrabold text-blue-600">${finalScore.total} คะแนน</p>
+                                mainContent.innerHTML = `
+                                    <div class="modern-card rounded-3xl p-4 md:p-10 mt-4 md:mt-8 space-y-10">
+                                        <div class="text-center space-y-3">
+                                            <div class="text-6xl md:text-7xl">🏅</div>
+                                            <h2 class="text-3xl md:text-4xl font-bold text-gray-900">รายงานสรุปผลการเรียนรู้</h2>
+                                            <p class="text-base md:text-lg text-gray-600">ผู้เรียนได้ผ่านกิจกรรม “ไขรหัสวรรณคดี” ครบถ้วนและได้รับการประเมินตามเกณฑ์ของหลักสูตร</p>
+                                            <p class="text-sm text-indigo-600 font-semibold">${praiseMessage}</p>
                                         </div>
-                                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1">
-                                            <div class="rounded-xl bg-white/90 border border-blue-100 p-3 text-center">
-                                                <p class="text-xs text-slate-500">สืบค้นคำศัพท์</p>
-                                                <p class="text-lg font-semibold text-blue-700">+${finalScore.vocabulary}</p>
+
+                                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                            <div class="lg:col-span-2 bg-gradient-to-br from-blue-50 to-purple-50 border-2 border-blue-200 p-6 rounded-2xl">
+                                                <h3 class="text-xl font-bold text-blue-900 mb-4">สรุปคะแนน</h3>
+                                                <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+                                                    <div>
+                                                        <p class="text-sm text-blue-700">คะแนนรวมสะสม</p>
+                                                        <p class="text-4xl font-extrabold text-blue-600">${finalScore.total} คะแนน</p>
+                                                    </div>
+                                                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1">
+                                                        <div class="rounded-xl bg-white/90 border border-blue-100 p-3 text-center">
+                                                            <p class="text-xs text-slate-500">สืบค้นคำศัพท์</p>
+                                                            <p class="text-lg font-semibold text-blue-700">+${finalScore.vocabulary}</p>
+                                                        </div>
+                                                        <div class="rounded-xl bg-white/90 border border-blue-100 p-3 text-center">
+                                                            <p class="text-xs text-slate-500">ความเข้าใจเนื้อหา</p>
+                                                            <p class="text-lg font-semibold text-blue-700">+${finalScore.comprehension}</p>
+                                                        </div>
+                                                        <div class="rounded-xl bg-white/90 border border-blue-100 p-3 text-center">
+                                                            <p class="text-xs text-slate-500">โบนัสเวลา</p>
+                                                            <p class="text-lg font-semibold text-blue-700">+${finalScore.timeBonus}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <div class="rounded-xl bg-white/90 border border-blue-100 p-3 text-center">
-                                                <p class="text-xs text-slate-500">ความเข้าใจเนื้อหา</p>
-                                                <p class="text-lg font-semibold text-blue-700">+${finalScore.comprehension}</p>
+
+                                            <div class="bg-gradient-to-br from-emerald-50 to-amber-50 border-2 border-emerald-200 p-6 rounded-2xl space-y-3">
+                                                <h3 class="text-xl font-bold text-emerald-900">ข้อมูลผู้เรียน</h3>
+                                                <p class="text-sm text-gray-600 leading-relaxed">${gameState.currentUser?.name || 'ผู้เรียน'} (${playerProfile.rank})<br>EXP สะสม ${playerProfile.exp} | ระดับชั้น ${gameState.currentUser?.grade || '-'} / เลขที่ ${gameState.currentUser?.number || '-'} </p>
+                                                <div class="grid grid-cols-2 gap-3 text-sm">
+                                                    <div class="rounded-lg bg-white/90 border border-emerald-200 p-3">
+                                                        <p class="text-xs text-emerald-600 uppercase tracking-wide">เลเวล</p>
+                                                        <p class="text-xl font-bold text-emerald-700">Lv.${playerProfile.level}</p>
+                                                    </div>
+                                                    <div class="rounded-lg bg-white/90 border border-emerald-200 p-3">
+                                                        <p class="text-xs text-emerald-600 uppercase tracking-wide">เวลาที่ใช้</p>
+                                                        <p class="text-lg font-semibold text-emerald-700">${finalScore.duration} นาที</p>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <div class="rounded-xl bg-white/90 border border-blue-100 p-3 text-center">
-                                                <p class="text-xs text-slate-500">โบนัสเวลา</p>
-                                                <p class="text-lg font-semibold text-blue-700">+${finalScore.timeBonus}</p>
-                                            </div>
+                                        </div>
+
+                                        <div class="bg-white/85 border border-indigo-100 rounded-2xl p-6 space-y-3">
+                                            <h3 class="text-lg font-bold text-indigo-900">วิเคราะห์ผู้เรียน</h3>
+                                            <p class="text-sm text-gray-700 leading-relaxed">${focusMessage}</p>
+                                            <ul class="list-disc list-inside text-sm text-slate-600 space-y-1">
+                                                <li>ผลงานเด่น: การสืบค้นคำศัพท์ได้ ${Object.keys(gameState.translatedWords || {}).length} คำ พร้อมอ้างอิงครบถ้วน</li>
+                                                <li>การถอดความ: ${gameState.interpretationText?.length > 0 ? 'มีการอธิบายสาระสำคัญครบถ้วน' : 'ควรเพิ่มเติมการขยายความให้ชัดเจน'}</li>
+                                                <li>การใช้จินตนาการ: ${gameState.imaginationText?.length > 0 ? 'บรรยายภาพได้เชื่อมโยงกับประวัติศาสตร์' : 'แนะนำให้เพิ่มรายละเอียดเชิงภาพเพื่อเสริมมิติการตีความ'}</li>
+                                            </ul>
+                                        </div>
+
+                                        <div class="bg-gradient-to-r from-slate-900 to-indigo-900 rounded-2xl p-6 text-white space-y-2">
+                                            <h3 class="text-lg font-semibold">คำชื่นชม</h3>
+                                            <p class="text-sm leading-relaxed">ขอชื่นชมความตั้งใจและความสม่ำเสมอในการเรียนรู้วรรณคดีไทย คุณสามารถเชื่อมโยงข้อมูลจากหลายแหล่งและถ่ายทอดออกมาได้อย่างเป็นระบบ</p>
+                                        </div>
+
+                                        <div class="summary-action-bar">
+                                            <button type="button" onclick="playAgain()" class="modern-button px-6 md:px-10 py-3 md:py-4 text-lg md:text-xl rounded-2xl">
+                                                🔁 เล่นอีกครั้ง
+                                            </button>
+                                            <button type="button" onclick="showCertificate()" class="modern-button px-6 md:px-10 py-3 md:py-4 text-lg md:text-xl rounded-2xl bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500 hover:from-yellow-500 hover:to-orange-600">
+                                                🏆 รับเกียรติบัตร
+                                            </button>
                                         </div>
                                     </div>
-                                </div>
-
-                                <div class="bg-gradient-to-br from-emerald-50 to-amber-50 border-2 border-emerald-200 p-6 rounded-2xl space-y-3">
-                                    <h3 class="text-xl font-bold text-emerald-900">ข้อมูลผู้เรียน</h3>
-                                    <p class="text-sm text-gray-600 leading-relaxed">${gameState.currentUser?.name || 'ผู้เรียน'} (${playerProfile.rank})<br>EXP สะสม ${playerProfile.exp} | ระดับชั้น ${gameState.currentUser?.grade || '-'} / เลขที่ ${gameState.currentUser?.number || '-'} </p>
-                                    <div class="grid grid-cols-2 gap-3 text-sm">
-                                        <div class="rounded-lg bg-white/90 border border-emerald-200 p-3">
-                                            <p class="text-xs text-emerald-600 uppercase tracking-wide">เลเวล</p>
-                                            <p class="text-xl font-bold text-emerald-700">Lv.${playerProfile.level}</p>
-                                        </div>
-                                        <div class="rounded-lg bg-white/90 border border-emerald-200 p-3">
-                                            <p class="text-xs text-emerald-600 uppercase tracking-wide">เวลาที่ใช้</p>
-                                            <p class="text-lg font-semibold text-emerald-700">${finalScore.duration} นาที</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="bg-white/85 border border-indigo-100 rounded-2xl p-6 space-y-3">
-                                <h3 class="text-lg font-bold text-indigo-900">วิเคราะห์ผู้เรียน</h3>
-                                <p class="text-sm text-gray-700 leading-relaxed">${focusMessage}</p>
-                                <ul class="list-disc list-inside text-sm text-slate-600 space-y-1">
-                                    <li>ผลงานเด่น: การสืบค้นคำศัพท์ได้ ${Object.keys(gameState.translatedWords || {}).length} คำ พร้อมอ้างอิงครบถ้วน</li>
-                                    <li>การถอดความ: ${gameState.interpretationText?.length > 0 ? 'มีการอธิบายสาระสำคัญครบถ้วน' : 'ควรเพิ่มเติมการขยายความให้ชัดเจน'}</li>
-                                    <li>การใช้จินตนาการ: ${gameState.imaginationText?.length > 0 ? 'บรรยายภาพได้เชื่อมโยงกับประวัติศาสตร์' : 'แนะนำให้เพิ่มรายละเอียดเชิงภาพเพื่อเสริมมิติการตีความ'}</li>
-                                </ul>
-                            </div>
-
-                            <div class="bg-gradient-to-r from-slate-900 to-indigo-900 rounded-2xl p-6 text-white space-y-2">
-                                <h3 class="text-lg font-semibold">คำชื่นชม</h3>
-                                <p class="text-sm leading-relaxed">ขอชื่นชมความตั้งใจและความสม่ำเสมอในการเรียนรู้วรรณคดีไทย คุณสามารถเชื่อมโยงข้อมูลจากหลายแหล่งและถ่ายทอดออกมาได้อย่างเป็นระบบ</p>
-                            </div>
-
-                            <div class="summary-action-bar">
-                                <button type="button" onclick="playAgain()" class="modern-button px-6 md:px-10 py-3 md:py-4 text-lg md:text-xl rounded-2xl">
-                                    🔁 เล่นอีกครั้ง
-                                </button>
-                                <button type="button" onclick="showCertificate()" class="modern-button px-6 md:px-10 py-3 md:py-4 text-lg md:text-xl rounded-2xl bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500 hover:from-yellow-500 hover:to-orange-600">
-                                    🏆 รับเกียรติบัตร
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                    break;
+                                `;
+                                break;
+                        }
+            } catch (error) {
+                console.error('Failed to render step', error);
+                showNotification('ไม่สามารถแสดงขั้นตอนนี้ได้', 'error');
+                if (error && typeof error === 'object') {
+                    error.silent = true;
+                }
+                throw error;
             }
         }
 
@@ -5764,9 +6884,9 @@ function initializeStepChipEvents() {
 
         // Update user name display
         function updateUserNameDisplay() {
-            const headerUserName = document.getElementById('headerUserName');
-            const currentUserName = document.getElementById('currentUserName');
-            const currentUserRank = document.getElementById('currentUserRank');
+            const headerUserName = getElement('headerUserName');
+            const currentUserName = getElement('currentUserName');
+            const currentUserRank = getElement('currentUserRank');
 
             if (gameState.currentUser && headerUserName && currentUserName) {
                 headerUserName.classList.remove('hidden');
@@ -6229,7 +7349,7 @@ function initializeStepChipEvents() {
             document.body.appendChild(modal);
             
             // Add enter key listener
-            const quickSearchInput = document.getElementById('quickSearchInput');
+            const quickSearchInput = getElement('quickSearchInput');
             if (quickSearchInput) {
                 quickSearchInput.addEventListener('keypress', (e) => {
                     if (e.key === 'Enter') {
@@ -6241,7 +7361,7 @@ function initializeStepChipEvents() {
 
         // Close Quick Search Modal
         function closeQuickSearchModal() {
-            const modal = document.getElementById('quickSearchModal');
+            const modal = getElement('quickSearchModal');
             if (modal) {
                 modal.remove();
             }
@@ -6249,7 +7369,8 @@ function initializeStepChipEvents() {
 
         // Search functions
         function searchInDictionary() {
-            const searchTerm = document.getElementById('quickSearchInput').value.trim();
+            const input = getElement('quickSearchInput');
+            const searchTerm = input ? input.value.trim() : '';
             if (searchTerm) {
                 window.open(`https://dictionary.orst.go.th/search.php?search=${encodeURIComponent(searchTerm)}`, '_blank', 'noopener,noreferrer');
                 closeQuickSearchModal();
@@ -6260,7 +7381,8 @@ function initializeStepChipEvents() {
         }
 
         function searchInGoogle() {
-            const searchTerm = document.getElementById('quickSearchInput').value.trim();
+            const input = getElement('quickSearchInput');
+            const searchTerm = input ? input.value.trim() : '';
             if (searchTerm) {
                 window.open(`https://www.google.com/search?q=${encodeURIComponent(searchTerm + ' ความหมาย')}`, '_blank', 'noopener,noreferrer');
                 closeQuickSearchModal();
@@ -6271,7 +7393,8 @@ function initializeStepChipEvents() {
         }
 
         function searchInWikipedia() {
-            const searchTerm = document.getElementById('quickSearchInput').value.trim();
+            const input = getElement('quickSearchInput');
+            const searchTerm = input ? input.value.trim() : '';
             if (searchTerm) {
                 window.open(`https://th.wikipedia.org/wiki/${encodeURIComponent(searchTerm)}`, '_blank', 'noopener,noreferrer');
                 closeQuickSearchModal();
@@ -6282,7 +7405,8 @@ function initializeStepChipEvents() {
         }
 
         function searchInSanook() {
-            const searchTerm = document.getElementById('quickSearchInput').value.trim();
+            const input = getElement('quickSearchInput');
+            const searchTerm = input ? input.value.trim() : '';
             if (searchTerm) {
                 window.open(`https://www.sanook.com/dict/search/${encodeURIComponent(searchTerm)}`, '_blank', 'noopener,noreferrer');
                 closeQuickSearchModal();
@@ -6488,14 +7612,31 @@ function initializeStepChipEvents() {
         }
     });
 
-    // Make sure mouseleave on panel closes it if needed (optional friendly UX)
-    if (panel) {
-        panel.addEventListener('mouseleave', () => {
-            // small delay so accidental mouseouts don't close too aggressively
+        // Show Notification
+        function showNotification(message, type = 'success') {
+            const container = document.getElementById('notificationContainer');
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.textContent = message;
+
+            container.appendChild(notification);
+
             setTimeout(() => {
                 notification.remove();
             }, 4000);
         }
+
+        window.addEventListener('error', (event) => {
+            console.error('Global error captured:', event.error || event.message);
+            if (event.error && event.error.silent) return;
+            showNotification('เกิดข้อผิดพลาดที่ไม่คาดคิดในระบบ', 'error');
+        });
+
+        window.addEventListener('unhandledrejection', (event) => {
+            console.error('Unhandled promise rejection:', event.reason);
+            if (event.reason && event.reason.silent) return;
+            showNotification('ไม่สามารถดำเนินการได้ กรุณาลองใหม่อีกครั้ง', 'error');
+        });
     </script>
 </body>
 </html>
