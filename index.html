@@ -1476,6 +1476,14 @@
                 <span class="step-chip" data-step="5"><span class="font-bold">5</span><span>📝 ทบทวน</span></span>
                 <span class="step-chip" data-step="6"><span class="font-bold">6</span><span>🏆 สรุปผล</span></span>
             </div>
+            <div id="stepIndicatorContainer" class="flex flex-wrap justify-center gap-2">
+                <span class="step-chip step-chip-active" data-step="1"><span class="font-bold">1</span><span>📚 ประวัติศาสตร์</span></span>
+                <span class="step-chip" data-step="2"><span class="font-bold">2</span><span>📖 แสดงโคลง &amp; คำศัพท์</span></span>
+                <span class="step-chip" data-step="3"><span class="font-bold">3</span><span>✍️ ถอดความ</span></span>
+                <span class="step-chip" data-step="4"><span class="font-bold">4</span><span>🖼️ เปิดภาพจริง</span></span>
+                <span class="step-chip" data-step="5"><span class="font-bold">5</span><span>📝 ทบทวน</span></span>
+                <span class="step-chip" data-step="6"><span class="font-bold">6</span><span>🏆 สรุปผล</span></span>
+            </div>
 
         </div>
         <div class="md:hidden text-center text-slate-700 text-xs mt-2" id="currentStepLabel">📚 ประวัติศาสตร์</div>
@@ -4413,7 +4421,7 @@
                                 <p class="text-sm leading-relaxed">ขอชื่นชมความตั้งใจและความสม่ำเสมอในการเรียนรู้วรรณคดีไทย คุณสามารถเชื่อมโยงข้อมูลจากหลายแหล่งและถ่ายทอดออกมาได้อย่างเป็นระบบ</p>
                             </div>
 
-                            <div class="relative z-10 flex flex-col md:flex-row justify-center gap-4 md:gap-6 pt-2 pb-2">
+                            <div class="relative z-50 flex flex-col md:flex-row justify-center gap-4 md:gap-6 pt-2 pb-6">
                                 <button type="button" onclick="playAgain()" class="modern-button px-6 md:px-10 py-3 md:py-4 text-lg md:text-xl rounded-2xl">
                                     🔁 เล่นอีกครั้ง
                                 </button>
@@ -4516,53 +4524,6 @@
 
                     if (logicalStep > (gameState.maxStepReached || 1)) return;
                     if (logicalStep === currentLogical) return;
-
-                    goToStep(stepValue).catch(error => {
-                        console.error('Failed to navigate via step chip:', error);
-                        showNotification('ไม่สามารถเปิดขั้นตอนนี้ได้', 'error');
-                    });
-                });
-            });
-        }
-
-            floatingActions.querySelectorAll('.floating-action-button').forEach(button => {
-                button.addEventListener('click', () => {
-                    setTimeout(closePanel, 150);
-                });
-            });
-
-            document.addEventListener('click', (event) => {
-                if (!floatingActions.contains(event.target)) {
-                    closePanel();
-                }
-            });
-        }
-
-            floatingActions.querySelectorAll('.floating-action-button').forEach(button => {
-                button.addEventListener('click', () => {
-                    setTimeout(closePanel, 150);
-                });
-            });
-
-            document.addEventListener('click', (event) => {
-                if (!floatingActions.contains(event.target)) {
-                    closePanel();
-                }
-            });
-        }
-
-            floatingActions.querySelectorAll('.floating-action-button').forEach(button => {
-                button.addEventListener('click', () => {
-                    setTimeout(closePanel, 150);
-                });
-            });
-
-            document.addEventListener('click', (event) => {
-                if (!floatingActions.contains(event.target)) {
-                    closePanel();
-                }
-            });
-        }
 
             floatingActions.querySelectorAll('.floating-action-button').forEach(button => {
                 button.addEventListener('click', () => {
@@ -5973,37 +5934,46 @@
 
         // Play Again Function
         async function playAgain() {
+            let hasError = false;
+
             try {
-                // Save final game data before resetting
                 await saveAllUserAnswers();
-                
-                // Clear old game session
+            } catch (error) {
+                hasError = true;
+                console.error('Error saving answers before restart:', error);
+            }
+
+            try {
                 if (gameState.gameId) {
                     await clearGameSession(gameState.gameId);
                 }
-
-                // Reset game state completely
-                gameState.currentStep = 1;
-                gameState.maxStepReached = 1;
-                gameState.translatedWords = {};
-                gameState.incorrectWords = {};
-                gameState.wordAttempts = {};
-                gameState.imaginationText = '';
-                gameState.interpretationText = '';
-                gameState.comprehensionScore = 0;
-                gameState.startTime = Date.now();
-                gameState.selectedWord = null;
-                gameState.stepHistory = [];
-                gameState.comprehensionAnswers = [];
-                gameState.gameId = generateGameId();
-                
-                // Show landing page with start button
-                showLandingPage();
-                showNotification('พร้อมเล่นใหม่แล้ว! กดปุ่มเริ่มเกมเพื่อเริ่มต้น', 'success');
-                
             } catch (error) {
-                console.error('Error in play again:', error);
-                showNotification('เกิดข้อผิดพลาดในการเริ่มเกมใหม่', 'error');
+                hasError = true;
+                console.error('Error clearing previous game session:', error);
+            }
+
+            // Reset game state completely
+            gameState.currentStep = 1;
+            gameState.maxStepReached = 1;
+            gameState.translatedWords = {};
+            gameState.incorrectWords = {};
+            gameState.wordAttempts = {};
+            gameState.imaginationText = '';
+            gameState.interpretationText = '';
+            gameState.comprehensionScore = 0;
+            gameState.startTime = Date.now();
+            gameState.selectedWord = null;
+            gameState.stepHistory = [];
+            gameState.comprehensionAnswers = [];
+            gameState.gameId = generateGameId();
+
+            // Show landing page with start button
+            showLandingPage();
+
+            if (hasError) {
+                showNotification('เริ่มเกมใหม่แล้ว (มีบางข้อมูลบันทึกไม่สำเร็จ)', 'error');
+            } else {
+                showNotification('พร้อมเล่นใหม่แล้ว! กดปุ่มเริ่มเกมเพื่อเริ่มต้น', 'success');
             }
         }
 
