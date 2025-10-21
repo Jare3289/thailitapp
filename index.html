@@ -1436,7 +1436,7 @@
                         </div>
 
                         <div class="pt-4 mt-6 border-t border-blue-100/60 text-center text-[11px] leading-relaxed text-blue-900/80">
-                            พัฒนาโดย : นัชนันท์ นครคง , นุสรา พึ่งบ้านเกาะ , ราม แสงมณี และสุทธิชา กะรัมย์ นิสินภาควิชาหลักสูตรและการสอน (การสอนภาษาไทย) คณะครุศาสตร์ จุฬาลงกรณ์มหาวิทยาลัย
+                            พัฒนาโดย : นัชนันท์ นครคง , นุสรา พึ่งบ้านเกาะ , ราม แสงมณี และสุทธิชา กะรัมย์ นิสิตภาควิชาหลักสูตรและการสอน (การสอนภาษาไทย) คณะครุศาสตร์ จุฬาลงกรณ์มหาวิทยาลัย
                         </div>
                     </div>
                 </div>
@@ -1538,7 +1538,7 @@
     <div id="notificationContainer"></div>
 
     <footer id="siteFooter" class="bg-slate-900 text-white text-[10px] sm:text-xs text-center py-2.5 px-3 hidden fixed bottom-0 inset-x-0 z-40 shadow-lg">
-        พัฒนาโดย : นัชนันท์ นครคง , นุสรา พึ่งบ้านเกาะ , ราม แสงมณี และสุทธิชา กะรัมย์ นิสินภาควิชาหลักสูตรและการสอน (การสอนภาษาไทย) คณะครุศาสตร์ จุฬาลงกรณ์มหาวิทยาลัย
+        พัฒนาโดย : นัชนันท์ นครคง , นุสรา พึ่งบ้านเกาะ , ราม แสงมณี และสุทธิชา กะรัมย์ นิสิตภาควิชาหลักสูตรและการสอน (การสอนภาษาไทย) คณะครุศาสตร์ จุฬาลงกรณ์มหาวิทยาลัย
     </footer>
 
     <script>
@@ -3376,7 +3376,7 @@ function initializeStepChipEvents() {
         }
 
         // Check for existing student login on page load
-        window.addEventListener('load', async () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             populateDemoTeacherHints();
             // Try to restore previous student session
             const lastStudentId = localStorage.getItem('lastStudentId');
@@ -3916,9 +3916,14 @@ function initializeStepChipEvents() {
                         </div>
                     `;
                     
-                    document.getElementById('proceedToPoem').addEventListener('click', async () => {
-                        await renderStep(2);
-                    });
+                    const proceedButton = document.getElementById('proceedToPoem');
+                    if (proceedButton) {
+                        proceedButton.addEventListener('click', async () => {
+                            await renderStep(2);
+                        });
+                    } else {
+                        console.warn('Proceed button not found when rendering step 1');
+                    }
                     break;
                     
                 case 2.5:
@@ -5367,20 +5372,30 @@ function initializeStepChipEvents() {
                 return;
             }
             
-            document.getElementById('showComparison').addEventListener('click', () => {
-                const comparisonSection = document.getElementById('comparisonSection');
-                const button = document.getElementById('showComparison');
-                
-                comparisonSection.classList.remove('hidden');
-                comparisonSection.classList.add('animate-bounce-in');
-                button.style.display = 'none';
-                
-                showNotification('เปรียบเทียบความคิดของคุณกับข้อมูลจริง!', 'success');
-            });
-            
-            document.getElementById('nextStep4').addEventListener('click', async () => {
-                await renderStep(5);
-            });
+            const showComparisonButton = document.getElementById('showComparison');
+            if (showComparisonButton) {
+                showComparisonButton.addEventListener('click', () => {
+                    const comparisonSection = document.getElementById('comparisonSection');
+                    if (comparisonSection) {
+                        comparisonSection.classList.remove('hidden');
+                        comparisonSection.classList.add('animate-bounce-in');
+                    }
+
+                    showComparisonButton.style.display = 'none';
+                    showNotification('เปรียบเทียบความคิดของคุณกับข้อมูลจริง!', 'success');
+                });
+            } else {
+                console.warn('Show comparison button missing for step 4');
+            }
+
+            const nextStepButton = document.getElementById('nextStep4');
+            if (nextStepButton) {
+                nextStepButton.addEventListener('click', async () => {
+                    await renderStep(5);
+                });
+            } else {
+                console.warn('Next step button missing for step 4');
+            }
         }
 
         // Get Word Emoji
@@ -6214,11 +6229,14 @@ function initializeStepChipEvents() {
             document.body.appendChild(modal);
             
             // Add enter key listener
-            document.getElementById('quickSearchInput').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    searchInDictionary();
-                }
-            });
+            const quickSearchInput = document.getElementById('quickSearchInput');
+            if (quickSearchInput) {
+                quickSearchInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        searchInDictionary();
+                    }
+                });
+            }
         }
 
         // Close Quick Search Modal
