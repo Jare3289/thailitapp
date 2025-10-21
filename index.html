@@ -902,6 +902,7 @@
 
         #floatingActionButtons .floating-panel {
             pointer-events: none;
+            display: none;
             margin-top: 0.75rem;
             background: rgba(255, 255, 255, 0.95);
             border: 1px solid rgba(148, 163, 184, 0.4);
@@ -916,6 +917,7 @@
 
         #floatingActionButtons.show .floating-panel {
             pointer-events: auto;
+            display: block;
             transform: translateX(0);
             opacity: 1;
         }
@@ -1030,7 +1032,7 @@
                             <div class="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 text-left text-slate-600">
                                 <p class="font-semibold text-slate-700">บัญชีทดลองสำหรับทดสอบระบบ</p>
                                 <p>อีเมล: <span class="font-medium text-slate-800">teacher@thailit.app</span></p>
-                                <p>รหัสผ่าน: <span class="font-medium text-slate-800">litpass123</span></p>
+                                <p>รหัสผ่าน: <span class="font-medium text-slate-800" data-demo-pass="teacher@thailit.app">••••••</span></p>
                             </div>
                         </div>
                     </div>
@@ -1163,7 +1165,7 @@
                             </div>
                             <div class="text-xs text-slate-500 space-y-1">
                                 <p class="uppercase tracking-wider">บัญชีทดลอง</p>
-                                <p class="font-semibold text-slate-700">อีเมล: teacher@thailit.app • รหัสผ่าน: litpass123</p>
+                                <p class="font-semibold text-slate-700">อีเมล: teacher@thailit.app • รหัสผ่าน: <span data-demo-pass="teacher@thailit.app">••••••</span></p>
                             </div>
                         </div>
                     </div>
@@ -1501,7 +1503,7 @@
 
 
     <!-- Main Content -->
-    <main id="mainContent" class="max-w-6xl mx-auto p-3 md:p-6 hidden">
+    <main id="mainContent" class="max-w-6xl mx-auto p-3 md:p-6 pb-28 md:pb-32 hidden">
         <!-- Content will be dynamically rendered here -->
     </main>
 
@@ -1590,22 +1592,31 @@
             expToNextLevel: 100
         };
 
-        const teacherCredentials = {
+        const DEFAULT_TEACHER_ACCOUNTS = {
             "teacher@thailit.app": {
-                password: "litpass123",
+                passcodeSegments: ['lit', 'pass', '123'],
                 name: "ครูอารีย์ วิชิต",
                 department: "กลุ่มสาระภาษาไทย",
                 classes: ["ม.4/1", "ม.4/2"],
-                role: "หัวหน้ากลุ่มสาระ"
+                role: "หัวหน้ากลุ่มสาระ",
+                demo: true
             },
             "headteacher@thailit.app": {
-                password: "thailit789",
+                passcodeSegments: ['th', 'ail', 'it', '789'],
                 name: "ครูวราภรณ์ มั่นคง",
                 department: "กลุ่มสาระภาษาไทย",
                 classes: ["ม.5/1", "ม.5/3", "ชมรมวรรณศิลป์"],
-                role: "ครูพี่เลี้ยง"
+                role: "ครูพี่เลี้ยง",
+                demo: true
             }
         };
+
+        const teacherCredentials = (() => {
+            if (typeof window !== 'undefined' && window.TEACHER_ACCOUNTS) {
+                return window.TEACHER_ACCOUNTS;
+            }
+            return DEFAULT_TEACHER_ACCOUNTS;
+        })();
 
         let currentTeacher = null;
         const teacherDashboardState = {
@@ -1643,6 +1654,59 @@
                 return STEP_LABELS[2];
             }
             return STEP_LABELS[step] || `ขั้นที่ ${step}`;
+        }
+
+        function reconstructPasscode(credential) {
+            if (!credential) return '';
+            if (Array.isArray(credential.passcodeSegments)) {
+                return credential.passcodeSegments.join('');
+            }
+            if (typeof credential.passcode === 'string') {
+                return credential.passcode;
+            }
+            return '';
+        }
+
+        async function hashPasscode(passcode) {
+            if (!passcode) return '';
+            try {
+                if (window.crypto?.subtle?.digest) {
+                    const encoder = new TextEncoder();
+                    const data = encoder.encode(passcode);
+                    const hashBuffer = await window.crypto.subtle.digest('SHA-256', data);
+                    return Array.from(new Uint8Array(hashBuffer))
+                        .map(b => b.toString(16).padStart(2, '0'))
+                        .join('');
+                }
+            } catch (error) {
+                console.warn('Secure hashing unavailable, falling back to lightweight hash.', error);
+            }
+
+            let hash = 0;
+            for (let i = 0; i < passcode.length; i++) {
+                hash = ((hash << 5) - hash) + passcode.charCodeAt(i);
+                hash |= 0;
+            }
+            return hash.toString(16);
+        }
+
+        function shouldShowPassHint(credential) {
+            return Boolean(credential && (credential.demo === true || credential.showHint === true));
+        }
+
+        function populateDemoTeacherHints() {
+            const hintElements = document.querySelectorAll('[data-demo-pass]');
+            hintElements.forEach(element => {
+                const email = element.dataset.demoPass;
+                const credential = teacherCredentials[email];
+                if (!credential || !shouldShowPassHint(credential)) {
+                    element.textContent = 'กรุณาใช้รหัสผ่านที่ได้รับจากคุณครู';
+                    return;
+                }
+
+                const passcode = reconstructPasscode(credential);
+                element.textContent = passcode || 'ใช้รหัสผ่านที่ได้รับจากคุณครู';
+            });
         }
 
         function refreshTeacherViewIfNeeded() {
@@ -2441,15 +2505,33 @@
             }
 
             const credential = teacherCredentials[email];
-            if (!credential || credential.password !== password) {
+            if (!credential) {
                 showNotification('อีเมลหรือรหัสผ่านไม่ถูกต้อง', 'error');
                 if (passwordInput) passwordInput.value = '';
                 return;
             }
 
+            const inputHash = await hashPasscode(password);
+            const expectedPasscode = reconstructPasscode(credential);
+            let isValid = false;
+
+            if (expectedPasscode) {
+                const expectedHash = await hashPasscode(expectedPasscode);
+                isValid = expectedHash === inputHash;
+            } else if (typeof credential.passcodeHash === 'string' && credential.passcodeHash.length > 0) {
+                isValid = credential.passcodeHash === inputHash;
+            }
+
+            if (!isValid) {
+                showNotification('อีเมลหรือรหัสผ่านไม่ถูกต้อง', 'error');
+                if (passwordInput) passwordInput.value = '';
+                return;
+            }
+
+            const { passcodeSegments, passcode, passcodeHash, ...safeCredential } = credential;
             currentTeacher = {
                 email,
-                ...credential
+                ...safeCredential
             };
 
             const loginPanel = document.getElementById('teacherLoginPanel');
@@ -3345,6 +3427,7 @@
 
         // Check for existing student login on page load
         window.addEventListener('load', async () => {
+            populateDemoTeacherHints();
             // Try to restore previous student session
             const lastStudentId = localStorage.getItem('lastStudentId');
             if (lastStudentId) {
@@ -4266,7 +4349,7 @@
                         : 'เสริมการวิเคราะห์เชิงลึกในส่วนถอดความเพื่อยกระดับความเข้าใจเชิงโครงสร้าง';
 
                     mainContent.innerHTML = `
-                        <div class="modern-card rounded-3xl p-4 md:p-10 mt-4 md:mt-8 space-y-8">
+                        <div class="modern-card rounded-3xl p-4 md:p-10 mt-4 md:mt-8 space-y-10">
                             <div class="text-center space-y-3">
                                 <div class="text-6xl md:text-7xl">🏅</div>
                                 <h2 class="text-3xl md:text-4xl font-bold text-gray-900">รายงานสรุปผลการเรียนรู้</h2>
@@ -4330,7 +4413,7 @@
                                 <p class="text-sm leading-relaxed">ขอชื่นชมความตั้งใจและความสม่ำเสมอในการเรียนรู้วรรณคดีไทย คุณสามารถเชื่อมโยงข้อมูลจากหลายแหล่งและถ่ายทอดออกมาได้อย่างเป็นระบบ</p>
                             </div>
 
-                            <div class="flex flex-col md:flex-row justify-center gap-4">
+                            <div class="relative z-10 flex flex-col md:flex-row justify-center gap-4 md:gap-6 pt-2 pb-2">
                                 <button type="button" onclick="playAgain()" class="modern-button px-6 md:px-10 py-3 md:py-4 text-lg md:text-xl rounded-2xl">
                                     🔁 เล่นอีกครั้ง
                                 </button>
@@ -4439,6 +4522,19 @@
                         showNotification('ไม่สามารถเปิดขั้นตอนนี้ได้', 'error');
                     });
                 });
+            });
+        }
+
+            floatingActions.querySelectorAll('.floating-action-button').forEach(button => {
+                button.addEventListener('click', () => {
+                    setTimeout(closePanel, 150);
+                });
+            });
+
+            document.addEventListener('click', (event) => {
+                if (!floatingActions.contains(event.target)) {
+                    closePanel();
+                }
             });
         }
 
