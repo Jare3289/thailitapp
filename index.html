@@ -1343,9 +1343,9 @@
                 <div class="mission-card rounded-3xl p-4 md:p-6 h-full overflow-y-auto">
                     <div class="mb-4">
                         <h2 class="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
-                            โคลงสี่สุภาพ
+                            โคลงภาพพระราชงพงศาวดาร
                         </h2>
-                        <p class="text-base md:text-lg lg:text-xl text-gray-600">พระราชพงศาวดาร - เรื่องสมเด็จพระสุริโยทัย</p>
+                        <p class="text-base md:text-lg lg:text-xl text-gray-600">ภาพที่ 10 ตอน สมเด็จพระสุริโยทัยขาดคอช้าง</p>
                     </div>
                     
                     <div class="bg-white bg-opacity-70 border border-blue-200/60 rounded-2xl p-4 mb-6 backdrop-blur space-y-5">
@@ -1474,6 +1474,7 @@
                 <span class="step-chip" data-step="5"><span class="font-bold">5</span><span>📝 ทบทวน</span></span>
                 <span class="step-chip" data-step="6"><span class="font-bold">6</span><span>🏆 สรุปผล</span></span>
             </div>
+
         </div>
         <div class="md:hidden text-center text-slate-700 text-xs mt-2" id="currentStepLabel">📚 ประวัติศาสตร์</div>
     </div>
@@ -1750,8 +1751,8 @@
                     "มลาย": { meaning: "ตาย, สิ้นชีวิต, เสียชีวิต, สวรรคต", points: 18 },
                     "คเชนทร": { meaning: "ช้าง, ช้างเผือก, พาหนะ, สัตว์ใหญ่", points: 20 },
                     "ดัสกร": { meaning: "ข้าศึก, ศัตรู, คู่อริ, ผู้ร้าย", points: 18 },
-                    "ง้าว": { meaning: "ดาบด้ามยาว, ทวน, อาวุธ, หอก, ใส", points: 15 },
-                    "แล่ง": { meaning: "ผ่า, แยก, ฟัน, ตัด", points: 15 },
+                    "ง้าว": { meaning: "ดาบด้ามยาว, ทวน, อาวุธ, หอก", points: 15 },
+                    "แล่ง": { meaning: "ผ่า, แยก, ฟัน, ตัด, ทำให้แตก", points: 15 },
                     "อุระ": { meaning: "อก, หน้าอก, ทรวงอก, ส่วนหน้าของร่างกาย", points: 12 },
                     "หรุบ": { meaning: "ร่วง, ตก, ล้ม, หล่น", points: 15 },
                     "ไป่": { meaning: "ไม่, มิ, หา...ไม่, ปฏิเสธ", points: 10 },
@@ -2171,6 +2172,794 @@
                 totalGamesPlayed: 0,
                 bestScore: 0,
                 isStudent: true
+            };
+            
+            try {
+                // Set current user
+                gameState.userId = studentId;
+                gameState.currentUser = studentData;
+                
+                // Save to database
+                await saveUserData(studentData);
+                
+                // Save last student ID for auto-login
+                localStorage.setItem('lastStudentId', studentId);
+                
+                // Update player profile
+                playerProfile.exp = studentData.exp;
+                playerProfile.rank = studentData.rank;
+                playerProfile.level = studentData.level;
+                playerProfile.totalGamesPlayed = studentData.totalGamesPlayed;
+                playerProfile.bestScore = studentData.bestScore;
+                
+                // Update UI
+                updateLoginUI({
+                    displayName: name,
+                    email: `${grade}/${room} เลขที่ ${number}`,
+                    photoURL: '',
+                    isStudent: true,
+                    studentData: studentData
+                });
+                
+                updateUserNameDisplay();
+                showNotification('บันทึกข้อมูลเรียบร้อย!', 'success');
+                hideStudentForm();
+                
+            } catch (error) {
+                console.error('Registration error:', error);
+                showNotification('เกิดข้อผิดพลาดในการบันทึกข้อมูล', 'error');
+            }
+        }
+        
+        async function loginStudent() {
+            const studentId = document.getElementById('loginStudentId').value.trim();
+            const phone = document.getElementById('loginPhone').value.trim();
+            
+            if (!studentId || !phone) {
+                showNotification('กรุณากรอกรหัสนักเรียนและเบอร์โทรศัพท์', 'error');
+                return;
+            }
+            
+            try {
+                // Try to load from database first
+                let studentData = await loadUserData(studentId);
+                
+                if (!studentData) {
+                    showNotification('ไม่พบข้อมูลนักเรียน', 'error');
+                    return;
+                }
+                
+                // Verify phone number
+                if (studentData.phone !== phone) {
+                    showNotification('เบอร์โทรศัพท์ไม่ถูกต้อง', 'error');
+                    return;
+                }
+                
+                // Set current user
+                gameState.userId = studentId;
+                gameState.currentUser = studentData;
+                
+                // Save last student ID for auto-login
+                localStorage.setItem('lastStudentId', studentId);
+                
+                // Update player profile
+                playerProfile.exp = studentData.exp || 0;
+                playerProfile.rank = studentData.rank || 'มือใหม่';
+                playerProfile.level = studentData.level || 1;
+                playerProfile.totalGamesPlayed = studentData.totalGamesPlayed || 0;
+                playerProfile.bestScore = studentData.bestScore || 0;
+                
+                // Update UI
+                updateLoginUI({
+                    displayName: studentData.name,
+                    email: `${studentData.grade}/${studentData.room} เลขที่ ${studentData.number}`,
+                    photoURL: '',
+                    isStudent: true,
+                    studentData: studentData
+                });
+                
+                showNotification(`ยินดีต้อนรับ ${studentData.name}!`, 'success');
+                hideLoginForm();
+                
+            } catch (error) {
+                console.error('Login error:', error);
+                showNotification('เกิดข้อผิดพลาดในการเข้าสู่ระบบ', 'error');
+            }
+        }
+        
+        function updateLoginUI(user) {
+            const loginButtons = document.getElementById('loginButtons');
+            const studentForm = document.getElementById('studentForm');
+            const loginForm = document.getElementById('loginForm');
+            const userInfo = document.getElementById('userInfo');
+            const startGameBtn = document.getElementById('startGameBtn');
+            const startWrapper = document.getElementById('startButtonWrapper');
+            const startHint = document.getElementById('startButtonHint');
+            const landingPage = document.getElementById('landingPage');
+            const teacherCta = document.getElementById('teacherLoginCta');
+            const footer = document.getElementById('siteFooter');
+
+            if (user) {
+                // Hide all forms
+                if (loginButtons) loginButtons.classList.add('hidden');
+                if (studentForm) studentForm.classList.add('hidden');
+                if (loginForm) loginForm.classList.add('hidden');
+                if (userInfo) userInfo.classList.remove('hidden');
+                if (startGameBtn) startGameBtn.disabled = false;
+                if (startWrapper) startWrapper.classList.remove('hidden');
+                if (startHint) {
+                    startHint.textContent = 'พร้อมเริ่มภารกิจได้เลย';
+                    startHint.classList.remove('text-purple-700/70');
+                    startHint.classList.add('text-emerald-700/80');
+                }
+                if (teacherCta) teacherCta.classList.add('hidden');
+                if (footer) footer.classList.remove('hidden');
+
+                // Add class to make background more transparent when logged in
+                if (landingPage) landingPage.classList.add('user-logged-in');
+                
+                // Update user info
+                const userName = document.getElementById('userName');
+                const userDetails = document.getElementById('userDetails');
+                const userStats = document.getElementById('userStats');
+                const userPhoto = document.getElementById('userPhoto');
+                
+                if (userName) userName.textContent = user.displayName;
+                if (userDetails) userDetails.textContent = user.email;
+                if (userStats) userStats.textContent = `EXP: ${playerProfile.exp} | เกม: ${playerProfile.totalGamesPlayed}`;
+                
+                // Set student avatar
+                if (userPhoto) {
+                    userPhoto.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMjAiIGZpbGw9IiMzYjgyZjYiLz4KPHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4PSI4IiB5PSI4Ij4KPHBhdGggZD0iTTEyIDEyQzE0LjIwOTEgMTIgMTYgMTAuMjA5MSAxNiA4QzE2IDUuNzkwODYgMTQuMjA5MSA0IDEyIDRDOS43OTA4NiA0IDggNS43OTA4NiA4IDhDOCAxMC4yMDkxIDkuNzkwODYgMTIgMTIgMTJaIiBmaWxsPSJ3aGl0ZSIvPgo8cGF0aCBkPSJNMTIgMTRDOC4xMzQwMSAxNCA1IDE3LjEzNDEgNSAyMUg5SDE1SDE5QzE5IDE3LjEzNDEgMTUuODY2IDE0IDEyIDE0WiIgZmlsbD0id2hpdGUiLz4KPC9zdmc+Cjwvc3ZnPgo=';
+                }
+                
+                gameState.userId = gameState.userId;
+            } else {
+                // Show login options
+                if (loginButtons) loginButtons.classList.remove('hidden');
+                if (studentForm) studentForm.classList.add('hidden');
+                if (loginForm) loginForm.classList.add('hidden');
+                if (userInfo) userInfo.classList.add('hidden');
+                if (startGameBtn) startGameBtn.disabled = true;
+                if (startWrapper) startWrapper.classList.remove('hidden');
+                if (startHint) {
+                    startHint.textContent = 'เข้าสู่ระบบก่อนเพื่อเปิดภารกิจ';
+                    startHint.classList.remove('text-emerald-700/80');
+                    startHint.classList.add('text-purple-700/70');
+                }
+                if (teacherCta) teacherCta.classList.remove('hidden');
+                if (footer) footer.classList.add('hidden');
+
+                // Remove class to show background clearly when not logged in
+                if (landingPage) landingPage.classList.remove('user-logged-in');
+                
+                gameState.userId = null;
+                gameState.currentUser = null;
+            }
+        }
+
+        function openTeacherPortal() {
+            const portal = document.getElementById('teacherPortal');
+            const landing = document.getElementById('landingPage');
+            const footer = document.getElementById('siteFooter');
+            const stepBar = document.getElementById('stepUtilityBar');
+            const playerBar = document.getElementById('playerStatusBar');
+            if (!portal) return;
+
+            portal.classList.remove('hidden');
+            if (landing) landing.classList.add('hidden');
+            if (footer) footer.classList.remove('hidden');
+            if (stepBar) stepBar.classList.add('hidden');
+            if (playerBar) playerBar.classList.add('hidden');
+            closeTeacherStudentModal();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            const loginPanel = document.getElementById('teacherLoginPanel');
+            const dashboard = document.getElementById('teacherDashboard');
+
+            if (currentTeacher) {
+                if (loginPanel) loginPanel.classList.add('hidden');
+                if (dashboard) dashboard.classList.remove('hidden');
+                renderTeacherDashboard();
+            } else {
+                if (loginPanel) loginPanel.classList.remove('hidden');
+                if (dashboard) dashboard.classList.add('hidden');
+                resetTeacherLoginForm();
+            }
+        }
+
+        function closeTeacherPortal() {
+            const portal = document.getElementById('teacherPortal');
+            const landing = document.getElementById('landingPage');
+            const footer = document.getElementById('siteFooter');
+            const stepBar = document.getElementById('stepUtilityBar');
+            const playerBar = document.getElementById('playerStatusBar');
+            if (!portal) return;
+
+            portal.classList.add('hidden');
+            if (landing) landing.classList.remove('hidden');
+            if (footer) {
+                if (gameState.userId) {
+                    footer.classList.remove('hidden');
+                } else {
+                    footer.classList.add('hidden');
+                }
+            }
+            closeTeacherStudentModal();
+            if (stepBar || playerBar) {
+                const landingVisible = landing ? !landing.classList.contains('hidden') : false;
+                const shouldShowPlayer = gameState.userId && !landingVisible;
+                if (stepBar) stepBar.classList.toggle('hidden', !shouldShowPlayer);
+                if (playerBar) playerBar.classList.toggle('hidden', !shouldShowPlayer);
+            }
+        }
+
+        function resetTeacherLoginForm() {
+            const emailInput = document.getElementById('teacherEmail');
+            const passwordInput = document.getElementById('teacherPassword');
+            if (emailInput) emailInput.value = '';
+            if (passwordInput) passwordInput.value = '';
+        }
+
+        async function submitTeacherLogin(event) {
+            event.preventDefault();
+
+            const emailInput = document.getElementById('teacherEmail');
+            const passwordInput = document.getElementById('teacherPassword');
+
+            const email = emailInput?.value.trim().toLowerCase();
+            const password = passwordInput?.value.trim();
+
+            if (!email || !password) {
+                showNotification('กรุณากรอกอีเมลและรหัสผ่านของคุณครู', 'error');
+                return;
+            }
+
+            const credential = teacherCredentials[email];
+            if (!credential || credential.password !== password) {
+                showNotification('อีเมลหรือรหัสผ่านไม่ถูกต้อง', 'error');
+                if (passwordInput) passwordInput.value = '';
+                return;
+            }
+
+            currentTeacher = {
+                email,
+                ...credential
+            };
+
+            const loginPanel = document.getElementById('teacherLoginPanel');
+            const dashboard = document.getElementById('teacherDashboard');
+
+            if (loginPanel) loginPanel.classList.add('hidden');
+            if (dashboard) dashboard.classList.remove('hidden');
+
+            showNotification(`ยินดีต้อนรับ ${credential.name}`, 'success');
+            await renderTeacherDashboard();
+        }
+
+        function logoutTeacher() {
+            currentTeacher = null;
+            const loginPanel = document.getElementById('teacherLoginPanel');
+            const dashboard = document.getElementById('teacherDashboard');
+            if (loginPanel) loginPanel.classList.remove('hidden');
+            if (dashboard) dashboard.classList.add('hidden');
+            resetTeacherLoginForm();
+            showNotification('ออกจากระบบครูเรียบร้อย', 'success');
+        }
+
+
+        async function renderTeacherDashboard() {
+            const loading = document.getElementById('teacherDashboardLoading');
+            const summary = document.getElementById('teacherSummaryCards');
+            const tableBody = document.getElementById('teacherStudentTable');
+            const timeline = document.getElementById('teacherActivityTimeline');
+            const emptyState = document.getElementById('teacherEmptyState');
+            const tableMeta = document.getElementById('teacherTableMeta');
+            const timelineMeta = document.getElementById('teacherTimelineMeta');
+            const rankingContainer = document.getElementById('teacherRankingSummary');
+            const rankingMeta = document.getElementById('teacherRankingMeta');
+            const quickTotal = document.getElementById('teacherQuickTotal');
+            const quickAverage = document.getElementById('teacherQuickAverage');
+            const quickStudents = document.getElementById('teacherQuickStudents');
+            const quickCompleted = document.getElementById('teacherQuickCompleted');
+            const quickActive = document.getElementById('teacherQuickActive');
+            const greeting = document.getElementById('teacherGreeting');
+            const classesEl = document.getElementById('teacherClasses');
+            const emailEl = document.getElementById('teacherEmailDisplay');
+
+            try {
+                if (currentTeacher) {
+                    if (greeting) greeting.textContent = `ยินดีต้อนรับ ${currentTeacher.name}`;
+                    if (classesEl) classesEl.textContent = currentTeacher.classes?.length ? `ดูแล: ${currentTeacher.classes.join(', ')}` : 'บัญชีครูภาษาไทย';
+                    if (emailEl) emailEl.textContent = `${currentTeacher.role || 'ครูผู้สอน'} • ${currentTeacher.email}`;
+                }
+
+                if (summary) summary.innerHTML = '';
+                if (tableBody) tableBody.innerHTML = '';
+                if (timeline) timeline.innerHTML = '';
+                if (tableMeta) tableMeta.textContent = '';
+                if (timelineMeta) timelineMeta.textContent = '';
+                if (emptyState) emptyState.classList.add('hidden');
+
+                if (loading) loading.classList.remove('hidden');
+
+                const { students, sessions } = await fetchTeacherData();
+
+                if (loading) loading.classList.add('hidden');
+
+                const studentRows = buildStudentRows(students, sessions);
+                const completedSessions = sessions.filter(session => session.completed);
+                const totalScore = sessions.reduce((sum, session) => sum + (Number(session.totalScore) || 0), 0);
+                const averageScore = sessions.length ? Math.round(totalScore / sessions.length) : 0;
+                const activeToday = sessions.filter(session => {
+                    const activityDate = session.lastUpdatedAt || session.timestampAt || session.lastUpdated || session.timestamp;
+                    const parsed = parseDate(activityDate);
+                    if (!parsed) return false;
+                    const now = new Date();
+                    return parsed.getFullYear() === now.getFullYear() && parsed.getMonth() === now.getMonth() && parsed.getDate() === now.getDate();
+                });
+
+                if (quickTotal) quickTotal.textContent = totalScore ? totalScore.toLocaleString('th-TH') : '0';
+                if (quickAverage) quickAverage.textContent = sessions.length ? `${averageScore}` : '0';
+                if (quickCompleted) quickCompleted.textContent = completedSessions.length.toString();
+                if (quickActive) quickActive.textContent = activeToday.length.toString();
+                if (quickStudents) quickStudents.textContent = studentRows.length.toString();
+
+                if (studentRows.length === 0 && sessions.length === 0) {
+                    if (emptyState) emptyState.classList.remove('hidden');
+                    return;
+                }
+
+                const sortedStudentRows = [...studentRows].sort((a, b) => {
+                    const totalDiff = (b.totalScore || 0) - (a.totalScore || 0);
+                    if (totalDiff !== 0) return totalDiff;
+                    const scoreDiff = (b.averageScore || 0) - (a.averageScore || 0);
+                    if (scoreDiff !== 0) return scoreDiff;
+
+                    const aDate = parseDate(a.latestSession?.lastUpdatedAt || a.latestSession?.timestampAt || a.latestSession?.lastUpdated || a.latestSession?.timestamp);
+                    const bDate = parseDate(b.latestSession?.lastUpdatedAt || b.latestSession?.timestampAt || b.latestSession?.lastUpdated || b.latestSession?.timestamp);
+                    return (bDate?.getTime() || 0) - (aDate?.getTime() || 0);
+                });
+
+                teacherDashboardState.sessions = sessions;
+                teacherDashboardState.rows = sortedStudentRows;
+                resetTeacherStudentDetail();
+
+                if (summary) {
+                    const inProgress = sessions.length - completedSessions.length;
+                    const summaryData = [
+                        {
+                            label: 'คะแนนรวมทั้งหมด',
+                            value: totalScore ? totalScore.toLocaleString('th-TH') : '0',
+                            description: 'รวมคะแนนจากทุกกิจกรรมที่บันทึก',
+                            gradient: 'from-amber-500 to-orange-500',
+                            icon: '🏅'
+                        },
+                        {
+                            label: 'นักเรียนที่ลงทะเบียน',
+                            value: studentRows.length,
+                            description: 'มีโปรไฟล์หรือบันทึกคะแนนในระบบ',
+                            gradient: 'from-blue-500 to-indigo-500',
+                            icon: '👨‍🎓'
+                        },
+                        {
+                            label: 'ภารกิจที่เสร็จสมบูรณ์',
+                            value: completedSessions.length,
+                            description: 'ปิดจบครบทุกขั้น',
+                            gradient: 'from-emerald-500 to-teal-500',
+                            icon: '🏆'
+                        },
+                        {
+                            label: 'กำลังทำอยู่',
+                            value: Math.max(inProgress, 0),
+                            description: 'อยู่ระหว่างภารกิจ',
+                            gradient: 'from-sky-500 to-indigo-500',
+                            icon: '⏳'
+                        },
+                        {
+                            label: 'คะแนนเฉลี่ยรวม',
+                            value: sessions.length ? `${averageScore}` : '0',
+                            description: 'จากทุกเกมที่บันทึก',
+                            gradient: 'from-purple-500 to-pink-500',
+                            icon: '📊'
+                        }
+                    ];
+
+                    summary.innerHTML = summaryData.map(card => `
+                        <div class="teacher-summary-card bg-white border border-slate-200 rounded-3xl p-5 flex flex-col gap-3 shadow-sm">
+                            <div class="flex items-center gap-3">
+                                <span class="text-2xl">${card.icon}</span>
+                                <div>
+                                    <p class="text-xs uppercase tracking-wide text-slate-500">${card.label}</p>
+                                    <p class="text-2xl font-bold text-slate-900">${card.value}</p>
+                                </div>
+                            </div>
+                            <div class="mt-auto">
+                                <div class="h-1.5 rounded-full bg-slate-200 overflow-hidden">
+                                    <div class="h-full bg-gradient-to-r ${card.gradient}"></div>
+                                </div>
+                                <p class="text-xs text-slate-500 mt-2">${card.description}</p>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+
+                if (tableBody) {
+                    tableBody.innerHTML = sortedStudentRows.map(row => {
+                        const gradeRoom = row.grade ? `${row.grade}${row.room ? `/${row.room}` : ''}` : '-';
+                        const progressPercent = Math.min(100, Math.round(((row.latestSession?.currentStep || 1) / 6) * 100));
+                        const studentTotalScore = row.totalScore ? Math.round(row.totalScore) : 0;
+                        const latestScore = row.latestSession ? Math.round(Number(row.latestSession.totalScore) || Number(row.latestSession.comprehensionScore) || 0) : 0;
+                        const updatedAt = row.latestSession ? formatDateTime(row.latestSession.lastUpdatedAt || row.latestSession.timestampAt || row.latestSession.lastUpdated || row.latestSession.timestamp) : '-';
+                        const completionBadge = row.completionCount > 0 ? `<span class="px-2 py-1 rounded-full text-xs bg-emerald-100 text-emerald-700">เสร็จ ${row.completionCount} ครั้ง</span>` : `<span class="px-2 py-1 rounded-full text-xs bg-amber-100 text-amber-700">กำลังทำ</span>`;
+
+                        return `
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="px-4 py-3" data-label="นักเรียน">
+                                    <div class="flex flex-col">
+                                        <button type="button" data-student-key="${row.key || row.studentId}" class="teacher-student-link text-left font-semibold text-slate-900 hover:text-blue-600 focus:outline-none focus:text-blue-700 transition">
+                                            ${row.name || 'ไม่ระบุชื่อ'}
+                                        </button>
+                                        <span class="text-xs text-slate-500">${row.studentId || '-'}</span>
+                                        <span class="inline-flex items-center gap-1 text-xs font-semibold text-blue-600">
+                                            ${row.rankTier?.icon || '🌟'} ${row.rankTier?.label || 'มือใหม่'}
+                                        </span>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3 text-slate-600" data-label="ชั้น/ห้อง">
+                                    <div class="flex flex-col gap-1">
+                                        <span>${gradeRoom}</span>
+                                        <span class="text-xs text-slate-500">เลขที่ ${row.number || '-'}</span>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3" data-label="ความคืบหน้า">
+                                    <div class="flex flex-col gap-1">
+                                        <div class="h-2.5 rounded-full bg-slate-200">
+                                            <div class="h-full rounded-full bg-gradient-to-r from-blue-500 to-indigo-500" style="width: ${progressPercent}%"></div>
+                                        </div>
+                                        <div class="flex items-center justify-between text-xs text-slate-500">
+                                            <span>${progressPercent}%</span>
+                                            ${completionBadge}
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3 text-slate-600" data-label="คะแนนรวม">
+                                    <div class="flex flex-col gap-1">
+                                        <span class="font-semibold text-slate-900">${studentTotalScore.toLocaleString('th-TH')}</span>
+                                        <span class="text-xs text-slate-500">จาก ${row.sessions.length} ภารกิจ</span>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3 text-slate-600" data-label="คะแนนเฉลี่ย">
+                                    <div class="flex flex-col gap-1">
+                                        <span class="font-semibold text-slate-900">${(row.averageScore || latestScore).toLocaleString('th-TH')}</span>
+                                        <span class="text-xs text-slate-500">ล่าสุด ${latestScore.toLocaleString('th-TH')}</span>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3 text-slate-600 text-sm" data-label="อัปเดตล่าสุด">${updatedAt}</td>
+                            </tr>
+                        `;
+                    }).join('');
+
+                    tableBody.querySelectorAll('.teacher-student-link').forEach(button => {
+                        button.addEventListener('click', () => {
+                            const key = button.getAttribute('data-student-key');
+                            showTeacherStudentDetail(key);
+                        });
+                    });
+                }
+
+                if (tableMeta) {
+                    const totalRecordedScore = totalScore ? totalScore.toLocaleString('th-TH') : '0';
+                    tableMeta.textContent = `${sortedStudentRows.length} รายการ • คะแนนรวม ${totalRecordedScore} • อัปเดต ${formatDateTime(new Date())}`;
+                }
+
+                if (rankingContainer) {
+                    const tierStats = RANK_TIERS.map(tier => {
+                        const members = sortedStudentRows.filter(row => row.rankTier?.id === tier.id);
+                        const topMember = members.length
+                            ? [...members].sort((a, b) => (b.totalScore || 0) - (a.totalScore || 0))[0]
+                            : null;
+                        return { tier, count: members.length, topMember };
+                    });
+
+                    rankingContainer.innerHTML = tierStats.map(({ tier, count, topMember }) => {
+                        const topLabel = topMember
+                            ? ` • สูงสุด ${topMember.name || 'ไม่ระบุชื่อ'} (${Math.round(topMember.totalScore || 0).toLocaleString('th-TH')} แต้ม)`
+                            : '';
+                        return `
+                            <div class="teacher-rank-card">
+                                <div class="rank-tier">${tier.icon} ${tier.label}</div>
+                                <div class="text-2xl font-bold text-slate-900">${count.toLocaleString('th-TH')}</div>
+                                <div class="rank-meta">${tier.description}${topLabel}</div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+
+                if (rankingMeta) {
+                    rankingMeta.textContent = `${sortedStudentRows.length} รายชื่อ • อัปเดต ${formatDateTime(new Date())}`;
+                }
+
+                if (timeline) {
+                    const recentActivities = [...sessions]
+                        .sort((a, b) => {
+                            const aDate = parseDate(a.lastUpdatedAt || a.timestampAt || a.lastUpdated || a.timestamp);
+                            const bDate = parseDate(b.lastUpdatedAt || b.timestampAt || b.lastUpdated || b.timestamp);
+                            return (bDate?.getTime() || 0) - (aDate?.getTime() || 0);
+                        })
+                        .slice(0, 6);
+
+                    if (recentActivities.length === 0) {
+                        timeline.innerHTML = '<p class="text-sm text-slate-500 text-center">ยังไม่มีกิจกรรมล่าสุด</p>';
+                    } else {
+                        timeline.innerHTML = recentActivities.map(activity => {
+                            const activityTime = formatDateTime(activity.lastUpdatedAt || activity.timestampAt || activity.lastUpdated || activity.timestamp);
+                            const status = activity.completed ? 'เสร็จสิ้นภารกิจ' : `อยู่ที่ขั้นตอน ${activity.currentStep || '-'}`;
+                            const total = Math.round(Number(activity.totalScore) || Number(activity.comprehensionScore) || 0);
+                            const initials = activity.userName ? activity.userName.trim().charAt(0) : 'น';
+
+                            return `
+                                <div class="flex gap-4 p-4 bg-slate-50 border border-slate-200 rounded-2xl">
+                                    <div class="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xl">${initials}</div>
+                                    <div class="flex-1">
+                                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                                            <div>
+                                                <p class="font-semibold text-slate-900">${activity.userName || 'นักเรียนไม่ระบุชื่อ'}</p>
+                                                <p class="text-xs text-slate-500">${status}</p>
+                                            </div>
+                                            <div class="text-xs text-slate-500">${activityTime}</div>
+                                        </div>
+                                        <div class="mt-2 text-sm text-slate-600">คะแนนรวม ${total.toLocaleString('th-TH')} แต้ม</div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('');
+                    }
+                }
+
+                if (timelineMeta) {
+                    timelineMeta.textContent = `${sessions.length} บันทึกกิจกรรม`;
+                }
+
+            } catch (error) {
+                console.error('Teacher dashboard render failed:', error);
+                if (loading) loading.classList.add('hidden');
+                if (summary) summary.innerHTML = '';
+                if (tableBody) tableBody.innerHTML = '';
+                if (timeline) timeline.innerHTML = '';
+                if (tableMeta) tableMeta.textContent = '';
+                if (timelineMeta) timelineMeta.textContent = '';
+                if (rankingContainer) rankingContainer.innerHTML = '';
+                if (rankingMeta) rankingMeta.textContent = '';
+                if (emptyState) {
+                    emptyState.classList.remove('hidden');
+                    emptyState.innerHTML = `
+                        <div class="space-y-2">
+                            <p class="font-semibold text-slate-700">ไม่สามารถโหลดข้อมูลครูได้ในขณะนี้</p>
+                            <p class="text-sm text-slate-500">กรุณาลองรีเฟรชหรือตรวจสอบการเชื่อมต่ออีกครั้ง</p>
+                        </div>
+                    `;
+                }
+                resetTeacherStudentDetail();
+                showNotification('ไม่สามารถโหลดแดชบอร์ดครูได้ กรุณาลองใหม่อีกครั้ง', 'error');
+            }
+        }
+
+        function resetTeacherStudentDetail() {
+            const container = document.getElementById('teacherStudentDetailContent');
+            if (!container) return;
+            container.classList.add('text-center');
+            container.innerHTML = '<p class="text-sm text-slate-500">คลิกชื่อนักเรียนจากตารางเพื่อเปิดหน้าต่างรายงาน</p>';
+            closeTeacherStudentModal();
+        }
+
+        function showTeacherStudentDetail(studentKey) {
+            const container = document.getElementById('teacherStudentDetailContent');
+            if (!container || !studentKey) {
+                resetTeacherStudentDetail();
+                return;
+            }
+
+            const studentRow = teacherDashboardState.rows.find(row => row.key === studentKey || row.studentId === studentKey);
+            if (!studentRow) {
+                resetTeacherStudentDetail();
+                return;
+            }
+
+            const sessions = [...(studentRow.sessions || [])].sort((a, b) => {
+                const aDate = parseDate(a.lastUpdatedAt || a.timestampAt || a.lastUpdated || a.timestamp);
+                const bDate = parseDate(b.lastUpdatedAt || b.timestampAt || b.lastUpdated || b.timestamp);
+                return (bDate?.getTime() || 0) - (aDate?.getTime() || 0);
+            });
+
+            const latestSession = sessions[0] || null;
+            const latestScore = latestSession ? Math.round(Number(latestSession.totalScore) || Number(latestSession.comprehensionScore) || 0) : 0;
+            const currentStep = latestSession ? latestSession.currentStep : null;
+            const gradeRoom = studentRow.grade ? `${studentRow.grade}${studentRow.room ? `/${studentRow.room}` : ''}` : '-';
+            const studentTotalScore = studentRow.totalScore ? Math.round(studentRow.totalScore) : 0;
+            const averageScore = studentRow.averageScore ? Math.round(studentRow.averageScore) : (studentRow.sessions.length ? Math.round(studentTotalScore / studentRow.sessions.length) : 0);
+            const lastActivity = latestSession ? formatDateTime(latestSession.lastUpdatedAt || latestSession.timestampAt || latestSession.lastUpdated || latestSession.timestamp) : '-';
+
+            const today = new Date();
+            const todaySessions = sessions.filter(session => {
+                const sessionDate = parseDate(session.lastUpdatedAt || session.timestampAt || session.lastUpdated || session.timestamp);
+                return sessionDate ? isSameDay(sessionDate, today) : false;
+            });
+
+            const todayScore = todaySessions.reduce((sum, session) => sum + (Number(session.totalScore) || Number(session.comprehensionScore) || 0), 0);
+            const todayCompleted = todaySessions.filter(session => session.completed).length;
+
+            const headerStats = [
+                { label: 'คะแนนสะสม', value: studentTotalScore.toLocaleString('th-TH'), icon: '🎯' },
+                { label: 'คะแนนเฉลี่ย', value: averageScore.toLocaleString('th-TH'), icon: '📊' },
+                { label: 'คะแนนล่าสุด', value: latestScore.toLocaleString('th-TH'), icon: '📈' },
+                { label: 'ภารกิจสำเร็จ', value: studentRow.completionCount || 0, icon: '🏆' },
+                { label: 'ขั้นปัจจุบัน', value: getStepLabel(currentStep), icon: '🧭' }
+            ];
+
+            const recentActivities = sessions.slice(0, 5);
+
+            const activityCards = recentActivities.length
+                ? recentActivities.map(activity => {
+                    const activityDate = formatDateTime(activity.lastUpdatedAt || activity.timestampAt || activity.lastUpdated || activity.timestamp);
+                    const activityScore = Math.round(Number(activity.totalScore) || Number(activity.comprehensionScore) || 0);
+                    const stepLabel = getStepLabel(activity.currentStep);
+                    const status = activity.completed ? 'เสร็จสิ้นภารกิจ' : `กำลังเรียนรู้: ${stepLabel}`;
+                    return `
+                        <div class="rounded-2xl border border-slate-200 bg-white/90 p-4 flex flex-col gap-2 shadow-sm">
+                            <div class="flex items-start justify-between gap-3">
+                                <div class="font-semibold text-slate-900 leading-tight">${activity.userName || studentRow.name}</div>
+                                <span class="text-xs text-slate-500 whitespace-nowrap">${activityDate}</span>
+                            </div>
+                            <p class="text-sm text-slate-600">${status}</p>
+                            <div class="text-sm font-semibold text-blue-700">คะแนน ${activityScore.toLocaleString('th-TH')} แต้ม</div>
+                        </div>
+                    `;
+                }).join('')
+                : '<p class="text-sm text-slate-500">ยังไม่มีบันทึกกิจกรรมของนักเรียนคนนี้</p>';
+
+            const todaySummary = [
+                { label: 'กิจกรรมที่บันทึกวันนี้', value: todaySessions.length || 0, icon: '🗓️' },
+                { label: 'คะแนนที่ได้วันนี้', value: todayScore ? todayScore.toLocaleString('th-TH') : '0', icon: '⭐' },
+                { label: 'ภารกิจสำเร็จวันนี้', value: todayCompleted || 0, icon: '✅' },
+                { label: 'อัปเดตล่าสุด', value: lastActivity, icon: '⏱️' }
+            ];
+
+            const detailHtml = `
+                <div class="space-y-6 text-left">
+                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+                        <div>
+                            <p class="text-xs uppercase tracking-wide text-slate-500">นักเรียน</p>
+                            <h5 class="text-2xl font-bold text-slate-900">${studentRow.name || 'ไม่ระบุชื่อ'}</h5>
+                            <p class="text-sm text-slate-500">${gradeRoom} • เลขที่ ${studentRow.number || '-'}</p>
+                        </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                            ${headerStats.map(stat => `
+                                <div class="rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
+                                    <div class="text-lg">${stat.icon}</div>
+                                    <p class="text-xs text-slate-500 mt-1">${stat.label}</p>
+                                    <p class="text-lg font-semibold text-slate-900">${stat.value}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h5 class="text-base font-semibold text-slate-900">กิจกรรมล่าสุด</h5>
+                            <span class="text-xs text-slate-500">ทั้งหมด ${studentRow.sessions.length} กิจกรรม</span>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+                            ${activityCards}
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <h5 class="text-base font-semibold text-slate-900">ข้อมูลสำคัญ</h5>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                            ${todaySummary.map(stat => `
+                                <div class="rounded-2xl border border-slate-200 bg-white/90 p-4">
+                                    <div class="text-lg">${stat.icon}</div>
+                                    <p class="text-xs text-slate-500 mt-1">${stat.label}</p>
+                                    <p class="text-lg font-semibold text-slate-900">${stat.value}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            container.classList.remove('text-center');
+            container.innerHTML = detailHtml;
+            openTeacherStudentModal(detailHtml);
+        }
+
+        function closeTeacherStudentModal() {
+            const existing = document.getElementById('teacherStudentModal');
+            if (existing) {
+                existing.remove();
+                document.body.classList.remove('overflow-hidden');
+            }
+        }
+
+        function openTeacherStudentModal(content) {
+            closeTeacherStudentModal();
+
+            const modal = document.createElement('div');
+            modal.id = 'teacherStudentModal';
+            modal.className = 'fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4';
+            modal.innerHTML = `
+                <div class="modal-card scrollable bg-white rounded-3xl p-6 md:p-8 shadow-2xl relative">
+                    <button type="button" class="absolute top-4 right-4 text-slate-500 hover:text-slate-700" aria-label="ปิดรายงาน" onclick="closeTeacherStudentModal()">✕</button>
+                    <div class="space-y-6">${content}</div>
+                </div>
+            `;
+
+            modal.addEventListener('click', event => {
+                if (event.target === modal) {
+                    closeTeacherStudentModal();
+                }
+            });
+
+            document.body.appendChild(modal);
+            document.body.classList.add('overflow-hidden');
+        }
+
+        function parseDate(value) {
+            if (!value) return null;
+            if (value instanceof Date) {
+                return isNaN(value.getTime()) ? null : value;
+            }
+            if (typeof value === 'number') {
+                const numberDate = new Date(value);
+                return isNaN(numberDate.getTime()) ? null : numberDate;
+            }
+            if (typeof value === 'string') {
+                const stringDate = new Date(value);
+                return isNaN(stringDate.getTime()) ? null : stringDate;
+            }
+            if (value && typeof value.toDate === 'function') {
+                const viaToDate = value.toDate();
+                return viaToDate instanceof Date && !isNaN(viaToDate.getTime()) ? viaToDate : null;
+            }
+            if (value && typeof value === 'object' && typeof value.seconds === 'number') {
+                const ms = value.seconds * 1000 + (value.nanoseconds || 0) / 1e6;
+                const timestampDate = new Date(ms);
+                return isNaN(timestampDate.getTime()) ? null : timestampDate;
+            }
+            return null;
+        }
+
+        function normalizeFirestoreValue(value) {
+            if (value === null || value === undefined) return value;
+            if (Array.isArray(value)) {
+                return value.map(item => normalizeFirestoreValue(item));
+            }
+            if (typeof value === 'object') {
+                const asDate = parseDate(value);
+                if (asDate) {
+                    return asDate.toISOString();
+                }
+                const normalized = {};
+                Object.entries(value).forEach(([key, val]) => {
+                    normalized[key] = normalizeFirestoreValue(val);
+                });
+                return normalized;
+            }
+            return value;
+        }
+
+        function normalizeStudentRecord(rawStudent = {}) {
+            const student = normalizeFirestoreValue(rawStudent) || {};
+            const key = student.studentId || student.id || student.uid || student.userId || student.email || student.name || '';
+            return {
+                ...student,
+                key,
+                studentId: student.studentId || student.id || student.uid || student.userId || key,
+                name: student.name || student.displayName || 'นักเรียนไม่ระบุชื่อ',
+                grade: student.grade || student.gradeLevel || student.classLevel || student.level || '-',
+                room: student.room || student.classroom || student.class || student.section || '-',
+                number: student.number || student.studentNumber || student.no || student.index || '-',
             };
             
             try {
@@ -4015,7 +4804,7 @@
                                         </button>
                                         <button onclick="showKloangInfo()" class="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200 flex items-center justify-center gap-3">
                                             <span class="text-2xl">📋</span>
-                                            <span>ฉันทลักษณ์โคลงสี่สุภาพ</span>
+                                            <span>ลักษณะคำประพันธ์</span>
                                         </button>
                                     </div>
                                 </div>
@@ -4391,6 +5180,29 @@
             if (panel) {
                 panel.addEventListener('mouseleave', closePanel);
             }
+        }
+
+        function initializeStepChipEvents() {
+            const container = document.getElementById('stepIndicatorContainer');
+            if (!container) return;
+
+            container.querySelectorAll('.step-chip').forEach(chip => {
+                chip.addEventListener('click', () => {
+                    const stepValue = parseFloat(chip.dataset.step || '0');
+                    if (!Number.isFinite(stepValue)) return;
+                    const logicalStep = stepValue === 2.5 ? 2 : stepValue;
+                    const currentLogical = gameState.currentStep === 2.5 ? 2 : gameState.currentStep;
+
+                    if (logicalStep > (gameState.maxStepReached || 1)) return;
+                    if (logicalStep === currentLogical) return;
+
+                    goToStep(stepValue).catch(error => {
+                        console.error('Failed to navigate via step chip:', error);
+                        showNotification('ไม่สามารถเปิดขั้นตอนนี้ได้', 'error');
+                    });
+                });
+            });
+        }
 
             floatingActions.querySelectorAll('.floating-action-button').forEach(button => {
                 button.addEventListener('click', () => {
@@ -4483,8 +5295,8 @@
                             <label class="block text-gray-700 mb-2 md:mb-3 font-semibold text-sm md:text-base">📚 แหล่งอ้างอิง</label>
                             <select id="referenceType" class="w-full modern-input p-3 md:p-4 text-sm md:text-base mb-3" onchange="toggleReferenceInput()">
                                 <option value="">เลือกแหล่งอ้างอิง</option>
-                                <option value="รู้อยู่แล้ว">รู้อยู่แล้ว</option>
-                                <option value="ค้นหามา">ค้นหามา</option>
+                                <option value="ความรู้เดิม">ความรู้เดิม</option>
+                                <option value="ค้นหามาจาก">ค้นหามาจาก</option>
                             </select>
                             <input type="text" id="wordReference" class="w-full modern-input p-3 md:p-4 text-sm md:text-base hidden" placeholder="ระบุแหล่งที่มา เช่น พจนานุกรม ราชบัณฑิตยสถาน, เว็บไซต์, หนังสือ">
                         </div>
@@ -4525,7 +5337,7 @@
             const referenceType = document.getElementById('referenceType').value;
             const referenceInput = document.getElementById('wordReference');
             
-            if (referenceType === 'ค้นหามา') {
+            if (referenceType === 'ค้นหามาจาก') {
                 referenceInput.classList.remove('hidden');
                 referenceInput.required = true;
             } else {
@@ -4555,12 +5367,12 @@
                     return;
                 }
                 
-                if (referenceType === 'ค้นหามา' && (!referenceInput || referenceInput.trim() === '')) {
+                if (referenceType === 'ค้นหามาจาก' && (!referenceInput || referenceInput.trim() === '')) {
                     showNotification('กรุณาระบุแหล่งที่มาของการค้นหา', 'error');
                     return;
                 }
                 
-                const finalReference = referenceType === 'รู้อยู่แล้ว' ? 'รู้อยู่แล้ว' : referenceInput;
+                const finalReference = referenceType === 'ความรู้เดิม' ? 'ความรู้เดิม' : referenceInput;
                 
                 // Check if translation contains key concepts (more flexible matching)
                 const correctMeanings = mission.hardWords[gameState.selectedWord].meaning.split(',').map(m => m.trim());
@@ -5285,13 +6097,13 @@
                             <p class="text-lg font-bold">ต้องทำหน้าจินตนาการ & ถอดความก่อน</p>
                             <p class="text-sm mt-2 opacity-75">กลับไปขั้นถอดความและจินตนาการเพื่อกรอกข้อมูลให้ครบ</p>
                             <button onclick="goToStep(3)" class="mt-4 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-xl">
-                                ไปหน้าจินตนาการ & ถอดความ
+                                ไปหน้าถอดถอดความ
                             </button>
                         </div>
                     `;
                 }
                 
-                showNotification('กรุณาทำหน้าจินตนาการ & ถอดความให้เสร็จก่อน', 'error');
+                showNotification('กรุณาทำหน้าถอดถอดความให้เสร็จก่อน', 'error');
                 return;
             }
             
