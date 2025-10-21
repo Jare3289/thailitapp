@@ -1991,66 +1991,9 @@
                     return false;
                 }
 
-                const answersData = {
-                    userId: gameState.userId,
-                    gameId: gameState.gameId,
-                    userName: gameState.currentUser?.name || 'Unknown',
-                    studentId: gameState.currentUser?.studentId || '',
-                    userEmail: gameState.currentUser?.email || '',
-                    grade: gameState.currentUser?.grade || '',
-                    room: gameState.currentUser?.room || '',
-                    number: gameState.currentUser?.number || '',
-                    
-                    // Vocabulary answers (correct ones)
-                    vocabularyAnswers: Object.keys(gameState.translatedWords).map(word => ({
-                        word: word,
-                        userAnswer: gameState.translatedWords[word].translation,
-                        correctAnswer: MISSION_DATA.MISSION_01.hardWords[word].meaning,
-                        reference: gameState.translatedWords[word].reference,
-                        points: gameState.translatedWords[word].points,
-                        timestamp: gameState.translatedWords[word].timestamp,
-                        isCorrect: true
-                    })),
-                    
-                    // Incorrect vocabulary attempts
-                    incorrectAttempts: Object.keys(gameState.incorrectWords).map(word => ({
-                        word: word,
-                        userAnswer: gameState.incorrectWords[word].translation,
-                        correctAnswer: MISSION_DATA.MISSION_01.hardWords[word].meaning,
-                        reference: gameState.incorrectWords[word].reference,
-                        timestamp: gameState.incorrectWords[word].timestamp,
-                        isCorrect: false
-                    })),
-                    
-                    // Creative writing answers
-                    imaginationText: gameState.imaginationText || '',
-                    interpretationText: gameState.interpretationText || '',
-                    
-                    // Comprehension quiz answers
-                    comprehensionAnswers: (gameState.comprehensionAnswers || []).map((answer, index) => ({
-                        questionIndex: index,
-                        question: MISSION_DATA.MISSION_01.comprehensionQuestions[index]?.question || '',
-                        userAnswer: answer >= 0 ? MISSION_DATA.MISSION_01.comprehensionQuestions[index]?.options[answer] || '' : 'ไม่ได้ตอบ',
-                        correctAnswer: MISSION_DATA.MISSION_01.comprehensionQuestions[index]?.options[MISSION_DATA.MISSION_01.comprehensionQuestions[index]?.correct] || '',
-                        isCorrect: answer === MISSION_DATA.MISSION_01.comprehensionQuestions[index]?.correct,
-                        timestamp: new Date().toISOString()
-                    })),
-                    comprehensionScore: gameState.comprehensionScore || 0,
-                    
-                    // Matching game data
-                    matchingScore: gameState.matchingScore || 0,
-                    matchedPairs: gameState.matchedPairs || 0,
-                    
-                    // Game metadata
-                    currentStep: gameState.currentStep,
-                    startTime: gameState.startTime,
-                    completedAt: new Date().toISOString(),
-                    totalScore: calculateCurrentScore(),
-                    
-                    // Mission info
-                    missionId: 'MISSION_01',
-                    missionTitle: 'โคลงสี่สุภาพ - พระราชพงศาวดาร'
-                };
+function initializeStepChipEvents() {
+    const container = document.getElementById('stepIndicatorContainer');
+    if (!container) return;
 
                 // Save to Firebase UserAnswer collection with unique document ID
                 const answersDocId = `${gameState.userId}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -2066,37 +2009,13 @@
             }
         }
 
-        // Calculate current score
-        function calculateCurrentScore() {
-            let vocabularyScore = 0;
-            Object.values(gameState.translatedWords).forEach(word => {
-                vocabularyScore += word.points;
-            });
-            
-            const comprehensionScore = gameState.comprehensionScore * 20;
-            const timeElapsed = (Date.now() - gameState.startTime) / 1000 / 60;
-            const timeBonus = Math.max(0, Math.floor(50 - timeElapsed * 2));
-            
-            return vocabularyScore + comprehensionScore + timeBonus;
-        }
+            // Some steps use 2.5 as special UI marker, normalize for logic
+            const logicalStep = stepValue === 2.5 ? 2 : stepValue;
+            const currentLogical = gameState.currentStep === 2.5 ? 2 : gameState.currentStep;
 
-        async function loadGameSession(gameId) {
-            try {
-                if (db) {
-                    const doc = await db.collection('gameSessions').doc(gameId).get();
-                    if (doc.exists) {
-                        return doc.data();
-                    }
-                }
-                
-                const localData = localStorage.getItem(`gameSession_${gameId}`);
-                return localData ? JSON.parse(localData) : null;
-            } catch (error) {
-                console.error('Error loading game session:', error);
-                const localData = localStorage.getItem(`gameSession_${gameId}`);
-                return localData ? JSON.parse(localData) : null;
-            }
-        }
+            // Prevent jumping ahead
+            if (logicalStep > (gameState.maxStepReached || 1)) return;
+            if (logicalStep === currentLogical) return;
 
         // Authentication Functions
         async function signInWithGoogle() {
@@ -6562,23 +6481,17 @@
             }
         }
 
-        // Close Tooltip
-        function closeTooltip() {
-            const tooltip = document.getElementById('wordTooltip');
-            if (tooltip) {
-                tooltip.remove();
-            }
+    // Close the panel when clicking outside
+    document.addEventListener('click', (event) => {
+        if (!floatingActions.contains(event.target)) {
+            closePanel();
         }
+    });
 
-        // Show Notification
-        function showNotification(message, type = 'success') {
-            const container = document.getElementById('notificationContainer');
-            const notification = document.createElement('div');
-            notification.className = `notification notification-${type}`;
-            notification.textContent = message;
-            
-            container.appendChild(notification);
-            
+    // Make sure mouseleave on panel closes it if needed (optional friendly UX)
+    if (panel) {
+        panel.addEventListener('mouseleave', () => {
+            // small delay so accidental mouseouts don't close too aggressively
             setTimeout(() => {
                 notification.remove();
             }, 4000);
