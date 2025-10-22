@@ -2159,19 +2159,9 @@
             }
         }
 
-        // Calculate current score
-        function calculateCurrentScore() {
-            let vocabularyScore = 0;
-            Object.values(gameState.translatedWords).forEach(word => {
-                vocabularyScore += word.points;
-            });
-            
-            const comprehensionScore = gameState.comprehensionScore * 20;
-            const timeElapsed = (Date.now() - gameState.startTime) / 1000 / 60;
-            const timeBonus = Math.max(0, Math.floor(50 - timeElapsed * 2));
-            
-            return vocabularyScore + comprehensionScore + timeBonus;
-        }
+                if (!answersData.userId) {
+                    console.warn('saveAllUserAnswers: missing userId, storing locally');
+                }
 
         async function loadGameSession(gameId) {
             if (!gameId) return null;
@@ -2223,6 +2213,14 @@
 
             return null;
         }
+
+            // Some steps use 2.5 as special UI marker, normalize for logic
+            const logicalStep = stepValue === 2.5 ? 2 : stepValue;
+            const currentLogical = gameState.currentStep === 2.5 ? 2 : gameState.currentStep;
+
+            // Prevent jumping ahead
+            if (logicalStep > (gameState.maxStepReached || 1)) return;
+            if (logicalStep === currentLogical) return;
 
         // Authentication Functions
         async function signInWithGoogle() {
@@ -2637,6 +2635,13 @@
                     }
                     floatingActions.setAttribute('aria-hidden', (!shouldShowPlayer).toString());
                 }
+
+                refreshHeaderCompactState();
+                initializeStepChipEvents();
+                initializeFloatingActions();
+            } catch (error) {
+                console.error('Initialisation failed', error);
+                showNotification('ไม่สามารถเริ่มต้นระบบได้', 'error');
             }
         }
 
@@ -4797,6 +4802,67 @@
             if (panel) {
                 panel.addEventListener('mouseleave', closePanel);
             }
+        }
+
+        function initializeStepChipEvents() {
+            const container = document.getElementById('stepIndicatorContainer');
+            if (!container || stepChipEventsInitialized) return;
+
+            container.querySelectorAll('.step-chip').forEach(chip => {
+                chip.addEventListener('click', () => {
+                    const stepValue = parseFloat(chip.dataset.step || '0');
+                    if (!Number.isFinite(stepValue)) return;
+                    const logicalStep = stepValue === 2.5 ? 2 : stepValue;
+                    const currentLogical = gameState.currentStep === 2.5 ? 2 : gameState.currentStep;
+
+                    if (logicalStep > (gameState.maxStepReached || 1)) return;
+                    if (logicalStep === currentLogical) return;
+
+                    goToStep(stepValue).catch(error => {
+                        console.error('Failed to navigate via step chip:', error);
+                        showNotification('ไม่สามารถเปิดขั้นตอนนี้ได้', 'error');
+                    });
+                });
+            });
+            stepChipEventsInitialized = true;
+        }
+
+        function initializeFloatingActions() {
+            const floatingActions = document.getElementById('floatingActionButtons');
+            const toggleButton = document.getElementById('floatingActionsToggle');
+            if (!floatingActions || !toggleButton || floatingActionsInitialized) return;
+
+            const panel = floatingActions.querySelector('.floating-panel');
+            const closePanel = () => floatingActions.classList.remove('show');
+
+            toggleButton.addEventListener('click', (event) => {
+                event.preventDefault();
+                floatingActions.classList.toggle('show');
+            });
+
+            if (panel) {
+                panel.addEventListener('mouseleave', closePanel);
+            }
+
+            floatingActions.querySelectorAll('.floating-action-button').forEach(button => {
+                button.addEventListener('click', () => {
+                    setTimeout(closePanel, 150);
+                });
+            });
+
+            if (floatingActionsDocHandler) {
+                document.removeEventListener('click', floatingActionsDocHandler);
+            }
+
+            floatingActionsDocHandler = (event) => {
+                if (!floatingActions.contains(event.target)) {
+                    closePanel();
+                }
+            };
+
+            document.addEventListener('click', floatingActionsDocHandler);
+            floatingActionsInitialized = true;
+        }
 
             floatingActions.querySelectorAll('.floating-action-button').forEach(button => {
                 button.addEventListener('click', () => {
@@ -6821,13 +6887,12 @@
             }
         }
 
-        // Close Tooltip
-        function closeTooltip() {
-            const tooltip = document.getElementById('wordTooltip');
-            if (tooltip) {
-                tooltip.remove();
-            }
+    // Close the panel when clicking outside
+    document.addEventListener('click', (event) => {
+        if (!floatingActions.contains(event.target)) {
+            closePanel();
         }
+    });
 
         // Show Notification
         function showNotification(message, type = 'success') {
