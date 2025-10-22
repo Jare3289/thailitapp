@@ -2156,37 +2156,39 @@
             }
         }
 
-        // Calculate current score
-        function calculateCurrentScore() {
-            let vocabularyScore = 0;
-            Object.values(gameState.translatedWords).forEach(word => {
-                vocabularyScore += word.points;
-            });
-            
-            const comprehensionScore = gameState.comprehensionScore * 20;
-            const timeElapsed = (Date.now() - gameState.startTime) / 1000 / 60;
-            const timeBonus = Math.max(0, Math.floor(50 - timeElapsed * 2));
-            
-            return vocabularyScore + comprehensionScore + timeBonus;
-        }
-
-        async function loadGameSession(gameId) {
-            try {
-                if (db) {
-                    const doc = await db.collection('gameSessions').doc(gameId).get();
-                    if (doc.exists) {
-                        return doc.data();
-                    }
+                if (!answersData.userId) {
+                    console.warn('saveAllUserAnswers: missing userId, storing locally');
                 }
-                
-                const localData = localStorage.getItem(`gameSession_${gameId}`);
-                return localData ? JSON.parse(localData) : null;
+
+                if (typeof db !== 'undefined' && db && answersData.userId) {
+                    await db.collection('UserAnswer').doc(answersDocId).set(answersData);
+                    console.log('All user answers saved to Firestore:', answersDocId);
+                } else {
+                    const KEY = 'UserAnswerCache';
+                    const cache = JSON.parse(localStorage.getItem(KEY) || '[]');
+                    cache.push({ id: answersDocId, ...answersData });
+                    localStorage.setItem(KEY, JSON.stringify(cache));
+                    console.log('All user answers saved to localStorage:', answersDocId);
+                }
+
+                if (typeof refreshTeacherViewIfNeeded === 'function') {
+                    refreshTeacherViewIfNeeded();
+                }
+
+                return { ok: true, id: answersDocId, data: answersData };
             } catch (error) {
-                console.error('Error loading game session:', error);
-                const localData = localStorage.getItem(`gameSession_${gameId}`);
-                return localData ? JSON.parse(localData) : null;
+                console.error('Error saving user answers:', error);
+                return { ok: false, error: String(error?.message || error) };
             }
         }
+
+            // Some steps use 2.5 as special UI marker, normalize for logic
+            const logicalStep = stepValue === 2.5 ? 2 : stepValue;
+            const currentLogical = gameState.currentStep === 2.5 ? 2 : gameState.currentStep;
+
+            // Prevent jumping ahead
+            if (logicalStep > (gameState.maxStepReached || 1)) return;
+            if (logicalStep === currentLogical) return;
 
         // Authentication Functions
         async function signInWithGoogle() {
@@ -3617,6 +3619,1025 @@
                 console.error('Initialisation failed', error);
                 showNotification('ไม่สามารถเริ่มต้นระบบได้', 'error');
             }
+        }
+
+        function resetTeacherLoginForm() {
+            const emailInput = document.getElementById('teacherEmail');
+            const passwordInput = document.getElementById('teacherPassword');
+            if (emailInput) emailInput.value = '';
+            if (passwordInput) passwordInput.value = '';
+        }
+
+        async function submitTeacherLogin(event) {
+            event.preventDefault();
+
+            const emailInput = document.getElementById('teacherEmail');
+            const passwordInput = document.getElementById('teacherPassword');
+
+            const email = emailInput?.value.trim().toLowerCase();
+            const password = passwordInput?.value.trim();
+
+            if (!email || !password) {
+                showNotification('กรุณากรอกอีเมลและรหัสผ่านของคุณครู', 'error');
+                return;
+            }
+
+            const credential = teacherCredentials[email];
+            if (!credential) {
+                showNotification('อีเมลหรือรหัสผ่านไม่ถูกต้อง', 'error');
+                if (passwordInput) passwordInput.value = '';
+                return;
+            }
+
+            const inputHash = await hashPasscode(password);
+            const expectedPasscode = reconstructPasscode(credential);
+            let isValid = false;
+
+            if (expectedPasscode) {
+                const expectedHash = await hashPasscode(expectedPasscode);
+                isValid = expectedHash === inputHash;
+            } else if (typeof credential.passcodeHash === 'string' && credential.passcodeHash.length > 0) {
+                isValid = credential.passcodeHash === inputHash;
+            }
+
+            if (!isValid) {
+                showNotification('อีเมลหรือรหัสผ่านไม่ถูกต้อง', 'error');
+                if (passwordInput) passwordInput.value = '';
+                return;
+            }
+
+            const { passcodeSegments, passcode, passcodeHash, ...safeCredential } = credential;
+            currentTeacher = {
+                email,
+                ...safeCredential
+            };
+
+            const loginPanel = document.getElementById('teacherLoginPanel');
+            const dashboard = document.getElementById('teacherDashboard');
+
+            if (loginPanel) loginPanel.classList.add('hidden');
+            if (dashboard) dashboard.classList.remove('hidden');
+
+            showNotification(`ยินดีต้อนรับ ${credential.name}`, 'success');
+            await renderTeacherDashboard();
+        }
+
+        function logoutTeacher() {
+            currentTeacher = null;
+            const loginPanel = document.getElementById('teacherLoginPanel');
+            const dashboard = document.getElementById('teacherDashboard');
+            if (loginPanel) loginPanel.classList.remove('hidden');
+            if (dashboard) dashboard.classList.add('hidden');
+            resetTeacherLoginForm();
+            showNotification('ออกจากระบบครูเรียบร้อย', 'success');
+        }
+
+
+        async function renderTeacherDashboard() {
+            const loading = document.getElementById('teacherDashboardLoading');
+            const summary = document.getElementById('teacherSummaryCards');
+            const tableBody = document.getElementById('teacherStudentTable');
+            const timeline = document.getElementById('teacherActivityTimeline');
+            const emptyState = document.getElementById('teacherEmptyState');
+            const tableMeta = document.getElementById('teacherTableMeta');
+            const timelineMeta = document.getElementById('teacherTimelineMeta');
+            const rankingContainer = document.getElementById('teacherRankingSummary');
+            const rankingMeta = document.getElementById('teacherRankingMeta');
+            const quickTotal = document.getElementById('teacherQuickTotal');
+            const quickAverage = document.getElementById('teacherQuickAverage');
+            const quickStudents = document.getElementById('teacherQuickStudents');
+            const quickCompleted = document.getElementById('teacherQuickCompleted');
+            const quickActive = document.getElementById('teacherQuickActive');
+            const greeting = document.getElementById('teacherGreeting');
+            const classesEl = document.getElementById('teacherClasses');
+            const emailEl = document.getElementById('teacherEmailDisplay');
+
+            try {
+                if (currentTeacher) {
+                    if (greeting) greeting.textContent = `ยินดีต้อนรับ ${currentTeacher.name}`;
+                    if (classesEl) classesEl.textContent = currentTeacher.classes?.length ? `ดูแล: ${currentTeacher.classes.join(', ')}` : 'บัญชีครูภาษาไทย';
+                    if (emailEl) emailEl.textContent = `${currentTeacher.role || 'ครูผู้สอน'} • ${currentTeacher.email}`;
+                }
+
+                if (summary) summary.innerHTML = '';
+                if (tableBody) tableBody.innerHTML = '';
+                if (timeline) timeline.innerHTML = '';
+                if (tableMeta) tableMeta.textContent = '';
+                if (timelineMeta) timelineMeta.textContent = '';
+                if (emptyState) emptyState.classList.add('hidden');
+
+                if (loading) loading.classList.remove('hidden');
+
+                const { students, sessions } = await fetchTeacherData();
+
+                if (loading) loading.classList.add('hidden');
+
+                const studentRows = buildStudentRows(students, sessions);
+                const completedSessions = sessions.filter(session => session.completed);
+                const totalScore = sessions.reduce((sum, session) => sum + (Number(session.totalScore) || 0), 0);
+                const averageScore = sessions.length ? Math.round(totalScore / sessions.length) : 0;
+                const activeToday = sessions.filter(session => {
+                    const activityDate = session.lastUpdatedAt || session.timestampAt || session.lastUpdated || session.timestamp;
+                    const parsed = parseDate(activityDate);
+                    if (!parsed) return false;
+                    const now = new Date();
+                    return parsed.getFullYear() === now.getFullYear() && parsed.getMonth() === now.getMonth() && parsed.getDate() === now.getDate();
+                });
+
+                if (quickTotal) quickTotal.textContent = totalScore ? totalScore.toLocaleString('th-TH') : '0';
+                if (quickAverage) quickAverage.textContent = sessions.length ? `${averageScore}` : '0';
+                if (quickCompleted) quickCompleted.textContent = completedSessions.length.toString();
+                if (quickActive) quickActive.textContent = activeToday.length.toString();
+                if (quickStudents) quickStudents.textContent = studentRows.length.toString();
+
+                if (studentRows.length === 0 && sessions.length === 0) {
+                    if (emptyState) emptyState.classList.remove('hidden');
+                    return;
+                }
+
+                const sortedStudentRows = [...studentRows].sort((a, b) => {
+                    const totalDiff = (b.totalScore || 0) - (a.totalScore || 0);
+                    if (totalDiff !== 0) return totalDiff;
+                    const scoreDiff = (b.averageScore || 0) - (a.averageScore || 0);
+                    if (scoreDiff !== 0) return scoreDiff;
+
+                    const aDate = parseDate(a.latestSession?.lastUpdatedAt || a.latestSession?.timestampAt || a.latestSession?.lastUpdated || a.latestSession?.timestamp);
+                    const bDate = parseDate(b.latestSession?.lastUpdatedAt || b.latestSession?.timestampAt || b.latestSession?.lastUpdated || b.latestSession?.timestamp);
+                    return (bDate?.getTime() || 0) - (aDate?.getTime() || 0);
+                });
+
+                teacherDashboardState.sessions = sessions;
+                teacherDashboardState.rows = sortedStudentRows;
+                resetTeacherStudentDetail();
+
+                if (summary) {
+                    const inProgress = sessions.length - completedSessions.length;
+                    const summaryData = [
+                        {
+                            label: 'คะแนนรวมทั้งหมด',
+                            value: totalScore ? totalScore.toLocaleString('th-TH') : '0',
+                            description: 'รวมคะแนนจากทุกกิจกรรมที่บันทึก',
+                            gradient: 'from-amber-500 to-orange-500',
+                            icon: '🏅'
+                        },
+                        {
+                            label: 'นักเรียนที่ลงทะเบียน',
+                            value: studentRows.length,
+                            description: 'มีโปรไฟล์หรือบันทึกคะแนนในระบบ',
+                            gradient: 'from-blue-500 to-indigo-500',
+                            icon: '👨‍🎓'
+                        },
+                        {
+                            label: 'ภารกิจที่เสร็จสมบูรณ์',
+                            value: completedSessions.length,
+                            description: 'ปิดจบครบทุกขั้น',
+                            gradient: 'from-emerald-500 to-teal-500',
+                            icon: '🏆'
+                        },
+                        {
+                            label: 'กำลังทำอยู่',
+                            value: Math.max(inProgress, 0),
+                            description: 'อยู่ระหว่างภารกิจ',
+                            gradient: 'from-sky-500 to-indigo-500',
+                            icon: '⏳'
+                        },
+                        {
+                            label: 'คะแนนเฉลี่ยรวม',
+                            value: sessions.length ? `${averageScore}` : '0',
+                            description: 'จากทุกเกมที่บันทึก',
+                            gradient: 'from-purple-500 to-pink-500',
+                            icon: '📊'
+                        }
+                    ];
+
+                    summary.innerHTML = summaryData.map(card => `
+                        <div class="teacher-summary-card bg-white border border-slate-200 rounded-3xl p-5 flex flex-col gap-3 shadow-sm">
+                            <div class="flex items-center gap-3">
+                                <span class="text-2xl">${card.icon}</span>
+                                <div>
+                                    <p class="text-xs uppercase tracking-wide text-slate-500">${card.label}</p>
+                                    <p class="text-2xl font-bold text-slate-900">${card.value}</p>
+                                </div>
+                            </div>
+                            <div class="mt-auto">
+                                <div class="h-1.5 rounded-full bg-slate-200 overflow-hidden">
+                                    <div class="h-full bg-gradient-to-r ${card.gradient}"></div>
+                                </div>
+                                <p class="text-xs text-slate-500 mt-2">${card.description}</p>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+
+                if (tableBody) {
+                    tableBody.innerHTML = sortedStudentRows.map(row => {
+                        const gradeRoom = row.grade ? `${row.grade}${row.room ? `/${row.room}` : ''}` : '-';
+                        const progressPercent = Math.min(100, Math.round(((row.latestSession?.currentStep || 1) / 6) * 100));
+                        const studentTotalScore = row.totalScore ? Math.round(row.totalScore) : 0;
+                        const latestScore = row.latestSession ? Math.round(Number(row.latestSession.totalScore) || Number(row.latestSession.comprehensionScore) || 0) : 0;
+                        const updatedAt = row.latestSession ? formatDateTime(row.latestSession.lastUpdatedAt || row.latestSession.timestampAt || row.latestSession.lastUpdated || row.latestSession.timestamp) : '-';
+                        const completionBadge = row.completionCount > 0 ? `<span class="px-2 py-1 rounded-full text-xs bg-emerald-100 text-emerald-700">เสร็จ ${row.completionCount} ครั้ง</span>` : `<span class="px-2 py-1 rounded-full text-xs bg-amber-100 text-amber-700">กำลังทำ</span>`;
+
+                        return `
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="px-4 py-3" data-label="นักเรียน">
+                                    <div class="flex flex-col">
+                                        <button type="button" data-student-key="${row.key || row.studentId}" class="teacher-student-link text-left font-semibold text-slate-900 hover:text-blue-600 focus:outline-none focus:text-blue-700 transition">
+                                            ${row.name || 'ไม่ระบุชื่อ'}
+                                        </button>
+                                        <span class="text-xs text-slate-500">${row.studentId || '-'}</span>
+                                        <span class="inline-flex items-center gap-1 text-xs font-semibold text-blue-600">
+                                            ${row.rankTier?.icon || '🌟'} ${row.rankTier?.label || 'มือใหม่'}
+                                        </span>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3 text-slate-600" data-label="ชั้น/ห้อง">
+                                    <div class="flex flex-col gap-1">
+                                        <span>${gradeRoom}</span>
+                                        <span class="text-xs text-slate-500">เลขที่ ${row.number || '-'}</span>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3" data-label="ความคืบหน้า">
+                                    <div class="flex flex-col gap-1">
+                                        <div class="h-2.5 rounded-full bg-slate-200">
+                                            <div class="h-full rounded-full bg-gradient-to-r from-blue-500 to-indigo-500" style="width: ${progressPercent}%"></div>
+                                        </div>
+                                        <div class="flex items-center justify-between text-xs text-slate-500">
+                                            <span>${progressPercent}%</span>
+                                            ${completionBadge}
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3 text-slate-600" data-label="คะแนนรวม">
+                                    <div class="flex flex-col gap-1">
+                                        <span class="font-semibold text-slate-900">${studentTotalScore.toLocaleString('th-TH')}</span>
+                                        <span class="text-xs text-slate-500">จาก ${row.sessions.length} ภารกิจ</span>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3 text-slate-600" data-label="คะแนนเฉลี่ย">
+                                    <div class="flex flex-col gap-1">
+                                        <span class="font-semibold text-slate-900">${(row.averageScore || latestScore).toLocaleString('th-TH')}</span>
+                                        <span class="text-xs text-slate-500">ล่าสุด ${latestScore.toLocaleString('th-TH')}</span>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3 text-slate-600 text-sm" data-label="อัปเดตล่าสุด">${updatedAt}</td>
+                            </tr>
+                        `;
+                    }).join('');
+
+                    tableBody.querySelectorAll('.teacher-student-link').forEach(button => {
+                        button.addEventListener('click', () => {
+                            const key = button.getAttribute('data-student-key');
+                            showTeacherStudentDetail(key);
+                        });
+                    });
+                }
+
+                if (tableMeta) {
+                    const totalRecordedScore = totalScore ? totalScore.toLocaleString('th-TH') : '0';
+                    tableMeta.textContent = `${sortedStudentRows.length} รายการ • คะแนนรวม ${totalRecordedScore} • อัปเดต ${formatDateTime(new Date())}`;
+                }
+
+                if (rankingContainer) {
+                    const tierStats = RANK_TIERS.map(tier => {
+                        const members = sortedStudentRows.filter(row => row.rankTier?.id === tier.id);
+                        const topMember = members.length
+                            ? [...members].sort((a, b) => (b.totalScore || 0) - (a.totalScore || 0))[0]
+                            : null;
+                        return { tier, count: members.length, topMember };
+                    });
+
+                    rankingContainer.innerHTML = tierStats.map(({ tier, count, topMember }) => {
+                        const topLabel = topMember
+                            ? ` • สูงสุด ${topMember.name || 'ไม่ระบุชื่อ'} (${Math.round(topMember.totalScore || 0).toLocaleString('th-TH')} แต้ม)`
+                            : '';
+                        return `
+                            <div class="teacher-rank-card">
+                                <div class="rank-tier">${tier.icon} ${tier.label}</div>
+                                <div class="text-2xl font-bold text-slate-900">${count.toLocaleString('th-TH')}</div>
+                                <div class="rank-meta">${tier.description}${topLabel}</div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+
+                if (rankingMeta) {
+                    rankingMeta.textContent = `${sortedStudentRows.length} รายชื่อ • อัปเดต ${formatDateTime(new Date())}`;
+                }
+
+                if (timeline) {
+                    const recentActivities = [...sessions]
+                        .sort((a, b) => {
+                            const aDate = parseDate(a.lastUpdatedAt || a.timestampAt || a.lastUpdated || a.timestamp);
+                            const bDate = parseDate(b.lastUpdatedAt || b.timestampAt || b.lastUpdated || b.timestamp);
+                            return (bDate?.getTime() || 0) - (aDate?.getTime() || 0);
+                        })
+                        .slice(0, 6);
+
+                    if (recentActivities.length === 0) {
+                        timeline.innerHTML = '<p class="text-sm text-slate-500 text-center">ยังไม่มีกิจกรรมล่าสุด</p>';
+                    } else {
+                        timeline.innerHTML = recentActivities.map(activity => {
+                            const activityTime = formatDateTime(activity.lastUpdatedAt || activity.timestampAt || activity.lastUpdated || activity.timestamp);
+                            const status = activity.completed ? 'เสร็จสิ้นภารกิจ' : `อยู่ที่ขั้นตอน ${activity.currentStep || '-'}`;
+                            const total = Math.round(Number(activity.totalScore) || Number(activity.comprehensionScore) || 0);
+                            const initials = activity.userName ? activity.userName.trim().charAt(0) : 'น';
+
+                            return `
+                                <div class="flex gap-4 p-4 bg-slate-50 border border-slate-200 rounded-2xl">
+                                    <div class="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xl">${initials}</div>
+                                    <div class="flex-1">
+                                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                                            <div>
+                                                <p class="font-semibold text-slate-900">${activity.userName || 'นักเรียนไม่ระบุชื่อ'}</p>
+                                                <p class="text-xs text-slate-500">${status}</p>
+                                            </div>
+                                            <div class="text-xs text-slate-500">${activityTime}</div>
+                                        </div>
+                                        <div class="mt-2 text-sm text-slate-600">คะแนนรวม ${total.toLocaleString('th-TH')} แต้ม</div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('');
+                    }
+                }
+
+                if (timelineMeta) {
+                    timelineMeta.textContent = `${sessions.length} บันทึกกิจกรรม`;
+                }
+
+            } catch (error) {
+                console.error('Teacher dashboard render failed:', error);
+                if (loading) loading.classList.add('hidden');
+                if (summary) summary.innerHTML = '';
+                if (tableBody) tableBody.innerHTML = '';
+                if (timeline) timeline.innerHTML = '';
+                if (tableMeta) tableMeta.textContent = '';
+                if (timelineMeta) timelineMeta.textContent = '';
+                if (rankingContainer) rankingContainer.innerHTML = '';
+                if (rankingMeta) rankingMeta.textContent = '';
+                if (emptyState) {
+                    emptyState.classList.remove('hidden');
+                    emptyState.innerHTML = `
+                        <div class="space-y-2">
+                            <p class="font-semibold text-slate-700">ไม่สามารถโหลดข้อมูลครูได้ในขณะนี้</p>
+                            <p class="text-sm text-slate-500">กรุณาลองรีเฟรชหรือตรวจสอบการเชื่อมต่ออีกครั้ง</p>
+                        </div>
+                    `;
+                }
+                resetTeacherStudentDetail();
+                showNotification('ไม่สามารถโหลดแดชบอร์ดครูได้ กรุณาลองใหม่อีกครั้ง', 'error');
+            }
+        }
+
+        function resetTeacherStudentDetail() {
+            const container = document.getElementById('teacherStudentDetailContent');
+            if (!container) return;
+            container.classList.add('text-center');
+            container.innerHTML = '<p class="text-sm text-slate-500">คลิกชื่อนักเรียนจากตารางเพื่อเปิดหน้าต่างรายงาน</p>';
+            closeTeacherStudentModal();
+        }
+
+        function showTeacherStudentDetail(studentKey) {
+            const container = document.getElementById('teacherStudentDetailContent');
+            if (!container || !studentKey) {
+                resetTeacherStudentDetail();
+                return;
+            }
+
+            const studentRow = teacherDashboardState.rows.find(row => row.key === studentKey || row.studentId === studentKey);
+            if (!studentRow) {
+                resetTeacherStudentDetail();
+                return;
+            }
+
+            const sessions = [...(studentRow.sessions || [])].sort((a, b) => {
+                const aDate = parseDate(a.lastUpdatedAt || a.timestampAt || a.lastUpdated || a.timestamp);
+                const bDate = parseDate(b.lastUpdatedAt || b.timestampAt || b.lastUpdated || b.timestamp);
+                return (bDate?.getTime() || 0) - (aDate?.getTime() || 0);
+            });
+
+            const latestSession = sessions[0] || null;
+            const latestScore = latestSession ? Math.round(Number(latestSession.totalScore) || Number(latestSession.comprehensionScore) || 0) : 0;
+            const currentStep = latestSession ? latestSession.currentStep : null;
+            const gradeRoom = studentRow.grade ? `${studentRow.grade}${studentRow.room ? `/${studentRow.room}` : ''}` : '-';
+            const studentTotalScore = studentRow.totalScore ? Math.round(studentRow.totalScore) : 0;
+            const averageScore = studentRow.averageScore ? Math.round(studentRow.averageScore) : (studentRow.sessions.length ? Math.round(studentTotalScore / studentRow.sessions.length) : 0);
+            const lastActivity = latestSession ? formatDateTime(latestSession.lastUpdatedAt || latestSession.timestampAt || latestSession.lastUpdated || latestSession.timestamp) : '-';
+
+            const today = new Date();
+            const todaySessions = sessions.filter(session => {
+                const sessionDate = parseDate(session.lastUpdatedAt || session.timestampAt || session.lastUpdated || session.timestamp);
+                return sessionDate ? isSameDay(sessionDate, today) : false;
+            });
+
+            const todayScore = todaySessions.reduce((sum, session) => sum + (Number(session.totalScore) || Number(session.comprehensionScore) || 0), 0);
+            const todayCompleted = todaySessions.filter(session => session.completed).length;
+
+            const headerStats = [
+                { label: 'คะแนนสะสม', value: studentTotalScore.toLocaleString('th-TH'), icon: '🎯' },
+                { label: 'คะแนนเฉลี่ย', value: averageScore.toLocaleString('th-TH'), icon: '📊' },
+                { label: 'คะแนนล่าสุด', value: latestScore.toLocaleString('th-TH'), icon: '📈' },
+                { label: 'ภารกิจสำเร็จ', value: studentRow.completionCount || 0, icon: '🏆' },
+                { label: 'ขั้นปัจจุบัน', value: getStepLabel(currentStep), icon: '🧭' }
+            ];
+
+            const recentActivities = sessions.slice(0, 5);
+
+            const activityCards = recentActivities.length
+                ? recentActivities.map(activity => {
+                    const activityDate = formatDateTime(activity.lastUpdatedAt || activity.timestampAt || activity.lastUpdated || activity.timestamp);
+                    const activityScore = Math.round(Number(activity.totalScore) || Number(activity.comprehensionScore) || 0);
+                    const stepLabel = getStepLabel(activity.currentStep);
+                    const status = activity.completed ? 'เสร็จสิ้นภารกิจ' : `กำลังเรียนรู้: ${stepLabel}`;
+                    return `
+                        <div class="rounded-2xl border border-slate-200 bg-white/90 p-4 flex flex-col gap-2 shadow-sm">
+                            <div class="flex items-start justify-between gap-3">
+                                <div class="font-semibold text-slate-900 leading-tight">${activity.userName || studentRow.name}</div>
+                                <span class="text-xs text-slate-500 whitespace-nowrap">${activityDate}</span>
+                            </div>
+                            <p class="text-sm text-slate-600">${status}</p>
+                            <div class="text-sm font-semibold text-blue-700">คะแนน ${activityScore.toLocaleString('th-TH')} แต้ม</div>
+                        </div>
+                    `;
+                }).join('')
+                : '<p class="text-sm text-slate-500">ยังไม่มีบันทึกกิจกรรมของนักเรียนคนนี้</p>';
+
+            const todaySummary = [
+                { label: 'กิจกรรมที่บันทึกวันนี้', value: todaySessions.length || 0, icon: '🗓️' },
+                { label: 'คะแนนที่ได้วันนี้', value: todayScore ? todayScore.toLocaleString('th-TH') : '0', icon: '⭐' },
+                { label: 'ภารกิจสำเร็จวันนี้', value: todayCompleted || 0, icon: '✅' },
+                { label: 'อัปเดตล่าสุด', value: lastActivity, icon: '⏱️' }
+            ];
+
+            const detailHtml = `
+                <div class="space-y-6 text-left">
+                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+                        <div>
+                            <p class="text-xs uppercase tracking-wide text-slate-500">นักเรียน</p>
+                            <h5 class="text-2xl font-bold text-slate-900">${studentRow.name || 'ไม่ระบุชื่อ'}</h5>
+                            <p class="text-sm text-slate-500">${gradeRoom} • เลขที่ ${studentRow.number || '-'}</p>
+                        </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                            ${headerStats.map(stat => `
+                                <div class="rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
+                                    <div class="text-lg">${stat.icon}</div>
+                                    <p class="text-xs text-slate-500 mt-1">${stat.label}</p>
+                                    <p class="text-lg font-semibold text-slate-900">${stat.value}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h5 class="text-base font-semibold text-slate-900">กิจกรรมล่าสุด</h5>
+                            <span class="text-xs text-slate-500">ทั้งหมด ${studentRow.sessions.length} กิจกรรม</span>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+                            ${activityCards}
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <h5 class="text-base font-semibold text-slate-900">ข้อมูลสำคัญ</h5>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                            ${todaySummary.map(stat => `
+                                <div class="rounded-2xl border border-slate-200 bg-white/90 p-4">
+                                    <div class="text-lg">${stat.icon}</div>
+                                    <p class="text-xs text-slate-500 mt-1">${stat.label}</p>
+                                    <p class="text-lg font-semibold text-slate-900">${stat.value}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            container.classList.remove('text-center');
+            container.innerHTML = detailHtml;
+            openTeacherStudentModal(detailHtml);
+        }
+
+        function closeTeacherStudentModal() {
+            const existing = document.getElementById('teacherStudentModal');
+            if (existing) {
+                existing.remove();
+                document.body.classList.remove('overflow-hidden');
+            }
+        }
+
+        function openTeacherStudentModal(content) {
+            closeTeacherStudentModal();
+
+            const modal = document.createElement('div');
+            modal.id = 'teacherStudentModal';
+            modal.className = 'fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4';
+            modal.innerHTML = `
+                <div class="modal-card scrollable bg-white rounded-3xl p-6 md:p-8 shadow-2xl relative">
+                    <button type="button" class="absolute top-4 right-4 text-slate-500 hover:text-slate-700" aria-label="ปิดรายงาน" onclick="closeTeacherStudentModal()">✕</button>
+                    <div class="space-y-6">${content}</div>
+                </div>
+            `;
+
+            modal.addEventListener('click', event => {
+                if (event.target === modal) {
+                    closeTeacherStudentModal();
+                }
+            });
+
+            document.body.appendChild(modal);
+            document.body.classList.add('overflow-hidden');
+        }
+
+        function parseDate(value) {
+            if (!value) return null;
+            if (value instanceof Date) {
+                return isNaN(value.getTime()) ? null : value;
+            }
+            if (typeof value === 'number') {
+                const numberDate = new Date(value);
+                return isNaN(numberDate.getTime()) ? null : numberDate;
+            }
+            if (typeof value === 'string') {
+                const stringDate = new Date(value);
+                return isNaN(stringDate.getTime()) ? null : stringDate;
+            }
+            if (value && typeof value.toDate === 'function') {
+                const viaToDate = value.toDate();
+                return viaToDate instanceof Date && !isNaN(viaToDate.getTime()) ? viaToDate : null;
+            }
+            if (value && typeof value === 'object' && typeof value.seconds === 'number') {
+                const ms = value.seconds * 1000 + (value.nanoseconds || 0) / 1e6;
+                const timestampDate = new Date(ms);
+                return isNaN(timestampDate.getTime()) ? null : timestampDate;
+            }
+            return null;
+        }
+
+        function normalizeFirestoreValue(value) {
+            if (value === null || value === undefined) return value;
+            if (Array.isArray(value)) {
+                return value.map(item => normalizeFirestoreValue(item));
+            }
+            if (typeof value === 'object') {
+                const asDate = parseDate(value);
+                if (asDate) {
+                    return asDate.toISOString();
+                }
+                const normalized = {};
+                Object.entries(value).forEach(([key, val]) => {
+                    normalized[key] = normalizeFirestoreValue(val);
+                });
+                return normalized;
+            }
+            return value;
+        }
+
+        function normalizeStudentRecord(rawStudent = {}) {
+            const student = normalizeFirestoreValue(rawStudent) || {};
+            const key = student.studentId || student.id || student.uid || student.userId || student.email || student.name || '';
+            return {
+                ...student,
+                key,
+                studentId: student.studentId || student.id || student.uid || student.userId || key,
+                name: student.name || student.displayName || 'นักเรียนไม่ระบุชื่อ',
+                grade: student.grade || student.gradeLevel || student.classLevel || student.level || '-',
+                room: student.room || student.classroom || student.class || student.section || '-',
+                number: student.number || student.studentNumber || student.no || student.index || '-',
+            };
+        }
+
+        function calculateVocabularyScore(translatedWords = {}) {
+            return Object.values(translatedWords).reduce((sum, entry) => {
+                if (!entry || typeof entry !== 'object') return sum;
+                return sum + (Number(entry.points) || 0);
+            }, 0);
+        }
+
+        function normalizeSessionRecord(rawSession = {}, keyOverride) {
+            try {
+                const session = normalizeFirestoreValue(rawSession) || {};
+                const key = keyOverride
+                    || session.studentId
+                    || session.userId
+                    || session.userEmail
+                    || session.userName
+                    || session.id
+                    || '';
+
+                const lastUpdatedAt = parseDate(session.lastUpdated || session.updatedAt || session.finishedAt || session.completedAt);
+                const timestampAt = parseDate(session.timestamp || session.createdAt || session.startedAt || lastUpdatedAt);
+                const vocabScore = calculateVocabularyScore(session.translatedWords);
+                const comprehensionScore = Number(session.comprehensionScore ?? 0);
+                const matchingScore = Number(session.matchingScore ?? 0);
+                const currentStep = Number(session.currentStep ?? session.step ?? 1);
+                const totalScore = typeof session.totalScore === 'number'
+                    ? Number(session.totalScore) || 0
+                    : vocabScore + comprehensionScore + matchingScore;
+
+                return {
+                    ...session,
+                    key,
+                    studentId: session.studentId || session.userId || key,
+                    userId: session.userId || session.studentId || key,
+                    userName: session.userName || session.displayName || session.studentName || 'นักเรียนไม่ระบุชื่อ',
+                    userEmail: session.userEmail || session.email || '',
+                    grade: session.grade || session.gradeLevel || session.classLevel || '-',
+                    room: session.room || session.classroom || session.class || '-',
+                    number: session.number || session.studentNumber || session.no || '-',
+                    currentStep,
+                    totalScore,
+                    comprehensionScore,
+                    matchingScore,
+                    vocabScore,
+                    completed: Boolean(session.completed || currentStep === 6),
+                    lastUpdatedAt,
+                    timestampAt,
+                };
+            } catch (err) {
+                console.error('Error normalizeSessionRecord:', err);
+                return { key: keyOverride, userName: 'Unknown', error: String(err?.message || err) };
+            }
+        }
+
+        function formatDateTime(value) {
+            const date = parseDate(value);
+            if (!date) return '-';
+            try {
+                return date.toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' });
+            } catch (error) {
+                return date.toLocaleString();
+            }
+        }
+
+        function isSameDay(dateA, dateB) {
+            if (!dateA || !dateB) return false;
+            return dateA.getFullYear() === dateB.getFullYear() &&
+                dateA.getMonth() === dateB.getMonth() &&
+                dateA.getDate() === dateB.getDate();
+        }
+
+        function buildStudentRows(students = [], sessions = []) {
+            const studentMap = new Map();
+            students.forEach(student => {
+                if (!student || !student.key) return;
+                studentMap.set(student.key, student);
+            });
+
+            const rows = new Map();
+
+            sessions.forEach(session => {
+                if (!session || !session.key) return;
+                if (!rows.has(session.key)) {
+                    const baseStudent = studentMap.get(session.key);
+                    rows.set(session.key, {
+                        key: session.key,
+                        name: session.userName || baseStudent?.name || 'นักเรียนไม่ระบุชื่อ',
+                        grade: session.grade || baseStudent?.grade || '-',
+                        room: session.room || baseStudent?.room || '-',
+                        number: session.number || baseStudent?.number || '-',
+                        studentId: session.studentId || baseStudent?.studentId || session.key,
+                        totalScore: 0,
+                        averageScore: 0,
+                        latestSession: null,
+                        completionCount: 0,
+                        sessions: [],
+                    });
+                }
+                const entry = rows.get(session.key);
+                entry.sessions.push(session);
+                entry.totalScore += Number(session.totalScore) || 0;
+                if (session.completed) {
+                    entry.completionCount += 1;
+                }
+                if (!entry.latestSession) {
+                    entry.latestSession = session;
+                } else {
+                    const existingDate = entry.latestSession.lastUpdatedAt || entry.latestSession.timestampAt;
+                    const incomingDate = session.lastUpdatedAt || session.timestampAt;
+                    if (incomingDate && (!existingDate || incomingDate > existingDate)) {
+                        entry.latestSession = session;
+                    }
+                }
+            });
+
+            rows.forEach(entry => {
+                if (entry.sessions.length > 0) {
+                    entry.averageScore = Math.round(entry.totalScore / entry.sessions.length);
+                }
+                entry.rankTier = determineRankTier(entry.totalScore || 0);
+            });
+
+            students.forEach(student => {
+                if (!student || !student.key) return;
+                if (!rows.has(student.key)) {
+                    rows.set(student.key, {
+                        key: student.key,
+                        name: student.name || 'นักเรียนไม่ระบุชื่อ',
+                        grade: student.grade || '-',
+                        room: student.room || '-',
+                        number: student.number || '-',
+                        studentId: student.studentId || student.key,
+                        totalScore: 0,
+                        averageScore: 0,
+                        latestSession: null,
+                        completionCount: 0,
+                        sessions: [],
+                    });
+                } else {
+                    const entry = rows.get(student.key);
+                    entry.name = student.name || entry.name;
+                    entry.grade = student.grade || entry.grade;
+                    entry.room = student.room || entry.room;
+                    entry.number = student.number || entry.number;
+                    entry.studentId = student.studentId || entry.studentId;
+                }
+            });
+
+            return Array.from(rows.values());
+        }
+
+        const sampleStudents = [
+            {
+                studentId: 'ST1001',
+                name: 'กชมน ศรีวิชัย',
+                grade: 'ม.5',
+                room: '2',
+                number: '12'
+            },
+            {
+                studentId: 'ST1002',
+                name: 'ชยุต วัฒนะชัย',
+                grade: 'ม.5',
+                room: '2',
+                number: '7'
+            },
+            {
+                studentId: 'ST1003',
+                name: 'ณัฐวดี อินทรา',
+                grade: 'ม.5',
+                room: '2',
+                number: '18'
+            }
+        ];
+
+        const sampleSessions = [
+            {
+                id: 'GS-001',
+                studentId: 'ST1001',
+                userName: 'กชมน ศรีวิชัย',
+                grade: 'ม.5',
+                room: '2',
+                number: '12',
+                totalScore: 1240,
+                comprehensionScore: 1240,
+                completed: true,
+                step: 6,
+                lastUpdated: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
+                timestamp: new Date(Date.now() - 1000 * 60 * 90).toISOString()
+            },
+            {
+                id: 'GS-002',
+                studentId: 'ST1002',
+                userName: 'ชยุต วัฒนะชัย',
+                grade: 'ม.5',
+                room: '2',
+                number: '7',
+                totalScore: 865,
+                comprehensionScore: 865,
+                completed: false,
+                step: 4,
+                lastUpdated: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
+                timestamp: new Date(Date.now() - 1000 * 60 * 55).toISOString()
+            },
+            {
+                id: 'GS-003',
+                studentId: 'ST1003',
+                userName: 'ณัฐวดี อินทรา',
+                grade: 'ม.5',
+                room: '2',
+                number: '18',
+                totalScore: 540,
+                comprehensionScore: 540,
+                completed: true,
+                step: 6,
+                lastUpdated: new Date(Date.now() - 1000 * 60 * 180).toISOString(),
+                timestamp: new Date(Date.now() - 1000 * 60 * 240).toISOString()
+            }
+        ];
+        async function fetchTeacherData() {
+            let students = [];
+            let sessions = [];
+            const fallbackStudents = sampleStudents.map(student => ({ ...student }));
+            const fallbackSessions = sampleSessions.map(session => ({ ...session }));
+
+            try {
+                if (db) {
+                    const [studentSnapshot, sessionSnapshot] = await Promise.all([
+                        db.collection('User').where('isStudent', '==', true).get().catch(() => null),
+                        db.collection('gameSessions').get().catch(() => null)
+                    ]);
+
+                    if (studentSnapshot) {
+                        studentSnapshot.forEach(doc => {
+                            students.push({ id: doc.id, ...doc.data() });
+                        });
+                    }
+
+                    if (sessionSnapshot) {
+                        sessionSnapshot.forEach(doc => {
+                            sessions.push({ id: doc.id, ...doc.data() });
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading data from Firebase for teacher portal:', error);
+            }
+
+            if (sessions.length === 0 || students.length === 0) {
+                try {
+                    const response = await fetch('/gameSessions');
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (Array.isArray(data)) {
+                            sessions = sessions.length === 0 ? data : sessions;
+                        } else {
+                            if (Array.isArray(data.sessions) && sessions.length === 0) {
+                                sessions = data.sessions;
+                            }
+                            if (Array.isArray(data.students) && students.length === 0) {
+                                students = data.students;
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.warn('Fallback fetch to /gameSessions failed:', error);
+                }
+            }
+
+            if (students.length === 0) {
+                students = loadLocalStudents();
+            }
+
+            if (sessions.length === 0) {
+                sessions = loadLocalSessions();
+            }
+
+            if (students.length === 0 && sessions.length === 0) {
+                students = fallbackStudents;
+                sessions = fallbackSessions;
+            } else if (students.length === 0 && sessions.length > 0) {
+                const synthesizedStudents = new Map();
+                sessions.forEach(session => {
+                    const normalizedSession = normalizeSessionRecord(session);
+                    const key = normalizedSession.key;
+                    if (!key || synthesizedStudents.has(key)) return;
+                    synthesizedStudents.set(key, {
+                        studentId: normalizedSession.studentId || key,
+                        name: normalizedSession.userName || 'นักเรียนไม่ระบุชื่อ',
+                        grade: normalizedSession.grade || '-',
+                        room: normalizedSession.room || '-',
+                        number: normalizedSession.number || '-',
+                    });
+                });
+                students = Array.from(synthesizedStudents.values());
+            }
+
+            let normalizedStudents = students
+                .map(student => normalizeStudentRecord(student))
+                .filter(student => student && student.key);
+
+            let normalizedSessions = sessions
+                .map(session => normalizeSessionRecord(session))
+                .filter(session => session && session.key);
+
+            if (normalizedSessions.length === 0) {
+                normalizedSessions = fallbackSessions
+                    .map(session => normalizeSessionRecord(session))
+                    .filter(session => session && session.key);
+            }
+
+            if (normalizedStudents.length === 0) {
+                if (normalizedSessions.length) {
+                    const synthesized = buildStudentRows([], normalizedSessions).map(row => ({
+                        studentId: row.studentId,
+                        name: row.name,
+                        grade: row.grade,
+                        room: row.room,
+                        number: row.number
+                    }));
+                    normalizedStudents = synthesized
+                        .map(student => normalizeStudentRecord(student))
+                        .filter(student => student && student.key);
+                }
+
+                if (normalizedStudents.length === 0) {
+                    normalizedStudents = fallbackStudents
+                        .map(student => normalizeStudentRecord(student))
+                        .filter(student => student && student.key);
+                }
+            }
+
+            return { students: normalizedStudents, sessions: normalizedSessions };
+        }
+
+        function loadLocalStudents() {
+            const result = [];
+            if (typeof localStorage === 'undefined') return result;
+
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('student_')) {
+                    try {
+                        const data = JSON.parse(localStorage.getItem(key));
+                        if (data) result.push(data);
+                    } catch (error) {
+                        console.error('Failed to parse local student data', error);
+                    }
+                }
+            }
+            return result;
+        }
+
+        function loadLocalSessions() {
+            const result = [];
+            if (typeof localStorage === 'undefined') return result;
+
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('gameSession_')) {
+                    try {
+                        const data = JSON.parse(localStorage.getItem(key));
+                        if (data) result.push(data);
+                    } catch (error) {
+                        console.error('Failed to parse local session data', error);
+                    }
+                }
+            }
+            return result;
+        }
+
+        // Check for existing student login on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                populateDemoTeacherHints();
+                // Try to restore previous student session
+                const lastStudentId = localStorage.getItem('lastStudentId');
+                if (lastStudentId) {
+                    try {
+                        // Try to load from database first
+                        let userData = await loadUserData(lastStudentId);
+
+                        if (userData) {
+                            gameState.userId = lastStudentId;
+                            gameState.currentUser = userData;
+
+                            // Update player profile
+                            playerProfile.exp = userData.exp || 0;
+                            playerProfile.rank = userData.rank || 'มือใหม่';
+                            playerProfile.level = userData.level || 1;
+                            playerProfile.totalGamesPlayed = userData.totalGamesPlayed || 0;
+                            playerProfile.bestScore = userData.bestScore || 0;
+
+                            // Update UI
+                            if (userData.isGoogle) {
+                                updateLoginUI({
+                                    displayName: userData.name,
+                                    email: userData.email,
+                                    photoURL: userData.photoURL,
+                                    isGoogle: true,
+                                    userData: userData
+                                });
+                            } else {
+                                updateLoginUI({
+                                    displayName: userData.name,
+                                    email: `${userData.grade}/${userData.room} เลขที่ ${userData.number}`,
+                                    photoURL: '',
+                                    isStudent: true,
+                                    studentData: userData
+                                });
+                            }
+
+                            console.log('User session restored successfully');
+                        }
+                    } catch (error) {
+                        console.log('Error restoring user session:', error);
+                        localStorage.removeItem('lastStudentId');
+                    }
+                }
+
+                refreshHeaderCompactState();
+                initializeStepChipEvents();
+                initializeFloatingActions();
+            } catch (error) {
+                console.error('Initialisation failed', error);
+                showNotification('ไม่สามารถเริ่มต้นระบบได้', 'error');
+            }
+
+            refreshHeaderCompactState();
+            initializeStepChipEvents();
+            initializeFloatingActions();
         });
 
         // Navigation Functions
@@ -6689,13 +7710,12 @@
             }
         }
 
-        // Close Tooltip
-        function closeTooltip() {
-            const tooltip = document.getElementById('wordTooltip');
-            if (tooltip) {
-                tooltip.remove();
-            }
+    // Close the panel when clicking outside
+    document.addEventListener('click', (event) => {
+        if (!floatingActions.contains(event.target)) {
+            closePanel();
         }
+    });
 
         // Show Notification
         function showNotification(message, type = 'success') {
