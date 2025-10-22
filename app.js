@@ -4198,7 +4198,7 @@ function handleWordClick(word, event) {
                     <label class="block text-gray-700 mb-2 md:mb-3 font-semibold text-sm md:text-base">📚 แหล่งอ้างอิง</label>
                     <select id="referenceType" class="w-full modern-input p-3 md:p-4 text-sm md:text-base mb-3" onchange="toggleReferenceInput()">
                         <option value="">เลือกแหล่งอ้างอิง</option>
-                        <option value="รู้อยู่แล้ว">รู้อยู่แล้ว</option>
+                        <option value="ความรู้เดิม">ความรู้เดิม</option>
                         <option value="ค้นหามา">ค้นหามา</option>
                     </select>
                     <input type="text" id="wordReference" class="w-full modern-input p-3 md:p-4 text-sm md:text-base hidden" placeholder="ระบุแหล่งที่มา เช่น พจนานุกรม ราชบัณฑิตยสถาน, เว็บไซต์, หนังสือ">
