@@ -5171,7 +5171,7 @@ function showKloangInfo() {
                     <h3 class="text-xl font-bold text-orange-900 mb-4 text-center">รูปฉันทลักษณ์โคลงสี่สุภาพ</h3>
                     <div class="text-center">
                         <img src="https://img5.pic.in.th/file/secure-sv1/Screenshot-2025-10-19-234603.png" alt="รูปฉันทลักษณ์โคลงสี่สุภาพ" class="w-full max-w-3xl mx-auto rounded-xl border-2 border-orange-300 shadow-lg" onerror="this.src=''; this.alt='ไม่สามารถโหลดภาพได้'; this.style.display='none';">
-                        <p class="text-orange-700 text-sm mt-3">รูปแบบฉันทลักษณ์โคลงสี่สุภาพ แสดงตำแหน่งวรรณยุกต์เอก (●) โท (●) และตำแหน่งอิสระ (○)</p>
+                        <p class="text-orange-700 text-sm mt-3">รูปแบบฉันทลักษณ์โคลงสี่สุภาพ แสดงตำแหน่งวรรณยุกต์เอก (สีส้ม) โท (สีเขียว) และตำแหน่งอิสระ (ไม่นิยมใส่วรรณยุกต์)</p>
                     </div>
                 </div>
             </div>

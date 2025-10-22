@@ -1210,7 +1210,7 @@
                     <div class="mb-8 space-y-6">
                         <div class="flex justify-center lg:justify-start">
                             <span class="hero-badge">
-                                📚 ภารกิจ 01 • โคลงสี่สุภาพ
+                                📚 ภารกิจพิชิตศัพท์ยาก
                             </span>
                         </div>
 
@@ -1220,7 +1220,8 @@
                         </h1>
 
                         <p class="hero-subtitle text-base md:text-lg lg:text-xl">
-                            ประสบการณ์เรียนรู้วรรณคดีไทยที่ผสานเกมการสืบสวน การตีความ และการจับคู่คำศัพท์ให้สนุกกว่าที่เคย
+                            ประสบการณ์เรียนรู้วรรณคดีไทยที่ผสานเกมการสืบสวน<br class="hidden md:block">
+                            การตีความ และการจับคู่คำศัพท์ให้สนุกกว่าที่เคย
                         </p>
 
                         <!-- Login Section -->
@@ -1352,13 +1353,24 @@
                                 </div>
                             </div>
                         </div>
-                        
+
+                        <div id="teacherLoginCta" class="mt-4">
+                            <div class="max-w-md mx-auto w-full text-center bg-white/70 backdrop-blur rounded-2xl border border-slate-200/70 px-5 py-4 shadow-sm">
+                                <p class="text-xs font-semibold tracking-wide uppercase text-slate-600/80">สำหรับครูผู้สอน</p>
+                                <p class="text-[11px] text-slate-500 mt-1">เข้าสู่ระบบเพื่อดูคะแนนและความคืบหน้านักเรียน</p>
+                                <button onclick="openTeacherPortal()" class="mt-3 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-slate-800 text-white text-sm font-semibold hover:bg-slate-900 transition">
+                                    👩‍🏫 พื้นที่ครู
+                                    <span class="hidden sm:inline">(เข้าสู่ระบบเพื่อดูคะแนน)</span>
+                                </button>
+                            </div>
+                        </div>
+
 
                     </div>
                 </div>
-                
+
                 <!-- Right Column - Mission Info -->
-                <div class="mission-card rounded-3xl p-4 md:p-6 h-full overflow-y-auto">
+                <div class="mission-card rounded-3xl p-4 md:p-6 lg:max-h-[85vh] overflow-y-auto">
                     <div class="mb-4">
                         <h2 class="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
                             โคลงสี่สุภาพ
@@ -1427,22 +1439,13 @@
                         </div>
 
                         <div class="pt-4 mt-6 border-t border-blue-100/60 text-center text-[11px] leading-relaxed text-blue-900/80">
-                            พัฒนาโดย : นัชนันท์ นครคง , นุสรา พึ่งบ้านเกาะ , ราม แสงมณี และสุทธิชา กะรัมย์ นิสิตภาควิชาหลักสูตรและการสอน (การสอนภาษาไทย) คณะครุศาสตร์ จุฬาลงกรณ์มหาวิทยาลัย
+                            พัฒนาโดย : นัชนันท์ นครคง , นุสรา พึ่งบ้านเกาะ , ราม แสงมณี และสุทธิชา กะรัมย์<br>
+                            นิสิตภาควิชาหลักสูตรและการสอน (การสอนภาษาไทย) คณะครุศาสตร์ จุฬาลงกรณ์มหาวิทยาลัย
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div id="teacherLoginCta" class="mt-12 flex justify-center">
-                <div class="max-w-md w-full text-center bg-white/70 backdrop-blur rounded-2xl border border-slate-200/70 px-5 py-4 shadow-sm">
-                    <p class="text-xs font-semibold tracking-wide uppercase text-slate-600/80">สำหรับครูผู้สอน</p>
-                    <p class="text-[11px] text-slate-500 mt-1">เข้าสู่ระบบเพื่อดูคะแนนและความคืบหน้านักเรียน</p>
-                    <button onclick="openTeacherPortal()" class="mt-3 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-slate-800 text-white text-sm font-semibold hover:bg-slate-900 transition">
-                        👩‍🏫 พื้นที่ครู
-                        <span class="hidden sm:inline">(เข้าสู่ระบบเพื่อดูคะแนน)</span>
-                    </button>
-                </div>
-            </div>
         </div>
     </div>
 
@@ -1469,7 +1472,7 @@
                                     </span>
                                 </button>
                             </div>
-                            <div class="flex flex-col items-start gap-0.5 text-xs text-slate-600">
+                            <div class="sr-only">
                                 <span>คะแนนรวม <span id="playerExp">0</span></span>
                                 <span>อันดับ <span id="playerRank">มือใหม่</span></span>
                             </div>
