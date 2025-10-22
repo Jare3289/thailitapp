@@ -985,6 +985,73 @@
             }
         }
 
+        .modal-open .summary-action-bar {
+            display: none;
+        }
+
+        .certificate-modal {
+            width: min(100%, 1200px);
+        }
+
+        .certificate-sheet {
+            width: 100%;
+            aspect-ratio: 1.4142;
+            background: #fdf9f3;
+            border: 8px solid #fcd34d;
+            border-radius: 2rem;
+            padding: clamp(2rem, 4vw, 4rem);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: clamp(1.5rem, 4vw, 2.75rem);
+            box-shadow: inset 0 0 0 4px rgba(250, 204, 21, 0.35);
+        }
+
+        .certificate-logo-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: clamp(1.75rem, 6vw, 3.5rem);
+        }
+
+        .certificate-logo-row img {
+            max-width: clamp(72px, 12vw, 140px);
+            height: auto;
+        }
+
+        .certificate-header-text {
+            text-transform: uppercase;
+            letter-spacing: 0.35em;
+            color: #92400e;
+            font-size: clamp(0.65rem, 2.2vw, 0.95rem);
+        }
+
+        .certificate-signature-block {
+            border-top: 1px solid rgba(245, 158, 11, 0.35);
+            padding-top: clamp(1.75rem, 5vw, 2.75rem);
+            margin-top: clamp(3.5rem, 9vw, 5rem);
+        }
+
+        .teacher-activity-card,
+        .teacher-activity-timeline-card {
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .teacher-activity-card:hover,
+        .teacher-activity-card:focus-visible,
+        .teacher-activity-timeline-card:hover,
+        .teacher-activity-timeline-card:focus-visible {
+            transform: translateY(-2px);
+            box-shadow: 0 18px 35px -18px rgba(30, 64, 175, 0.35);
+        }
+
+        .teacher-activity-card:focus-visible,
+        .teacher-activity-timeline-card:focus-visible {
+            outline: 2px solid rgba(59, 130, 246, 0.6);
+            outline-offset: 2px;
+        }
+
         @keyframes ctaPop {
             0% {
                 transform: translateY(60px) scale(0.6);
@@ -1348,7 +1415,7 @@
                                         </div>
                                         <div class="text-xs text-green-600" id="userStats"></div>
                                         <p class="text-xs text-green-700 mt-3 leading-relaxed">
-                                            ผู้เข้าใช้งานเมื่อเข้าสู่ระบบแล้วสามารถแก้ไขข้อมูลส่วนตัวได้ รวมทั้งเปิดดูบันทึกที่เคยเล่นว่าได้คะแนนไว้เท่าไรและทำภารกิจใดไปแล้วบ้าง
+                                            ผู้เข้าใช้งานเมื่อเข้าสู่ระบบแล้วสามารถแก้ไขข้อมูลส่วนตัวได้ และตรวจดูบันทึกที่เคยเล่นว่าได้คะแนนไว้เท่าไรรวมถึงทำกิจกรรมใดไปแล้วบ้าง
                                         </p>
                                         <div class="flex flex-wrap justify-center gap-2 mt-4">
                                             <button onclick="openStudentEdit()" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold rounded-xl transition">
@@ -1484,13 +1551,18 @@
                                     </span>
                                 </button>
                             </div>
-                            <div class="flex flex-col text-xs text-slate-600">
-                                <span>คะแนนรวม <span id="playerExp">0</span></span>
-                                <span>อันดับ <span id="playerRank">มือใหม่</span></span>
-                            </div>
                         </div>
                     </div>
                 </div>
+                <span id="progressText" class="progress-percent">0%</span>
+            </div>
+            <div id="stepIndicatorContainer" class="flex flex-wrap justify-center gap-2">
+                <span class="step-chip step-chip-active" data-step="1"><span class="font-bold">1</span><span>📚 ประวัติศาสตร์</span></span>
+                <span class="step-chip" data-step="2"><span class="font-bold">2</span><span>📖 แสดงโคลง &amp; คำศัพท์</span></span>
+                <span class="step-chip" data-step="3"><span class="font-bold">3</span><span>✍️ ถอดความ</span></span>
+                <span class="step-chip" data-step="4"><span class="font-bold">4</span><span>🖼️ เปิดภาพจริง</span></span>
+                <span class="step-chip" data-step="5"><span class="font-bold">5</span><span>📝 ทบทวน</span></span>
+                <span class="step-chip" data-step="6"><span class="font-bold">6</span><span>🏆 สรุปผล</span></span>
             </div>
 
         </div>

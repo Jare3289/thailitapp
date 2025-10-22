@@ -128,6 +128,23 @@ let floatingActionsInitialized = false;
 let stepChipEventsInitialized = false;
 let isEditingStudentProfile = false;
 let editingStudentId = null;
+let activeModalCount = 0;
+
+function incrementModalCount() {
+    activeModalCount += 1;
+    if (typeof document !== 'undefined') {
+        document.body.classList.add('modal-open');
+        document.body.classList.add('overflow-hidden');
+    }
+}
+
+function decrementModalCount() {
+    activeModalCount = Math.max(0, activeModalCount - 1);
+    if (activeModalCount === 0 && typeof document !== 'undefined') {
+        document.body.classList.remove('modal-open');
+        document.body.classList.remove('overflow-hidden');
+    }
+}
 
 const DEFAULT_TEACHER_ACCOUNTS = {
     "teacher@thailit.app": {
@@ -912,7 +929,7 @@ async function openStudentHistory() {
     modalCard.className = 'modal-card scrollable bg-white rounded-3xl p-6 md:p-8 shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto relative';
 
     modalCard.innerHTML = `
-        <button type="button" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600" aria-label="ปิด" onclick="document.getElementById('studentHistoryModal').remove(); document.body.classList.remove('overflow-hidden');">
+        <button type="button" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600" aria-label="ปิด" onclick="closeStudentHistoryModal()">
             ✕
         </button>
         <div class="space-y-4">
@@ -929,13 +946,12 @@ async function openStudentHistory() {
     modal.appendChild(modalCard);
     modal.addEventListener('click', event => {
         if (event.target === modal) {
-            modal.remove();
-            document.body.classList.remove('overflow-hidden');
+            closeStudentHistoryModal();
         }
     });
 
     document.body.appendChild(modal);
-    document.body.classList.add('overflow-hidden');
+    incrementModalCount();
 
     try {
         const sessions = await fetchStudentSessionsByUser(activeUserId);
@@ -980,6 +996,14 @@ async function openStudentHistory() {
         if (container) {
             container.innerHTML = '<p class="text-sm text-center text-rose-500">ไม่สามารถโหลดบันทึกได้ กรุณาลองใหม่อีกครั้ง</p>';
         }
+    }
+}
+
+function closeStudentHistoryModal() {
+    const modal = document.getElementById('studentHistoryModal');
+    if (modal) {
+        modal.remove();
+        decrementModalCount();
     }
 }
 
@@ -1602,14 +1626,15 @@ async function renderTeacherDashboard() {
             if (recentActivities.length === 0) {
                 timeline.innerHTML = '<p class="text-sm text-slate-500 text-center">ยังไม่มีกิจกรรมล่าสุด</p>';
             } else {
-                timeline.innerHTML = recentActivities.map(activity => {
+                timeline.innerHTML = recentActivities.map((activity, index) => {
                     const activityTime = formatDateTime(activity.lastUpdatedAt || activity.timestampAt || activity.lastUpdated || activity.timestamp);
                     const status = activity.completed ? 'เสร็จสิ้นภารกิจ' : `อยู่ที่ขั้นตอน ${activity.currentStep || '-'}`;
                     const total = Math.round(Number(activity.totalScore) || Number(activity.comprehensionScore) || 0);
                     const initials = activity.userName ? activity.userName.trim().charAt(0) : 'น';
+                    const activityKey = getSessionIdentifier(activity, `timeline_${index}`);
 
                     return `
-                        <div class="flex gap-4 p-4 bg-slate-50 border border-slate-200 rounded-2xl">
+                        <button type="button" class="teacher-activity-timeline-card flex gap-4 p-4 bg-slate-50 border border-slate-200 rounded-2xl text-left w-full" data-session-key="${activityKey}">
                             <div class="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xl">${initials}</div>
                             <div class="flex-1">
                                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
@@ -1621,9 +1646,10 @@ async function renderTeacherDashboard() {
                                 </div>
                                 <div class="mt-2 text-sm text-slate-600">คะแนนรวม ${total.toLocaleString('th-TH')} แต้ม</div>
                             </div>
-                        </div>
+                        </button>
                     `;
                 }).join('');
+                attachTeacherActivityCardHandlers(timeline);
             }
         }
 
@@ -1729,17 +1755,16 @@ function openTeacherEditStudent(studentKey) {
     `;
 
     modal.appendChild(modalCard);
-    modal.addEventListener('click', event => {
-        if (event.target === modal) {
-            modal.remove();
-            document.body.classList.remove('overflow-hidden');
-        }
-    });
-
     const closeModal = () => {
         modal.remove();
-        document.body.classList.remove('overflow-hidden');
+        decrementModalCount();
     };
+
+    modal.addEventListener('click', event => {
+        if (event.target === modal) {
+            closeModal();
+        }
+    });
 
     modalCard.querySelector('button[aria-label="ปิด"]').addEventListener('click', closeModal);
     modalCard.querySelector('button[data-role="cancel"]').addEventListener('click', closeModal);
@@ -1773,7 +1798,7 @@ function openTeacherEditStudent(studentKey) {
     });
 
     document.body.appendChild(modal);
-    document.body.classList.add('overflow-hidden');
+    incrementModalCount();
 }
 
 async function saveTeacherStudentEdits(studentKey, updates) {
@@ -1976,20 +2001,21 @@ function showTeacherStudentDetail(studentKey) {
     const recentActivities = sessions.slice(0, 5);
 
     const activityCards = recentActivities.length
-        ? recentActivities.map(activity => {
+        ? recentActivities.map((activity, index) => {
             const activityDate = formatDateTime(activity.lastUpdatedAt || activity.timestampAt || activity.lastUpdated || activity.timestamp);
             const activityScore = Math.round(Number(activity.totalScore) || Number(activity.comprehensionScore) || 0);
             const stepLabel = getStepLabel(activity.currentStep);
             const status = activity.completed ? 'เสร็จสิ้นภารกิจ' : `กำลังเรียนรู้: ${stepLabel}`;
+            const activityKey = getSessionIdentifier(activity, `${studentRow.studentId || studentRow.key || 'session'}_${index}`);
             return `
-                <div class="rounded-2xl border border-slate-200 bg-white/90 p-4 flex flex-col gap-2 shadow-sm">
+                <button type="button" class="teacher-activity-card rounded-2xl border border-slate-200 bg-white/90 p-4 flex flex-col gap-2 shadow-sm text-left" data-session-key="${activityKey}">
                     <div class="flex items-start justify-between gap-3">
                         <div class="font-semibold text-slate-900 leading-tight">${activity.userName || studentRow.name}</div>
                         <span class="text-xs text-slate-500 whitespace-nowrap">${activityDate}</span>
                     </div>
                     <p class="text-sm text-slate-600">${status}</p>
                     <div class="text-sm font-semibold text-blue-700">คะแนน ${activityScore.toLocaleString('th-TH')} แต้ม</div>
-                </div>
+                </button>
             `;
         }).join('')
         : '<p class="text-sm text-slate-500">ยังไม่มีบันทึกกิจกรรมของนักเรียนคนนี้</p>';
@@ -2053,8 +2079,9 @@ function showTeacherStudentDetail(studentKey) {
 function closeTeacherStudentModal() {
     const existing = document.getElementById('teacherStudentModal');
     if (existing) {
+        closeTeacherActivityModal();
         existing.remove();
-        document.body.classList.remove('overflow-hidden');
+        decrementModalCount();
     }
 }
 
@@ -2078,7 +2105,202 @@ function openTeacherStudentModal(content) {
     });
 
     document.body.appendChild(modal);
-    document.body.classList.add('overflow-hidden');
+    incrementModalCount();
+    attachTeacherActivityCardHandlers(modal);
+}
+
+function attachTeacherActivityCardHandlers(root) {
+    const scope = root || document;
+    if (!scope || typeof scope.querySelectorAll !== 'function') return;
+
+    const cards = scope.querySelectorAll('.teacher-activity-card, .teacher-activity-timeline-card');
+    cards.forEach(card => {
+        if (!card || card.dataset.boundActivity === 'true') return;
+        const sessionKey = card.getAttribute('data-session-key');
+        if (!sessionKey) return;
+        card.dataset.boundActivity = 'true';
+        card.addEventListener('click', () => {
+            openTeacherActivityDetail(sessionKey);
+        });
+    });
+}
+
+function openTeacherActivityDetail(sessionKey) {
+    if (!sessionKey) return;
+
+    const sessions = Array.isArray(teacherDashboardState.sessions) ? teacherDashboardState.sessions : [];
+    const session = sessions.find(item => {
+        const identifier = getSessionIdentifier(item);
+        return identifier === sessionKey || item.id === sessionKey || item.key === sessionKey;
+    });
+
+    if (!session) {
+        showNotification('ไม่พบข้อมูลกิจกรรมที่เลือก', 'error');
+        return;
+    }
+
+    const rows = Array.isArray(teacherDashboardState.rows) ? teacherDashboardState.rows : [];
+    const students = Array.isArray(teacherDashboardState.students) ? teacherDashboardState.students : [];
+
+    const studentRow = rows.find(row => row.studentId === session.userId || row.studentId === session.studentId || row.key === session.key);
+    const studentProfile = studentRow
+        || students.find(student => student.studentId === session.userId || student.studentId === session.studentId || student.key === session.key)
+        || null;
+
+    const studentName = session.userName || studentProfile?.name || 'นักเรียนไม่ระบุชื่อ';
+    const studentId = session.studentId || session.userId || studentProfile?.studentId || '-';
+    const gradeRoom = studentProfile?.grade
+        ? `${studentProfile.grade}${studentProfile.room ? `/${studentProfile.room}` : ''}`
+        : session.grade
+            ? `${session.grade}${session.room ? `/${session.room}` : ''}`
+            : '-';
+
+    const lastUpdated = formatDateTime(session.lastUpdatedAt || session.timestampAt || session.lastUpdated || session.timestamp);
+    const totalScoreRaw = Number(session.totalScore ?? session.comprehensionScore ?? 0);
+    const totalScore = Math.max(0, Math.round(totalScoreRaw));
+    const comprehensionScore = Math.max(0, Math.round(Number(session.comprehensionScore ?? 0)));
+    const matchingScore = Math.max(0, Math.round(Number(session.matchingScore ?? 0)));
+    const vocabScore = Math.max(0, Math.round(Number(session.vocabScore ?? calculateVocabularyScore(session.translatedWords))));
+    const matchedPairs = Number(session.matchedPairs ?? (Object.keys(session.translatedWords || {}).length || 0));
+    const statusLabel = session.completed ? 'เสร็จสิ้นภารกิจ' : `กำลังเรียนรู้ (${getStepLabel(session.currentStep)})`;
+
+    const translatedEntries = Object.entries(session.translatedWords || {});
+    const incorrectEntries = Object.keys(session.incorrectWords || {});
+    const comprehensionAnswers = Array.isArray(session.comprehensionAnswers) ? session.comprehensionAnswers : [];
+
+    const translatedHtml = translatedEntries.length
+        ? `<ul class="space-y-2">
+                ${translatedEntries.map(([word, detail]) => {
+                    const meaning = detail?.meaning || detail?.definition || '-';
+                    const reference = detail?.reference || detail?.source || '';
+                    const points = Number(detail?.points || detail?.score || 0);
+                    return `
+                        <li class="rounded-xl border border-blue-100 bg-blue-50/70 p-3">
+                            <p class="font-semibold text-blue-900">${word}</p>
+                            <p class="text-sm text-slate-600 mt-1">${meaning}</p>
+                            ${reference ? `<p class="text-xs text-blue-600 mt-1">แหล่งอ้างอิง: ${reference}</p>` : ''}
+                            <p class="text-xs text-blue-500 mt-1">+${points} แต้ม</p>
+                        </li>
+                    `;
+                }).join('')}
+            </ul>`
+        : '<p class="text-sm text-slate-500">ยังไม่มีข้อมูลการสืบค้นคำศัพท์</p>';
+
+    const incorrectHtml = incorrectEntries.length
+        ? `<div class="rounded-xl border border-amber-200 bg-amber-50/70 p-3 text-sm text-amber-800">
+                คำที่ยังตอบไม่ถูก: ${incorrectEntries.map(word => `<span class="font-semibold">${word}</span>`).join(', ')}
+           </div>`
+        : '';
+
+    const answersHtml = comprehensionAnswers.length
+        ? `<ul class="space-y-2 text-sm text-slate-700">
+                ${comprehensionAnswers.map(answer => {
+                    if (!answer) return '';
+                    const question = answer.question || answer.prompt || '';
+                    const response = answer.answer || answer.response || '';
+                    const points = Number(answer.points || answer.score || 0);
+                    return `
+                        <li class="rounded-xl border border-emerald-200 bg-emerald-50/70 p-3">
+                            ${question ? `<p class="text-xs text-emerald-600 uppercase tracking-wide">${question}</p>` : ''}
+                            <p class="mt-1">${response || '—'}</p>
+                            <p class="text-xs text-emerald-600 mt-2">+${points} แต้ม</p>
+                        </li>
+                    `;
+                }).join('')}
+            </ul>`
+        : '<p class="text-sm text-slate-500">ไม่มีคำตอบการจับใจความที่บันทึกไว้</p>';
+
+    const interpretation = session.interpretationText ? `<div class="rounded-2xl border border-indigo-200 bg-indigo-50/70 p-4 text-sm text-slate-700 leading-relaxed">
+            <p class="text-xs uppercase tracking-wide text-indigo-500">ถอดความ</p>
+            <p class="mt-2">${session.interpretationText}</p>
+        </div>` : '';
+
+    const imagination = session.imaginationText ? `<div class="rounded-2xl border border-purple-200 bg-purple-50/70 p-4 text-sm text-slate-700 leading-relaxed">
+            <p class="text-xs uppercase tracking-wide text-purple-500">จินตนาการ</p>
+            <p class="mt-2">${session.imaginationText}</p>
+        </div>` : '';
+
+    closeTeacherActivityModal();
+
+    const modal = document.createElement('div');
+    modal.id = 'teacherActivityModal';
+    modal.className = 'fixed inset-0 bg-black/50 flex items-center justify-center p-4';
+    modal.style.zIndex = '60';
+    modal.innerHTML = `
+        <div class="modal-card scrollable bg-white rounded-3xl p-6 md:p-8 shadow-2xl relative max-w-3xl w-full">
+            <button type="button" class="absolute top-4 right-4 text-slate-500 hover:text-slate-700" aria-label="ปิดรายละเอียดกิจกรรม" onclick="closeTeacherActivityModal()">✕</button>
+            <div class="space-y-6">
+                <div class="space-y-1">
+                    <h3 class="text-xl font-bold text-slate-900">รายละเอียดกิจกรรมของ ${studentName}</h3>
+                    <p class="text-sm text-slate-500">รหัสนักเรียน ${studentId} • ชั้น ${gradeRoom}</p>
+                    <p class="text-xs text-slate-500">อัปเดตล่าสุด ${lastUpdated}</p>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                    <div class="rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+                        <div class="text-lg">🏅</div>
+                        <p class="text-xs text-slate-500">คะแนนรวม</p>
+                        <p class="text-lg font-semibold text-slate-900">${totalScore.toLocaleString('th-TH')} แต้ม</p>
+                    </div>
+                    <div class="rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+                        <div class="text-lg">📍</div>
+                        <p class="text-xs text-slate-500">สถานะกิจกรรม</p>
+                        <p class="text-lg font-semibold text-slate-900">${statusLabel}</p>
+                    </div>
+                    <div class="rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+                        <div class="text-lg">🔍</div>
+                        <p class="text-xs text-slate-500">สืบค้นคำศัพท์</p>
+                        <p class="text-lg font-semibold text-slate-900">${translatedEntries.length} คำ (+${vocabScore} แต้ม)</p>
+                    </div>
+                    <div class="rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+                        <div class="text-lg">🧩</div>
+                        <p class="text-xs text-slate-500">จับคู่คำศัพท์</p>
+                        <p class="text-lg font-semibold text-slate-900">${matchedPairs} คู่ (+${matchingScore} แต้ม)</p>
+                    </div>
+                    <div class="rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+                        <div class="text-lg">📖</div>
+                        <p class="text-xs text-slate-500">จับใจความ</p>
+                        <p class="text-lg font-semibold text-slate-900">${comprehensionScore} แต้ม</p>
+                    </div>
+                    <div class="rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+                        <div class="text-lg">🕒</div>
+                        <p class="text-xs text-slate-500">เวลาบันทึก</p>
+                        <p class="text-lg font-semibold text-slate-900">${lastUpdated}</p>
+                    </div>
+                </div>
+                <div class="space-y-3">
+                    <h4 class="text-base font-semibold text-slate-900">การสืบค้นคำศัพท์</h4>
+                    ${translatedHtml}
+                    ${incorrectHtml}
+                </div>
+                <div class="space-y-3">
+                    <h4 class="text-base font-semibold text-slate-900">การจับใจความ</h4>
+                    ${answersHtml}
+                </div>
+                ${interpretation || imagination ? `<div class="space-y-3">
+                    <h4 class="text-base font-semibold text-slate-900">ผลงานการถอดความและจินตนาการ</h4>
+                    ${interpretation || ''}
+                    ${imagination || ''}
+                </div>` : ''}
+            </div>
+        </div>
+    `;
+
+    modal.addEventListener('click', event => {
+        if (event.target === modal) {
+            closeTeacherActivityModal();
+        }
+    });
+
+    document.body.appendChild(modal);
+    incrementModalCount();
+}
+
+function closeTeacherActivityModal() {
+    const modal = document.getElementById('teacherActivityModal');
+    if (modal) {
+        modal.remove();
+        decrementModalCount();
+    }
 }
 
 function parseDate(value) {
@@ -2146,6 +2368,24 @@ function calculateVocabularyScore(translatedWords = {}) {
     }, 0);
 }
 
+function getSessionIdentifier(session, fallback = '') {
+    if (!session) return fallback;
+    const candidateKeys = ['sessionKey', 'id', 'gameId', 'docId', 'recordId', 'sessionId', '_id', 'uid'];
+    for (const key of candidateKeys) {
+        if (session[key]) {
+            return session[key];
+        }
+    }
+    if (session.key && session.key !== session.studentId) {
+        return session.key;
+    }
+    if ((session.userId || session.studentId) && (session.timestamp || session.lastUpdated)) {
+        const timeValue = session.timestamp || session.lastUpdated;
+        return `${session.userId || session.studentId}_${timeValue}`;
+    }
+    return fallback;
+}
+
 function normalizeSessionRecord(rawSession = {}, keyOverride) {
     try {
         const session = normalizeFirestoreValue(rawSession) || {};
@@ -2159,6 +2399,13 @@ function normalizeSessionRecord(rawSession = {}, keyOverride) {
 
         const lastUpdatedAt = parseDate(session.lastUpdated || session.updatedAt || session.finishedAt || session.completedAt);
         const timestampAt = parseDate(session.timestamp || session.createdAt || session.startedAt || lastUpdatedAt);
+        const sessionKeyCandidate = getSessionIdentifier(session);
+        const sessionKey = sessionKeyCandidate || (() => {
+            const base = session.userId || session.studentId || key || 'session';
+            const seed = timestampAt ? timestampAt.getTime() : Date.now();
+            return `${base}_${seed}`;
+        })();
+
         const vocabScore = calculateVocabularyScore(session.translatedWords);
         const comprehensionScore = Number(session.comprehensionScore ?? 0);
         const matchingScore = Number(session.matchingScore ?? 0);
@@ -2170,6 +2417,7 @@ function normalizeSessionRecord(rawSession = {}, keyOverride) {
         return {
             ...session,
             key,
+            sessionKey,
             studentId: session.studentId || session.userId || key,
             userId: session.userId || session.studentId || key,
             userName: session.userName || session.displayName || session.studentName || 'นักเรียนไม่ระบุชื่อ',
@@ -3502,6 +3750,7 @@ async function renderStep(step) {
                     case 6:
                         const finalScore = await calculateFinalScore();
                         updatePlayerProfile();
+                        const rankingInfo = await computePlayerRanking(finalScore.total);
                         const praiseMessage = finalScore.total >= 900
                             ? 'ยอดเยี่ยม! คุณรักษามาตรฐานระดับนักสืบเซียนได้อย่างมั่นคง'
                             : finalScore.total >= 600
@@ -3554,8 +3803,8 @@ async function renderStep(step) {
                                                 <p class="text-xl font-bold text-emerald-700">Lv.${playerProfile.level}</p>
                                             </div>
                                             <div class="rounded-lg bg-white/90 border border-emerald-200 p-3">
-                                                <p class="text-xs text-emerald-600 uppercase tracking-wide">เวลาที่ใช้</p>
-                                                <p class="text-lg font-semibold text-emerald-700">${finalScore.duration} นาที</p>
+                                                <p class="text-xs text-emerald-600 uppercase tracking-wide">อันดับในระบบ</p>
+                                                <p class="text-lg font-semibold text-emerald-700">อันดับที่ ${rankingInfo.position.toLocaleString('th-TH')} จาก ${rankingInfo.total.toLocaleString('th-TH')} คน</p>
                                             </div>
                                         </div>
                                     </div>
@@ -4054,6 +4303,7 @@ function showUserMenu() {
     `;
 
     document.body.appendChild(modal);
+    incrementModalCount();
 }
 
 // Close User Menu
@@ -4061,6 +4311,7 @@ function closeUserMenu() {
     const modal = document.getElementById('userMenuModal');
     if (modal) {
         modal.remove();
+        decrementModalCount();
     }
 }
 
@@ -5032,16 +5283,19 @@ async function generateCertificate() {
     ctx.fillStyle = '#2f2f2f';
 
     // Images
-    if (bannerImg) {
-        const bannerWidth = 900;
-        const bannerHeight = (bannerImg.height / bannerImg.width) * bannerWidth;
-        ctx.drawImage(bannerImg, canvas.width / 2 - bannerWidth / 2, 210, bannerWidth, bannerHeight);
-    }
-
-    if (logoImg) {
-        const logoWidth = 260;
-        const logoHeight = (logoImg.height / logoImg.width) * logoWidth;
-        ctx.drawImage(logoImg, canvas.width / 2 - logoWidth / 2, 160, logoWidth, logoHeight);
+    const logos = [bannerImg, logoImg].filter(Boolean);
+    if (logos.length) {
+        const targetWidth = 420;
+        const gap = 160;
+        const totalWidth = logos.length * targetWidth + (logos.length - 1) * gap;
+        let startX = (canvas.width - totalWidth) / 2;
+        const centerY = 360;
+        logos.forEach(img => {
+            const width = targetWidth;
+            const height = (img.height / img.width) * width;
+            ctx.drawImage(img, startX, centerY - height / 2, width, height);
+            startX += width + gap;
+        });
     }
 
     const headerFont = 'bold 120px "Sarabun", "TH Sarabun New", "IBM Plex Sans Thai Looped", sans-serif';
@@ -5050,22 +5304,22 @@ async function generateCertificate() {
     const emphasisFont = 'bold 80px "Sarabun", "TH Sarabun New", "IBM Plex Sans Thai Looped", sans-serif';
 
     ctx.font = headerFont;
-    ctx.fillText('จุฬาลงกรณ์มหาวิทยาลัยคณะครุศาสตร์', canvas.width / 2, 520);
+    ctx.fillText('คณะครุศาสตร์ จุฬาลงกรณ์มหาวิทยาลัย', canvas.width / 2, 720);
 
     ctx.font = subHeaderFont;
-    ctx.fillText('เกียรติบัตร', canvas.width / 2, 640);
+    ctx.fillText('เกียรติบัตร', canvas.width / 2, 860);
 
     ctx.font = bodyFont;
-    ctx.fillText('มอบให้ไว้เพื่อแสดงว่า', canvas.width / 2, 760);
+    ctx.fillText('มอบให้ไว้เพื่อแสดงว่า', canvas.width / 2, 980);
 
     const studentName = gameState.currentUser?.name || '..............................................';
     ctx.font = emphasisFont;
-    ctx.fillText(studentName, canvas.width / 2, 880);
+    ctx.fillText(studentName, canvas.width / 2, 1100);
 
     ctx.font = bodyFont;
-    ctx.fillText('ได้ผ่านการทดสอบกิจกรรม', canvas.width / 2, 1000);
+    ctx.fillText('ได้ผ่านการทดสอบกิจกรรม', canvas.width / 2, 1220);
     ctx.font = emphasisFont;
-    ctx.fillText('“ไขรหัสวรรณคดี”', canvas.width / 2, 1080);
+    ctx.fillText('“ไขรหัสวรรณคดี”', canvas.width / 2, 1300);
 
     ctx.font = bodyFont;
     const lines = [
@@ -5075,11 +5329,11 @@ async function generateCertificate() {
         'รวมทั้งพัฒนาทักษะการอ่าน วิเคราะห์ และตีความวรรณศิลป์อย่างสร้างสรรค์'
     ];
     lines.forEach((line, index) => {
-        ctx.fillText(line, canvas.width / 2, 1180 + index * 80);
+        ctx.fillText(line, canvas.width / 2, 1400 + index * 80);
     });
 
-    ctx.fillText('ขอให้รักษาความมุ่งมั่นและความเพียรพยายามนี้ไว้', canvas.width / 2, 1520);
-    ctx.fillText('เพื่อก้าวสู่ความสำเร็จในการเรียนรู้ต่อไป', canvas.width / 2, 1600);
+    ctx.fillText('ขอให้รักษาความมุ่งมั่นและความเพียรพยายามนี้ไว้', canvas.width / 2, 1720);
+    ctx.fillText('เพื่อก้าวสู่ความสำเร็จในการเรียนรู้ต่อไป', canvas.width / 2, 1800);
 
     const currentDate = new Date().toLocaleDateString('th-TH', {
         year: 'numeric',
@@ -5087,22 +5341,16 @@ async function generateCertificate() {
         day: 'numeric'
     });
     ctx.font = '60px "Sarabun", "TH Sarabun New", "IBM Plex Sans Thai Looped", sans-serif';
-    ctx.fillText(`ลงวันที่ ${currentDate}`, canvas.width / 2, 1720);
+    ctx.fillText(`ลงวันที่ ${currentDate}`, canvas.width / 2, 1880);
 
-    // Signature
-    ctx.beginPath();
-    ctx.moveTo(canvas.width / 2 - 500, 1950);
-    ctx.lineTo(canvas.width / 2 + 500, 1950);
-    ctx.strokeStyle = '#a68a64';
-    ctx.lineWidth = 4;
-    ctx.stroke();
-
-    ctx.font = emphasisFont;
-    ctx.fillText('ลงชื่อ .................................................................', canvas.width / 2, 1890);
+    const signatureBaseline = 2060;
     ctx.font = bodyFont;
-    ctx.fillText('(นายมงคล แก้วไทย)', canvas.width / 2, 2020);
-    ctx.fillText('คณบดีคณะครุศาสตร์', canvas.width / 2, 2100);
-    ctx.fillText('จุฬาลงกรณ์มหาวิทยาลัย', canvas.width / 2, 2180);
+    ctx.fillText('ลงชื่อ .................................................................', canvas.width / 2, signatureBaseline);
+    ctx.font = emphasisFont;
+    ctx.fillText('(นายมงคล แก้วไทย)', canvas.width / 2, signatureBaseline + 120);
+    ctx.font = bodyFont;
+    ctx.fillText('คณบดีคณะครุศาสตร์', canvas.width / 2, signatureBaseline + 200);
+    ctx.fillText('จุฬาลงกรณ์มหาวิทยาลัย', canvas.width / 2, signatureBaseline + 280);
 
     return canvas;
 }
@@ -5170,19 +5418,20 @@ function showCertificate() {
     });
 
     modal.innerHTML = `
-        <div class="modal-card scrollable bg-white rounded-3xl p-6 md:p-10 max-w-4xl w-full animate-bounce-in relative">
+        <div class="modal-card scrollable certificate-modal bg-transparent p-4 md:p-6 max-w-5xl w-full animate-bounce-in relative">
             <button onclick="closeCertificateModal()" class="absolute top-4 right-4 w-10 h-10 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center font-bold transition-all duration-200 shadow-lg text-lg z-10">
                 ×
             </button>
 
-            <div class="border-8 border-amber-200 rounded-[32px] bg-[#fdf9f3] p-6 md:p-12 space-y-8">
-                <div class="flex flex-wrap items-center justify-between gap-4">
-                    <img src="https://img2.pic.in.th/pic/f1e59dc192445ebe83f800a0476d10eb.png" alt="แถบเกียรติบัตร" class="w-36 md:w-48 object-contain" />
-                    <div class="flex-1 text-center min-w-[200px]">
-                        <p class="text-xs md:text-sm text-amber-700 tracking-[0.35em] uppercase">จุฬาลงกรณ์มหาวิทยาลัยคณะครุศาสตร์</p>
-                        <h1 class="text-3xl md:text-4xl font-extrabold text-slate-800 mt-2">เกียรติบัตร</h1>
-                    </div>
-                    <img src="https://img5.pic.in.th/file/secure-sv1/Logo_of_Chulalongkorn_University.svgfa0a44b11e315dd9.png" alt="ตราจุฬาฯ" class="w-20 md:w-28 object-contain" />
+            <div class="certificate-sheet space-y-6">
+                <div class="certificate-logo-row">
+                    <img src="https://img2.pic.in.th/pic/f1e59dc192445ebe83f800a0476d10eb.png" alt="แถบเกียรติบัตร" />
+                    <img src="https://img5.pic.in.th/file/secure-sv1/Logo_of_Chulalongkorn_University.svgfa0a44b11e315dd9.png" alt="ตราจุฬาฯ" />
+                </div>
+
+                <div class="text-center space-y-2">
+                    <p class="certificate-header-text">คณะครุศาสตร์ จุฬาลงกรณ์มหาวิทยาลัย</p>
+                    <h1 class="text-3xl md:text-5xl font-extrabold text-slate-800 tracking-wide">เกียรติบัตร</h1>
                 </div>
 
                 <div class="text-center space-y-3">
@@ -5202,7 +5451,7 @@ function showCertificate() {
                     <p>ลงวันที่ ${currentDate}</p>
                 </div>
 
-                <div class="pt-6 border-t border-amber-200 text-center space-y-2">
+                <div class="certificate-signature-block text-center space-y-2">
                     <p class="text-sm md:text-base text-slate-600">ลงชื่อ .................................................................</p>
                     <p class="text-base md:text-lg font-semibold text-slate-800">(นายมงคล แก้วไทย)</p>
                     <p class="text-sm text-slate-600">คณบดีคณะครุศาสตร์ จุฬาลงกรณ์มหาวิทยาลัย</p>
@@ -5228,6 +5477,7 @@ function closeCertificateModal() {
     const modal = document.getElementById('certificateModal');
     if (modal) {
         modal.remove();
+        decrementModalCount();
     }
 }
 
@@ -5266,6 +5516,58 @@ async function downloadCertificateImage() {
 }
 
 // Calculate Final Score
+async function computePlayerRanking(playerScore = 0) {
+    let scores = [];
+
+    if (Array.isArray(teacherDashboardState.rows) && teacherDashboardState.rows.length) {
+        scores = teacherDashboardState.rows
+            .map(row => Number(row.totalScore) || 0)
+            .filter(score => Number.isFinite(score) && score > 0);
+    }
+
+    if (!scores.length) {
+        try {
+            const { sessions } = await fetchTeacherData();
+            if (Array.isArray(sessions) && sessions.length) {
+                scores = sessions
+                    .map(session => Number(session.totalScore) || Number(session.comprehensionScore) || 0)
+                    .filter(score => Number.isFinite(score) && score > 0);
+            }
+        } catch (error) {
+            console.warn('ไม่สามารถดึงข้อมูลอันดับจากฐานข้อมูลได้', error);
+        }
+    }
+
+    if (!scores.length) {
+        const localSessions = loadLocalSessions();
+        scores = localSessions
+            .map(session => Number(session.totalScore) || Number(session.comprehensionScore) || 0)
+            .filter(score => Number.isFinite(score) && score > 0);
+    }
+
+    const normalizedScore = Number(playerScore) || 0;
+
+    if (!scores.some(score => Math.abs(score - normalizedScore) < 0.5)) {
+        scores.push(normalizedScore);
+    } else if (!scores.length) {
+        scores = [normalizedScore];
+    }
+
+    scores = scores.filter(score => Number.isFinite(score));
+
+    if (!scores.length) {
+        return { position: 1, total: 1 };
+    }
+
+    scores.sort((a, b) => b - a);
+    const position = scores.findIndex(score => normalizedScore >= score - 0.0001) + 1;
+
+    return {
+        position: position > 0 ? position : 1,
+        total: scores.length
+    };
+}
+
 async function calculateFinalScore() {
     try {
         const mission = MISSION_DATA.MISSION_01;
@@ -5456,6 +5758,7 @@ function closeQuickSearchModal() {
     const modal = getElement('quickSearchModal');
     if (modal) {
         modal.remove();
+        decrementModalCount();
     }
 }
 
@@ -5566,6 +5869,7 @@ function showAlternativeDictionaries() {
     `;
 
     document.body.appendChild(modal);
+    incrementModalCount();
 }
 
 // Close Alternative Dictionaries Modal
@@ -5573,6 +5877,7 @@ function closeAlternativeDictionariesModal() {
     const modal = document.getElementById('alternativeDictionariesModal');
     if (modal) {
         modal.remove();
+        decrementModalCount();
     }
 }
 
@@ -5621,6 +5926,7 @@ function showWordHints() {
     `;
 
     document.body.appendChild(modal);
+    incrementModalCount();
 }
 
 // Close Word Hints Modal
@@ -5628,6 +5934,7 @@ function closeWordHintsModal() {
     const modal = document.getElementById('wordHintsModal');
     if (modal) {
         modal.remove();
+        decrementModalCount();
     }
 }
 
@@ -5641,6 +5948,7 @@ function closeDictionaryModal() {
     const modal = document.getElementById('dictionaryModal');
     if (modal) {
         modal.remove();
+        decrementModalCount();
     }
 }
 
@@ -5685,6 +5993,7 @@ function showKloangInfo() {
     `;
 
     document.body.appendChild(modal);
+    incrementModalCount();
 }
 
 
@@ -5694,6 +6003,7 @@ function closeKloangModal() {
     const modal = document.getElementById('kloangModal');
     if (modal) {
         modal.remove();
+        decrementModalCount();
     }
 }
 
