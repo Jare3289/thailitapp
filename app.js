@@ -977,7 +977,7 @@ function updateLoginUI(user) {
         if (startWrapper) startWrapper.classList.remove('hidden');
         if (startHint) {
             startHint.textContent = 'พร้อมเริ่มภารกิจได้เลย';
-            startHint.classList.remove('text-purple-700/70');
+            startHint.classList.remove('text-slate-600/80');
             startHint.classList.add('text-emerald-700/80');
         }
         if (teacherCta) teacherCta.classList.add('hidden');
@@ -1013,7 +1013,7 @@ function updateLoginUI(user) {
         if (startHint) {
             startHint.textContent = 'เข้าสู่ระบบก่อนเพื่อเปิดภารกิจ';
             startHint.classList.remove('text-emerald-700/80');
-            startHint.classList.add('text-purple-700/70');
+            startHint.classList.add('text-slate-600/80');
         }
         if (teacherCta) teacherCta.classList.remove('hidden');
         if (footer) footer.classList.add('hidden');
@@ -1833,79 +1833,9 @@ function buildStudentRows(students = [], sessions = []) {
     return Array.from(rows.values());
 }
 
-const sampleStudents = [
-    {
-        studentId: 'ST1001',
-        name: 'กชมน ศรีวิชัย',
-        grade: 'ม.5',
-        room: '2',
-        number: '12'
-    },
-    {
-        studentId: 'ST1002',
-        name: 'ชยุต วัฒนะชัย',
-        grade: 'ม.5',
-        room: '2',
-        number: '7'
-    },
-    {
-        studentId: 'ST1003',
-        name: 'ณัฐวดี อินทรา',
-        grade: 'ม.5',
-        room: '2',
-        number: '18'
-    }
-];
-
-const sampleSessions = [
-    {
-        id: 'GS-001',
-        studentId: 'ST1001',
-        userName: 'กชมน ศรีวิชัย',
-        grade: 'ม.5',
-        room: '2',
-        number: '12',
-        totalScore: 1240,
-        comprehensionScore: 1240,
-        completed: true,
-        step: 6,
-        lastUpdated: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
-        timestamp: new Date(Date.now() - 1000 * 60 * 90).toISOString()
-    },
-    {
-        id: 'GS-002',
-        studentId: 'ST1002',
-        userName: 'ชยุต วัฒนะชัย',
-        grade: 'ม.5',
-        room: '2',
-        number: '7',
-        totalScore: 865,
-        comprehensionScore: 865,
-        completed: false,
-        step: 4,
-        lastUpdated: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
-        timestamp: new Date(Date.now() - 1000 * 60 * 55).toISOString()
-    },
-    {
-        id: 'GS-003',
-        studentId: 'ST1003',
-        userName: 'ณัฐวดี อินทรา',
-        grade: 'ม.5',
-        room: '2',
-        number: '18',
-        totalScore: 540,
-        comprehensionScore: 540,
-        completed: true,
-        step: 6,
-        lastUpdated: new Date(Date.now() - 1000 * 60 * 180).toISOString(),
-        timestamp: new Date(Date.now() - 1000 * 60 * 240).toISOString()
-    }
-];
 async function fetchTeacherData() {
     let students = [];
     let sessions = [];
-    const fallbackStudents = sampleStudents.map(student => ({ ...student }));
-    const fallbackSessions = sampleSessions.map(session => ({ ...session }));
 
     try {
         if (db) {
@@ -1953,7 +1883,7 @@ async function fetchTeacherData() {
             if (response.ok) {
                 const data = await response.json();
                 if (Array.isArray(data)) {
-                    sessions = sessions.length === 0 ? data : sessions;
+                    if (sessions.length === 0) sessions = data;
                 } else {
                     if (Array.isArray(data.sessions) && sessions.length === 0) {
                         sessions = data.sessions;
@@ -1964,22 +1894,25 @@ async function fetchTeacherData() {
                 }
             }
         } catch (error) {
-            console.warn('Fallback fetch to /gameSessions failed:', error);
+            console.warn('Fetch to /gameSessions failed:', error);
         }
     }
 
     if (students.length === 0) {
-        students = loadLocalStudents();
+        const localStudents = loadLocalStudents();
+        if (localStudents.length) {
+            students = localStudents;
+        }
     }
 
     if (sessions.length === 0) {
-        sessions = loadLocalSessions();
+        const localSessions = loadLocalSessions();
+        if (localSessions.length) {
+            sessions = localSessions;
+        }
     }
 
-    if (students.length === 0 && sessions.length === 0) {
-        students = fallbackStudents;
-        sessions = fallbackSessions;
-    } else if (students.length === 0 && sessions.length > 0) {
+    if (students.length === 0 && sessions.length > 0) {
         const synthesizedStudents = new Map();
         sessions.forEach(session => {
             const normalizedSession = normalizeSessionRecord(session);
@@ -2004,31 +1937,17 @@ async function fetchTeacherData() {
         .map(session => normalizeSessionRecord(session))
         .filter(session => session && session.key);
 
-    if (normalizedSessions.length === 0) {
-        normalizedSessions = fallbackSessions
-            .map(session => normalizeSessionRecord(session))
-            .filter(session => session && session.key);
-    }
-
-    if (normalizedStudents.length === 0) {
-        if (normalizedSessions.length) {
-            const synthesized = buildStudentRows([], normalizedSessions).map(row => ({
-                studentId: row.studentId,
-                name: row.name,
-                grade: row.grade,
-                room: row.room,
-                number: row.number
-            }));
-            normalizedStudents = synthesized
-                .map(student => normalizeStudentRecord(student))
-                .filter(student => student && student.key);
-        }
-
-        if (normalizedStudents.length === 0) {
-            normalizedStudents = fallbackStudents
-                .map(student => normalizeStudentRecord(student))
-                .filter(student => student && student.key);
-        }
+    if (normalizedStudents.length === 0 && normalizedSessions.length) {
+        const synthesized = buildStudentRows([], normalizedSessions).map(row => ({
+            studentId: row.studentId,
+            name: row.name,
+            grade: row.grade,
+            room: row.room,
+            number: row.number
+        }));
+        normalizedStudents = synthesized
+            .map(student => normalizeStudentRecord(student))
+            .filter(student => student && student.key);
     }
 
     return { students: normalizedStudents, sessions: normalizedSessions };
@@ -2271,7 +2190,7 @@ function showLandingPage() {
         if (startWrapper) startWrapper.classList.remove('hidden');
         if (startHint) {
             startHint.textContent = 'พร้อมเริ่มภารกิจได้เลย';
-            startHint.classList.remove('text-purple-700/70');
+            startHint.classList.remove('text-slate-600/80');
             startHint.classList.add('text-emerald-700/80');
         }
     } else if (startGameBtn) {
@@ -2280,7 +2199,7 @@ function showLandingPage() {
         if (startHint) {
             startHint.textContent = 'เข้าสู่ระบบก่อนเพื่อเปิดภารกิจ';
             startHint.classList.remove('text-emerald-700/80');
-            startHint.classList.add('text-purple-700/70');
+            startHint.classList.add('text-slate-600/80');
         }
     }
 }
