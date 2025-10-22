@@ -2733,6 +2733,25 @@ async function renderStep(step) {
                                 </div>
 
                                 <div class="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-2xl p-6 mb-6">
+                                    <div class="text-center">
+                                        <div class="text-5xl mb-4">📚</div>
+                                        <h3 class="text-xl font-bold text-blue-900 mb-4">เครื่องมือค้นหาความหมาย</h3>
+                                        <p class="text-blue-800 text-center mb-6">เลือกเครื่องมือที่ต้องการใช้ค้นหาความหมายคำศัพท์</p>
+
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <button onclick="openDictionaryNewTab()" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200 flex items-center justify-center gap-3">
+                                                <span class="text-2xl">📖</span>
+                                                <span>พจนานุกรมราชบัณฑิตยสถาน</span>
+                                            </button>
+                                            <button onclick="showKloangInfo()" class="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200 flex items-center justify-center gap-3">
+                                                <span class="text-2xl">📋</span>
+                                                <span>ฉันทลักษณ์โคลงสี่สุภาพ</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-2xl p-6 mb-6">
                                     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                                         <div class="flex items-center gap-3">
                                             <span class="text-3xl">🧭</span>
@@ -2770,26 +2789,6 @@ async function renderStep(step) {
                                     <div class="modern-card rounded-xl p-4 text-center">
                                         <p class="text-gray-600 text-sm mb-2">คำตอบผิด</p>
                                         <p class="text-xl font-bold text-red-600"><span id="incorrectWords">0</span> คำ</p>
-                                    </div>
-                                </div>
-
-                                <!-- Dictionary Tools -->
-                                <div class="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-2xl p-6 mb-6">
-                                    <div class="text-center">
-                                        <div class="text-5xl mb-4">📚</div>
-                                        <h3 class="text-xl font-bold text-blue-900 mb-4">เครื่องมือค้นหาความหมาย</h3>
-                                        <p class="text-blue-800 text-center mb-6">เลือกเครื่องมือที่ต้องการใช้ค้นหาความหมายคำศัพท์</p>
-
-                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <button onclick="openDictionaryNewTab()" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200 flex items-center justify-center gap-3">
-                                                <span class="text-2xl">📖</span>
-                                                <span>พจนานุกรมราชบัณฑิตยสถาน</span>
-                                            </button>
-                                            <button onclick="showKloangInfo()" class="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200 flex items-center justify-center gap-3">
-                                                <span class="text-2xl">📋</span>
-                                                <span>ฉันทลักษณ์โคลงสี่สุภาพ</span>
-                                            </button>
-                                        </div>
                                     </div>
                                 </div>
 
