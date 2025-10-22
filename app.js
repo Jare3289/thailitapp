@@ -126,6 +126,8 @@ const DEFAULT_AVATAR = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/20
 let floatingActionsDocHandler = null;
 let floatingActionsInitialized = false;
 let stepChipEventsInitialized = false;
+let isEditingStudentProfile = false;
+let editingStudentId = null;
 
 const DEFAULT_TEACHER_ACCOUNTS = {
     "teacher@thailit.app": {
@@ -156,7 +158,8 @@ const teacherCredentials = (() => {
 let currentTeacher = null;
 const teacherDashboardState = {
     rows: [],
-    sessions: []
+    sessions: [],
+    students: []
 };
 
 const RANK_TIERS = [
@@ -784,15 +787,35 @@ async function signOutUser() {
 
 // Student Management Functions
 function showStudentForm() {
-    document.getElementById('loginButtons').classList.add('hidden');
-    document.getElementById('studentForm').classList.remove('hidden');
+    const loginButtons = document.getElementById('loginButtons');
+    const studentForm = document.getElementById('studentForm');
+    const userInfo = document.getElementById('userInfo');
+    if (loginButtons) {
+        loginButtons.classList.add('hidden');
+    }
+    if (studentForm) {
+        studentForm.classList.remove('hidden');
+    }
+    if (userInfo && isEditingStudentProfile) {
+        userInfo.classList.add('hidden');
+    }
     const startWrapper = document.getElementById('startButtonWrapper');
     if (startWrapper) startWrapper.classList.add('hidden');
 }
 
 function hideStudentForm() {
-    document.getElementById('loginButtons').classList.remove('hidden');
-    document.getElementById('studentForm').classList.add('hidden');
+    const loginButtons = document.getElementById('loginButtons');
+    const studentForm = document.getElementById('studentForm');
+    const userInfo = document.getElementById('userInfo');
+    if (loginButtons && !gameState.currentUser) {
+        loginButtons.classList.remove('hidden');
+    }
+    if (studentForm) {
+        studentForm.classList.add('hidden');
+    }
+    if (userInfo && gameState.currentUser) {
+        userInfo.classList.remove('hidden');
+    }
     const startWrapper = document.getElementById('startButtonWrapper');
     if (startWrapper) startWrapper.classList.remove('hidden');
     clearStudentForm();
@@ -820,6 +843,17 @@ function clearStudentForm() {
     document.getElementById('studentRoom').value = '';
     document.getElementById('studentNumber').value = '';
     document.getElementById('studentPhone').value = '';
+    const studentIdInput = document.getElementById('studentId');
+    if (studentIdInput) {
+        studentIdInput.disabled = false;
+    }
+    const submitButton = document.getElementById('studentFormSubmitButton');
+    if (submitButton) {
+        submitButton.textContent = 'บันทึกข้อมูล';
+        submitButton.dataset.mode = 'create';
+    }
+    isEditingStudentProfile = false;
+    editingStudentId = null;
 }
 
 function clearLoginForm() {
@@ -827,16 +861,142 @@ function clearLoginForm() {
     document.getElementById('loginPhone').value = '';
 }
 
+function openStudentEdit() {
+    const currentUser = gameState?.currentUser;
+    const activeUserId = gameState?.userId;
+    if (!currentUser || !activeUserId) {
+        showNotification('กรุณาเข้าสู่ระบบก่อนแก้ไขข้อมูล', 'error');
+        return;
+    }
+
+    isEditingStudentProfile = true;
+    editingStudentId = currentUser.studentId || activeUserId;
+
+    showStudentForm();
+
+    const nameInput = document.getElementById('studentName');
+    const idInput = document.getElementById('studentId');
+    const gradeSelect = document.getElementById('studentGrade');
+    const roomInput = document.getElementById('studentRoom');
+    const numberInput = document.getElementById('studentNumber');
+    const phoneInput = document.getElementById('studentPhone');
+    const submitButton = document.getElementById('studentFormSubmitButton');
+
+    if (nameInput) nameInput.value = currentUser.name || currentUser.displayName || '';
+    if (idInput) {
+        idInput.value = editingStudentId || '';
+        idInput.disabled = true;
+    }
+    if (gradeSelect) gradeSelect.value = currentUser.grade || '';
+    if (roomInput) roomInput.value = currentUser.room || '';
+    if (numberInput) numberInput.value = currentUser.number || '';
+    if (phoneInput) phoneInput.value = currentUser.phone || '';
+    if (submitButton) {
+        submitButton.textContent = 'บันทึกการแก้ไข';
+        submitButton.dataset.mode = 'edit';
+    }
+}
+
+async function openStudentHistory() {
+    const activeUserId = gameState?.userId;
+    if (!activeUserId) {
+        showNotification('กรุณาเข้าสู่ระบบเพื่อดูประวัติการเล่น', 'error');
+        return;
+    }
+
+    const modal = document.createElement('div');
+    modal.id = 'studentHistoryModal';
+    modal.className = 'fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4';
+
+    const modalCard = document.createElement('div');
+    modalCard.className = 'modal-card scrollable bg-white rounded-3xl p-6 md:p-8 shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto relative';
+
+    modalCard.innerHTML = `
+        <button type="button" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600" aria-label="ปิด" onclick="document.getElementById('studentHistoryModal').remove(); document.body.classList.remove('overflow-hidden');">
+            ✕
+        </button>
+        <div class="space-y-4">
+            <div>
+                <h2 class="text-xl font-bold text-slate-900">📒 บันทึกการเรียนรู้ของฉัน</h2>
+                <p class="text-sm text-slate-500">ดูคะแนนและภารกิจที่คุณได้บันทึกไว้ในระบบ</p>
+            </div>
+            <div id="studentHistoryContent" class="space-y-3">
+                <div class="text-center text-sm text-slate-500">กำลังโหลดข้อมูล...</div>
+            </div>
+        </div>
+    `;
+
+    modal.appendChild(modalCard);
+    modal.addEventListener('click', event => {
+        if (event.target === modal) {
+            modal.remove();
+            document.body.classList.remove('overflow-hidden');
+        }
+    });
+
+    document.body.appendChild(modal);
+    document.body.classList.add('overflow-hidden');
+
+    try {
+        const sessions = await fetchStudentSessionsByUser(activeUserId);
+        const container = document.getElementById('studentHistoryContent');
+        if (!container) return;
+
+        if (!sessions.length) {
+            container.innerHTML = '<p class="text-sm text-center text-slate-500">ยังไม่มีบันทึกการเล่นในระบบ</p>';
+            return;
+        }
+
+        const totalScore = sessions.reduce((sum, session) => sum + (Number(session.totalScore) || Number(session.comprehensionScore) || 0), 0);
+        const completedCount = sessions.filter(session => session.completed).length;
+
+        const header = `
+            <div class="rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4 text-sm text-emerald-700">
+                <p class="font-semibold">สรุปภาพรวม</p>
+                <p class="mt-1">บันทึกทั้งหมด ${sessions.length} ครั้ง • คะแนนรวม ${totalScore.toLocaleString('th-TH')} แต้ม • ปิดภารกิจแล้ว ${completedCount} ครั้ง</p>
+            </div>
+        `;
+
+        const items = sessions.map(session => {
+            const updated = formatDateTime(session.lastUpdatedAt || session.timestampAt || session.lastUpdated || session.timestamp);
+            const score = Math.round(Number(session.totalScore) || Number(session.comprehensionScore) || 0).toLocaleString('th-TH');
+            const stepLabel = getStepLabel(session.currentStep);
+            const status = session.completed ? 'เสร็จสิ้นภารกิจ' : `กำลังเรียนรู้: ${stepLabel}`;
+            return `
+                <div class="rounded-2xl border border-slate-200 bg-white/90 p-4 flex flex-col gap-2 shadow-sm">
+                    <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                        <span class="font-semibold text-slate-900">${status}</span>
+                        <span class="text-xs text-slate-500">${updated}</span>
+                    </div>
+                    <div class="text-sm text-slate-600">คะแนนสะสม ${score} แต้ม • ขั้นปัจจุบัน ${stepLabel}</div>
+                </div>
+            `;
+        }).join('');
+
+        container.innerHTML = header + items;
+    } catch (error) {
+        console.error('Failed to load student history', error);
+        const container = document.getElementById('studentHistoryContent');
+        if (container) {
+            container.innerHTML = '<p class="text-sm text-center text-rose-500">ไม่สามารถโหลดบันทึกได้ กรุณาลองใหม่อีกครั้ง</p>';
+        }
+    }
+}
+
 async function registerStudent() {
     const name = document.getElementById('studentName').value.trim();
-    const studentId = document.getElementById('studentId').value.trim();
+    const studentIdInput = document.getElementById('studentId');
+    const rawStudentId = studentIdInput ? studentIdInput.value.trim() : '';
     const grade = document.getElementById('studentGrade').value;
     const room = document.getElementById('studentRoom').value.trim();
     const number = document.getElementById('studentNumber').value.trim();
     const phone = document.getElementById('studentPhone').value.trim();
 
+    const isEditing = isEditingStudentProfile && !!gameState?.userId;
+    const targetStudentId = isEditing ? (editingStudentId || gameState.userId || rawStudentId) : rawStudentId;
+
     // Validation
-    if (!name || !studentId || !grade || !room || !number || !phone) {
+    if (!name || !targetStudentId || !grade || !room || !number || !phone) {
         showNotification('กรุณากรอกข้อมูลให้ครบถ้วน', 'error');
         return;
     }
@@ -846,39 +1006,44 @@ async function registerStudent() {
         return;
     }
 
+    const timestamp = new Date().toISOString();
+    const baseData = isEditing ? { ...(gameState.currentUser || {}) } : {};
+
     const studentData = {
-        name: name,
-        studentId: studentId,
-        grade: grade,
-        room: room,
-        number: number,
-        phone: phone,
-        registeredAt: new Date().toISOString(),
-        exp: 0,
-        rank: 'มือใหม่',
-        level: 1,
-        totalGamesPlayed: 0,
-        bestScore: 0,
+        ...baseData,
+        name,
+        studentId: targetStudentId,
+        grade,
+        room,
+        number,
+        phone,
+        updatedAt: timestamp,
+        registeredAt: baseData.registeredAt || timestamp,
+        exp: typeof baseData.exp === 'number' ? baseData.exp : 0,
+        rank: baseData.rank || 'มือใหม่',
+        level: typeof baseData.level === 'number' ? baseData.level : 1,
+        totalGamesPlayed: typeof baseData.totalGamesPlayed === 'number' ? baseData.totalGamesPlayed : 0,
+        bestScore: typeof baseData.bestScore === 'number' ? baseData.bestScore : 0,
         isStudent: true
     };
 
     try {
         // Set current user
-        gameState.userId = studentId;
+        gameState.userId = targetStudentId;
         gameState.currentUser = studentData;
 
         // Save to database
         await saveUserData(studentData);
 
         // Save last student ID for auto-login
-        localStorage.setItem('lastStudentId', studentId);
+        localStorage.setItem('lastStudentId', targetStudentId);
 
         // Update player profile
-        playerProfile.exp = studentData.exp;
-        playerProfile.rank = studentData.rank;
-        playerProfile.level = studentData.level;
-        playerProfile.totalGamesPlayed = studentData.totalGamesPlayed;
-        playerProfile.bestScore = studentData.bestScore;
+        playerProfile.exp = typeof studentData.exp === 'number' ? studentData.exp : (playerProfile.exp || 0);
+        playerProfile.rank = studentData.rank || playerProfile.rank || 'มือใหม่';
+        playerProfile.level = typeof studentData.level === 'number' ? studentData.level : (playerProfile.level || 1);
+        playerProfile.totalGamesPlayed = typeof studentData.totalGamesPlayed === 'number' ? studentData.totalGamesPlayed : (playerProfile.totalGamesPlayed || 0);
+        playerProfile.bestScore = typeof studentData.bestScore === 'number' ? studentData.bestScore : (playerProfile.bestScore || 0);
 
         // Update UI
         updateLoginUI({
@@ -890,7 +1055,7 @@ async function registerStudent() {
         });
 
         updateUserNameDisplay();
-        showNotification('บันทึกข้อมูลเรียบร้อย!', 'success');
+        showNotification(isEditing ? 'บันทึกการแก้ไขโปรไฟล์แล้ว' : 'บันทึกข้อมูลเรียบร้อย!', 'success');
         hideStudentForm();
 
     } catch (error) {
@@ -1241,6 +1406,7 @@ async function renderTeacherDashboard() {
             return (bDate?.getTime() || 0) - (aDate?.getTime() || 0);
         });
 
+        teacherDashboardState.students = students;
         teacherDashboardState.sessions = sessions;
         teacherDashboardState.rows = sortedStudentRows;
         resetTeacherStudentDetail();
@@ -1356,6 +1522,16 @@ async function renderTeacherDashboard() {
                             </div>
                         </td>
                         <td class="px-4 py-3 text-slate-600 text-sm" data-label="อัปเดตล่าสุด">${updatedAt}</td>
+                        <td class="px-4 py-3" data-label="การจัดการ">
+                            <div class="flex flex-wrap gap-2">
+                                <button type="button" class="teacher-edit-btn px-3 py-1.5 rounded-lg bg-amber-100 text-amber-700 text-xs font-semibold hover:bg-amber-200 transition" data-student-key="${row.key}">
+                                    ✏️ แก้ไข
+                                </button>
+                                <button type="button" class="teacher-delete-btn px-3 py-1.5 rounded-lg bg-rose-100 text-rose-700 text-xs font-semibold hover:bg-rose-200 transition" data-student-key="${row.key}">
+                                    🗑️ ลบ
+                                </button>
+                            </div>
+                        </td>
                     </tr>
                 `;
             }).join('');
@@ -1364,6 +1540,20 @@ async function renderTeacherDashboard() {
                 button.addEventListener('click', () => {
                     const key = button.getAttribute('data-student-key');
                     showTeacherStudentDetail(key);
+                });
+            });
+
+            tableBody.querySelectorAll('.teacher-edit-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    const key = button.getAttribute('data-student-key');
+                    openTeacherEditStudent(key);
+                });
+            });
+
+            tableBody.querySelectorAll('.teacher-delete-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    const key = button.getAttribute('data-student-key');
+                    requestTeacherDeleteStudent(key);
                 });
             });
         }
@@ -1471,6 +1661,272 @@ function resetTeacherStudentDetail() {
     container.classList.add('text-center');
     container.innerHTML = '<p class="text-sm text-slate-500">คลิกชื่อนักเรียนจากตารางเพื่อเปิดหน้าต่างรายงาน</p>';
     closeTeacherStudentModal();
+}
+
+function getTeacherStudentProfile(studentKey) {
+    if (!studentKey) return null;
+    const { students = [], rows = [] } = teacherDashboardState;
+    const direct = Array.isArray(students) ? students.find(student => student.key === studentKey || student.studentId === studentKey) : null;
+    if (direct) return { ...direct };
+    const row = Array.isArray(rows) ? rows.find(entry => entry.key === studentKey || entry.studentId === studentKey) : null;
+    if (row) return { ...row };
+    return null;
+}
+
+function openTeacherEditStudent(studentKey) {
+    const profile = getTeacherStudentProfile(studentKey);
+    if (!profile) {
+        showNotification('ไม่พบนักเรียนที่ต้องการแก้ไข', 'error');
+        return;
+    }
+
+    const modal = document.createElement('div');
+    modal.id = 'teacherEditStudentModal';
+    modal.className = 'fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4';
+
+    const modalCard = document.createElement('div');
+    modalCard.className = 'modal-card scrollable bg-white rounded-3xl p-6 md:p-8 shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto relative';
+    modalCard.innerHTML = `
+        <button type="button" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600" aria-label="ปิด">
+            ✕
+        </button>
+        <div class="space-y-6">
+            <div class="space-y-1">
+                <h2 class="text-xl font-bold text-slate-900">✏️ แก้ไขข้อมูลนักเรียน</h2>
+                <p class="text-sm text-slate-500">รหัสนักเรียน <span class="font-semibold">${profile.studentId || profile.key || '-'}</span></p>
+            </div>
+            <form id="teacherEditStudentForm" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <label class="space-y-2 text-sm font-medium text-slate-700">
+                        <span>ชื่อ-นามสกุล</span>
+                        <input type="text" name="name" value="${profile.name || ''}" class="modern-input p-3" required>
+                    </label>
+                    <label class="space-y-2 text-sm font-medium text-slate-700">
+                        <span>ชั้น</span>
+                        <input type="text" name="grade" value="${profile.grade || ''}" class="modern-input p-3" required>
+                    </label>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <label class="space-y-2 text-sm font-medium text-slate-700">
+                        <span>ห้อง</span>
+                        <input type="text" name="room" value="${profile.room || ''}" class="modern-input p-3" required>
+                    </label>
+                    <label class="space-y-2 text-sm font-medium text-slate-700">
+                        <span>เลขที่</span>
+                        <input type="text" name="number" value="${profile.number || ''}" class="modern-input p-3" required>
+                    </label>
+                </div>
+                <label class="space-y-2 text-sm font-medium text-slate-700 block">
+                    <span>เบอร์โทรศัพท์ (ใช้เข้าสู่ระบบ)</span>
+                    <input type="tel" name="phone" value="${profile.phone || ''}" class="modern-input p-3" required>
+                </label>
+                <div class="flex flex-wrap gap-3 justify-end">
+                    <button type="button" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200" data-role="cancel">ยกเลิก</button>
+                    <button type="submit" class="px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700">บันทึก</button>
+                </div>
+            </form>
+        </div>
+    `;
+
+    modal.appendChild(modalCard);
+    modal.addEventListener('click', event => {
+        if (event.target === modal) {
+            modal.remove();
+            document.body.classList.remove('overflow-hidden');
+        }
+    });
+
+    const closeModal = () => {
+        modal.remove();
+        document.body.classList.remove('overflow-hidden');
+    };
+
+    modalCard.querySelector('button[aria-label="ปิด"]').addEventListener('click', closeModal);
+    modalCard.querySelector('button[data-role="cancel"]').addEventListener('click', closeModal);
+
+    const form = modalCard.querySelector('#teacherEditStudentForm');
+    form.addEventListener('submit', async event => {
+        event.preventDefault();
+        const formData = new FormData(form);
+        const updates = {
+            name: formData.get('name').trim(),
+            grade: formData.get('grade').trim(),
+            room: formData.get('room').trim(),
+            number: formData.get('number').trim(),
+            phone: formData.get('phone').trim()
+        };
+
+        const phoneValid = updates.phone && updates.phone.length >= 10;
+        if (!updates.name || !updates.grade || !updates.room || !updates.number || !phoneValid) {
+            showNotification('กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง', 'error');
+            return;
+        }
+
+        const result = await saveTeacherStudentEdits(studentKey, updates);
+        if (result.ok) {
+            showNotification('อัปเดตข้อมูลนักเรียนเรียบร้อย', 'success');
+            closeModal();
+            await renderTeacherDashboard();
+        } else {
+            showNotification(result.error || 'ไม่สามารถอัปเดตข้อมูลได้', 'error');
+        }
+    });
+
+    document.body.appendChild(modal);
+    document.body.classList.add('overflow-hidden');
+}
+
+async function saveTeacherStudentEdits(studentKey, updates) {
+    try {
+        const profile = getTeacherStudentProfile(studentKey);
+        if (!profile) {
+            return { ok: false, error: 'ไม่พบนักเรียนที่ต้องการแก้ไข' };
+        }
+
+        const studentId = profile.studentId || profile.key || studentKey;
+        const merged = {
+            ...profile,
+            ...updates,
+            studentId,
+            key: profile.key || studentId,
+            updatedAt: new Date().toISOString(),
+            isStudent: true
+        };
+
+        if (db) {
+            await db.collection('User').doc(studentId).set(merged, { merge: true });
+        }
+
+        if (typeof localStorage !== 'undefined') {
+            localStorage.setItem(`student_${studentId}`, JSON.stringify(merged));
+        }
+
+        teacherDashboardState.students = (teacherDashboardState.students || []).map(student => {
+            if (student.key === profile.key || student.studentId === studentId) {
+                return { ...student, ...merged };
+            }
+            return student;
+        });
+
+        teacherDashboardState.rows = (teacherDashboardState.rows || []).map(row => {
+            if (row.key === profile.key || row.studentId === studentId) {
+                return { ...row, name: merged.name, grade: merged.grade, room: merged.room, number: merged.number };
+            }
+            return row;
+        });
+
+        if (gameState.userId === studentId) {
+            gameState.currentUser = { ...(gameState.currentUser || {}), ...merged };
+            const gradeLabel = merged.grade || '-';
+            const roomLabel = merged.room ? `/${merged.room}` : '';
+            const numberLabel = merged.number || '-';
+            const contactLabel = `${gradeLabel}${roomLabel} เลขที่ ${numberLabel}`;
+            updateLoginUI({
+                displayName: merged.name,
+                email: contactLabel,
+                photoURL: '',
+                isStudent: true,
+                studentData: merged
+            });
+            updateUserNameDisplay();
+        }
+
+        return { ok: true };
+    } catch (error) {
+        console.error('saveTeacherStudentEdits error', error);
+        return { ok: false, error: 'เกิดข้อผิดพลาดในการบันทึกข้อมูล' };
+    }
+}
+
+function requestTeacherDeleteStudent(studentKey) {
+    const profile = getTeacherStudentProfile(studentKey);
+    if (!profile) {
+        showNotification('ไม่พบนักเรียนที่ต้องการลบ', 'error');
+        return;
+    }
+
+    const confirmed = confirm(`ต้องการลบข้อมูลของ ${profile.name || 'นักเรียนนี้'} และบันทึกทั้งหมดหรือไม่?`);
+    if (!confirmed) return;
+    deleteTeacherStudent(studentKey).catch(error => {
+        console.error('deleteTeacherStudent failed', error);
+        showNotification('ไม่สามารถลบข้อมูลนักเรียนได้', 'error');
+    });
+}
+
+async function deleteTeacherStudent(studentKey) {
+    const profile = getTeacherStudentProfile(studentKey);
+    if (!profile) throw new Error('ไม่พบนักเรียนในระบบ');
+
+    const studentId = profile.studentId || profile.key || studentKey;
+
+    if (db) {
+        try {
+            await db.collection('User').doc(studentId).delete();
+        } catch (error) {
+            console.warn('ไม่สามารถลบโปรไฟล์นักเรียนใน Firestore ได้', error);
+        }
+
+        const deleteSessions = async (collectionName) => {
+            try {
+                const snapshot = await db.collection(collectionName).where('userId', '==', studentId).get();
+                const batch = db.batch();
+                snapshot.forEach(doc => batch.delete(doc.ref));
+                if (!snapshot.empty) {
+                    await batch.commit();
+                }
+            } catch (error) {
+                console.warn(`ไม่สามารถลบข้อมูลใน ${collectionName}`, error);
+            }
+        };
+
+        await deleteSessions('GameSession');
+        await deleteSessions('gameSessions');
+    }
+
+    if (typeof localStorage !== 'undefined') {
+        localStorage.removeItem(`student_${studentId}`);
+        const cacheValue = localStorage.getItem('GameSessionCache');
+        if (cacheValue) {
+            try {
+                const parsed = JSON.parse(cacheValue);
+                if (Array.isArray(parsed)) {
+                    const filtered = parsed.filter(entry => entry && entry.userId !== studentId && entry.studentId !== studentId);
+                    localStorage.setItem('GameSessionCache', JSON.stringify(filtered));
+                }
+            } catch (error) {
+                console.error('ล้างแคช GameSessionCache ไม่สำเร็จ', error);
+            }
+        }
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith('gameSession_')) {
+                try {
+                    const data = JSON.parse(localStorage.getItem(key));
+                    if (data && (data.userId === studentId || data.studentId === studentId)) {
+                        keysToRemove.push(key);
+                    }
+                } catch (error) {
+                    console.error('ตรวจสอบแคชเกมไม่สำเร็จ', error);
+                }
+            }
+        }
+        keysToRemove.forEach(key => localStorage.removeItem(key));
+    }
+
+    teacherDashboardState.students = (teacherDashboardState.students || []).filter(student => student.key !== profile.key && student.studentId !== studentId);
+    teacherDashboardState.rows = (teacherDashboardState.rows || []).filter(row => row.key !== profile.key && row.studentId !== studentId);
+    teacherDashboardState.sessions = (teacherDashboardState.sessions || []).filter(session => session.userId !== studentId && session.studentId !== studentId);
+
+    if (gameState.userId === studentId) {
+        gameState.gameId = null;
+        gameState.userId = null;
+        gameState.currentUser = null;
+        await signOutUser();
+    }
+
+    showNotification('ลบข้อมูลนักเรียนเรียบร้อยแล้ว', 'success');
+    await renderTeacherDashboard();
 }
 
 function showTeacherStudentDetail(studentKey) {
@@ -1951,6 +2407,52 @@ async function fetchTeacherData() {
     }
 
     return { students: normalizedStudents, sessions: normalizedSessions };
+}
+
+async function fetchStudentSessionsByUser(userId) {
+    if (!userId) return [];
+    const sessionMap = new Map();
+
+    if (db) {
+        try {
+            const [canonical, legacy] = await Promise.all([
+                db.collection('GameSession').where('userId', '==', userId).get().catch(() => null),
+                db.collection('gameSessions').where('userId', '==', userId).get().catch(() => null)
+            ]);
+
+            const addSnapshot = snapshot => {
+                if (!snapshot) return;
+                snapshot.forEach(doc => {
+                    const data = { id: doc.id, ...doc.data() };
+                    const key = data.id || `${userId}_${doc.id}`;
+                    sessionMap.set(key, data);
+                });
+            };
+
+            addSnapshot(canonical);
+            addSnapshot(legacy);
+        } catch (error) {
+            console.warn('Unable to query Firestore for student sessions', error);
+        }
+    }
+
+    const localSessions = loadLocalSessions();
+    localSessions
+        .filter(entry => (entry.userId || entry.studentId) === userId)
+        .forEach(entry => {
+            const key = entry.id || entry.gameId || `${userId}_${entry.timestamp}`;
+            sessionMap.set(key, entry);
+        });
+
+    const normalized = Array.from(sessionMap.values())
+        .map(session => normalizeSessionRecord(session))
+        .filter(session => session && (session.userId === userId || session.studentId === userId));
+
+    return normalized.sort((a, b) => {
+        const aDate = parseDate(a.lastUpdatedAt || a.timestampAt || a.lastUpdated || a.timestamp);
+        const bDate = parseDate(b.lastUpdatedAt || b.timestampAt || b.lastUpdated || b.timestamp);
+        return (bDate?.getTime() || 0) - (aDate?.getTime() || 0);
+    });
 }
 
 function loadLocalStudents() {
