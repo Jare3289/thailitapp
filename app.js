@@ -194,7 +194,7 @@ function determineRankTier(score = 0) {
 
 const STEP_LABELS = {
     1: '📚 ประวัติศาสตร์',
-    2: '📖 อ่านโคลง & เกมคำศัพท์',
+    2: '📖 อ่านโคลงสอบศัพท์',
     3: '📝 ถอดความ',
     4: '🖼️ เปิดภาพจริง',
     5: '📝 ทบทวน',
@@ -281,15 +281,15 @@ const MISSION_DATA = {
                     <article class="bg-gradient-to-r from-amber-50 to-yellow-50 border-2 border-amber-200 rounded-2xl p-6 h-full">
                         <h4 class="text-xl font-bold text-amber-900 mb-4">👑 สมเด็จพระสุริโยทัย</h4>
                         <p class="text-amber-800 leading-relaxed">
-                            สมเด็จพระสุริโยทัย เป็นพระมเหสีของสมเด็จพระมหาจักรพรรดิ (พระราเมศวร) แห่งกรุงศรีอยุธยา
+                            สมเด็จพระสุริโยทัย เป็นพระมเหสีของสมเด็จพระมหาจักรพรรดิแห่งกรุงศรีอยุธยา (พระเจ้าช้างเผือก หรือพระนามเดิม พระเทียรราชา)
                             ทรงเป็นบุคคลสำคัญในประวัติศาสตร์ไทย ที่ทรงแสดงความกล้าหาญในการปกป้องแผ่นดิน
                         </p>
                     </article>
 
                     <article class="bg-gradient-to-r from-red-50 to-pink-50 border-2 border-red-200 rounded-2xl p-6 h-full">
-                        <h4 class="text-xl font-bold text-red-900 mb-4">⚔️ สงครามกับพม่า (พ.ศ. 2091)</h4>
+                        <h4 class="text-xl font-bold text-red-900 mb-4">⚔️ สงครามคราวเสียสมเด็จพระสุริโยทัย</h4>
                         <p class="text-red-800 leading-relaxed">
-                            เมื่อพระเจ้าแปร (พระเจ้าตะบิงชเวตี) แห่งพม่ายกทัพมาตีกรุงศรีอยุธยา
+                            เมื่อพระเจ้าแปร (พระเจ้าตะโดธรรมราชาที่ 1) แห่งพม่ายกทัพมาตีกรุงศรีอยุธยา
                             สมเด็จพระสุริโยทัยทรงแต่งกายเป็นทหาร ขี่ช้างออกรบเพื่อช่วยเหลือพระราชสามี
                         </p>
                     </article>
@@ -5283,18 +5283,36 @@ async function generateCertificate() {
     ctx.fillStyle = '#2f2f2f';
 
     // Images
-    const logos = [bannerImg, logoImg].filter(Boolean);
+    const logos = [];
+    if (bannerImg) {
+        logos.push({ type: 'image', img: bannerImg });
+    }
+    if (logoImg) {
+        logos.push({ type: 'image', img: logoImg });
+    } else {
+        logos.push({ type: 'fallback', label: 'ตราจุฬาฯ' });
+    }
+
     if (logos.length) {
         const targetWidth = 420;
         const gap = 160;
         const totalWidth = logos.length * targetWidth + (logos.length - 1) * gap;
         let startX = (canvas.width - totalWidth) / 2;
         const centerY = 360;
-        logos.forEach(img => {
-            const width = targetWidth;
-            const height = (img.height / img.width) * width;
-            ctx.drawImage(img, startX, centerY - height / 2, width, height);
-            startX += width + gap;
+        logos.forEach(entry => {
+            if (entry.type === 'image') {
+                const width = targetWidth;
+                const height = (entry.img.height / entry.img.width) * width;
+                ctx.drawImage(entry.img, startX, centerY - height / 2, width, height);
+                startX += width + gap;
+            } else if (entry.type === 'fallback') {
+                ctx.save();
+                ctx.fillStyle = '#9d174d';
+                ctx.font = 'bold 120px "Sarabun", "TH Sarabun New", "IBM Plex Sans Thai Looped", sans-serif';
+                ctx.fillText(entry.label, startX + targetWidth / 2, centerY + 45);
+                ctx.restore();
+                startX += targetWidth + gap;
+            }
         });
     }
 
@@ -5343,7 +5361,7 @@ async function generateCertificate() {
     ctx.font = '60px "Sarabun", "TH Sarabun New", "IBM Plex Sans Thai Looped", sans-serif';
     ctx.fillText(`ลงวันที่ ${currentDate}`, canvas.width / 2, 1880);
 
-    const signatureBaseline = 2060;
+    const signatureBaseline = 2200;
     ctx.font = bodyFont;
     ctx.fillText('ลงชื่อ .................................................................', canvas.width / 2, signatureBaseline);
     ctx.font = emphasisFont;
@@ -5426,7 +5444,6 @@ function showCertificate() {
             <div class="certificate-sheet space-y-6">
                 <div class="certificate-logo-row">
                     <img src="https://img2.pic.in.th/pic/f1e59dc192445ebe83f800a0476d10eb.png" alt="แถบเกียรติบัตร" />
-                    <img src="https://img5.pic.in.th/file/secure-sv1/Logo_of_Chulalongkorn_University.svgfa0a44b11e315dd9.png" alt="ตราจุฬาฯ" />
                 </div>
 
                 <div class="text-center space-y-2">
