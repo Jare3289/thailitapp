@@ -953,10 +953,23 @@ async function openStudentHistory() {
     document.body.appendChild(modal);
     incrementModalCount();
 
+    const container = modalCard.querySelector('#studentHistoryContent');
+    await populateStudentHistoryContent(container);
+}
+
+async function populateStudentHistoryContent(container) {
+    if (!container) return;
+
+    const activeUserId = gameState?.userId;
+    if (!activeUserId) {
+        container.innerHTML = '<p class="text-sm text-center text-slate-500">กรุณาเข้าสู่ระบบเพื่อดูบันทึกการเรียนรู้</p>';
+        return;
+    }
+
+    container.innerHTML = '<div class="text-center text-sm text-slate-500">กำลังโหลดข้อมูล...</div>';
+
     try {
         const sessions = await fetchStudentSessionsByUser(activeUserId);
-        const container = document.getElementById('studentHistoryContent');
-        if (!container) return;
 
         if (!sessions.length) {
             container.innerHTML = '<p class="text-sm text-center text-slate-500">ยังไม่มีบันทึกการเล่นในระบบ</p>';
@@ -978,25 +991,189 @@ async function openStudentHistory() {
             const score = Math.round(Number(session.totalScore) || Number(session.comprehensionScore) || 0).toLocaleString('th-TH');
             const stepLabel = getStepLabel(session.currentStep);
             const status = session.completed ? 'เสร็จสิ้นภารกิจ' : `กำลังเรียนรู้: ${stepLabel}`;
+            const sessionKey = encodeURIComponent(getSessionIdentifier(session, session.sessionKey || ''));
+            const docId = encodeURIComponent(session.id || session.docId || session.recordId || '');
+            const timestamp = encodeURIComponent(session.timestamp || session.lastUpdated || '');
+            const gameId = encodeURIComponent(session.gameId || '');
             return `
-                <div class="rounded-2xl border border-slate-200 bg-white/90 p-4 flex flex-col gap-2 shadow-sm">
+                <div class="rounded-2xl border border-slate-200 bg-white/90 p-4 flex flex-col gap-3 shadow-sm student-history-item" data-session-key="${sessionKey}">
                     <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                         <span class="font-semibold text-slate-900">${status}</span>
                         <span class="text-xs text-slate-500">${updated}</span>
                     </div>
                     <div class="text-sm text-slate-600">คะแนนสะสม ${score} แต้ม • ขั้นปัจจุบัน ${stepLabel}</div>
+                    <div class="flex justify-end">
+                        <button type="button" class="student-history-delete text-xs font-semibold text-rose-600 hover:text-rose-700 transition" data-session="${sessionKey}" data-doc="${docId}" data-timestamp="${timestamp}" data-game-id="${gameId}">
+                            ลบบันทึก
+                        </button>
+                    </div>
                 </div>
             `;
         }).join('');
 
         container.innerHTML = header + items;
+        attachStudentHistoryDeleteHandlers(container);
     } catch (error) {
         console.error('Failed to load student history', error);
-        const container = document.getElementById('studentHistoryContent');
-        if (container) {
-            container.innerHTML = '<p class="text-sm text-center text-rose-500">ไม่สามารถโหลดบันทึกได้ กรุณาลองใหม่อีกครั้ง</p>';
+        container.innerHTML = '<p class="text-sm text-center text-rose-500">ไม่สามารถโหลดบันทึกได้ กรุณาลองใหม่อีกครั้ง</p>';
+    }
+}
+
+function attachStudentHistoryDeleteHandlers(container) {
+    if (!container) return;
+    const buttons = container.querySelectorAll('.student-history-delete');
+    buttons.forEach(button => {
+        if (!button || button.dataset.bound === 'true') return;
+        button.dataset.bound = 'true';
+        button.addEventListener('click', async () => {
+            const activeUserId = gameState?.userId;
+            if (!activeUserId) {
+                showNotification('กรุณาเข้าสู่ระบบก่อนลบบันทึก', 'error');
+                return;
+            }
+
+            if (!confirm('ต้องการลบบันทึกการเรียนรู้นี้หรือไม่?')) {
+                return;
+            }
+
+            const rawSessionKey = button.dataset.session ? decodeURIComponent(button.dataset.session) : '';
+            const rawDocId = button.dataset.doc ? decodeURIComponent(button.dataset.doc) : '';
+            const rawTimestamp = button.dataset.timestamp ? decodeURIComponent(button.dataset.timestamp) : '';
+            const rawGameId = button.dataset.gameId ? decodeURIComponent(button.dataset.gameId) : '';
+
+            button.disabled = true;
+            button.classList.add('opacity-60');
+
+            const result = await deleteStudentHistoryRecord({
+                userId: activeUserId,
+                sessionKey: rawSessionKey,
+                docId: rawDocId,
+                timestamp: rawTimestamp,
+                gameId: rawGameId
+            });
+
+            button.disabled = false;
+            button.classList.remove('opacity-60');
+
+            if (result.ok) {
+                showNotification('ลบบันทึกแล้ว', 'success');
+                await populateStudentHistoryContent(container);
+            } else {
+                showNotification('ไม่สามารถลบบันทึกได้', 'error');
+            }
+        });
+    });
+}
+
+async function deleteStudentHistoryRecord({ userId, sessionKey, docId, timestamp, gameId }) {
+    const identifiers = new Set();
+    [sessionKey, docId, timestamp, gameId]
+        .filter(value => typeof value === 'string' && value.trim() !== '')
+        .forEach(value => identifiers.add(value.trim()));
+
+    if (timestamp && userId) {
+        identifiers.add(`${userId}_${timestamp}`);
+    }
+
+    if (!identifiers.size) {
+        console.warn('ไม่มีรหัสระบุสำหรับการลบบันทึกนักเรียน');
+        return { ok: false };
+    }
+
+    try {
+        if (db && identifiers.size) {
+            const deletions = [];
+            identifiers.forEach(id => {
+                deletions.push(db.collection('GameSession').doc(id).delete().catch(() => null));
+                deletions.push(db.collection('gameSessions').doc(id).delete().catch(() => null));
+            });
+            await Promise.all(deletions);
+        }
+    } catch (error) {
+        console.warn('ไม่สามารถลบข้อมูลจาก Firestore ได้', error);
+    }
+
+    if (typeof localStorage !== 'undefined') {
+        const matchEntry = (entry) => {
+            if (!entry) return false;
+            const values = [
+                getSessionIdentifier(entry, ''),
+                entry.id,
+                entry.sessionKey,
+                entry.gameId,
+                entry.docId,
+                entry.recordId,
+                entry.timestamp,
+                entry.lastUpdated
+            ].filter(Boolean).map(value => String(value));
+
+            if (userId && (entry.userId === userId || entry.studentId === userId)) {
+                const stamp = entry.timestamp || entry.lastUpdated || '';
+                if (stamp) {
+                    values.push(`${entry.userId || entry.studentId}_${stamp}`);
+                }
+            }
+
+            return values.some(value => identifiers.has(value));
+        };
+
+        try {
+            const cacheKey = 'GameSessionCache';
+            const cacheValue = localStorage.getItem(cacheKey);
+            if (cacheValue) {
+                const parsed = JSON.parse(cacheValue);
+                if (Array.isArray(parsed)) {
+                    const filtered = parsed.filter(entry => !matchEntry(entry));
+                    localStorage.setItem(cacheKey, JSON.stringify(filtered));
+                }
+            }
+        } catch (error) {
+            console.error('ล้างข้อมูล GameSessionCache ไม่สำเร็จ', error);
+        }
+
+        try {
+            const removalKeys = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const keyName = localStorage.key(i);
+                if (!keyName || !keyName.startsWith('gameSession_')) continue;
+                const value = localStorage.getItem(keyName);
+                if (!value) continue;
+                try {
+                    const parsed = JSON.parse(value);
+                    if (matchEntry(parsed)) {
+                        removalKeys.push(keyName);
+                    }
+                } catch (error) {
+                    console.error('อ่านข้อมูล gameSession ล้มเหลว', error);
+                }
+            }
+            removalKeys.forEach(key => localStorage.removeItem(key));
+        } catch (error) {
+            console.error('ไม่สามารถลบข้อมูล gameSession_* ได้', error);
         }
     }
+
+    if (Array.isArray(teacherDashboardState.sessions) && teacherDashboardState.sessions.length) {
+        teacherDashboardState.sessions = teacherDashboardState.sessions.filter(session => {
+            const values = [
+                getSessionIdentifier(session, ''),
+                session.id,
+                session.sessionKey,
+                session.gameId,
+                session.docId,
+                session.recordId,
+                session.timestamp,
+                session.lastUpdated
+            ].filter(Boolean).map(value => String(value));
+            return !values.some(value => identifiers.has(value));
+        });
+    }
+
+    if (typeof refreshTeacherViewIfNeeded === 'function') {
+        refreshTeacherViewIfNeeded();
+    }
+
+    return { ok: true };
 }
 
 function closeStudentHistoryModal() {
@@ -5251,70 +5428,21 @@ async function generateCertificate() {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
 
-    canvas.width = 3508; // A4 landscape at 300 DPI
+    canvas.width = 3508;
     canvas.height = 2480;
 
-    const loadImage = (src) => new Promise((resolve) => {
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        img.onload = () => resolve(img);
-        img.onerror = () => resolve(null);
-        img.src = src;
-    });
-
-    const [bannerImg, logoImg] = await Promise.all([
-        loadImage('https://img2.pic.in.th/pic/f1e59dc192445ebe83f800a0476d10eb.png'),
-        loadImage('https://img5.pic.in.th/file/secure-sv1/Logo_of_Chulalongkorn_University.svgfa0a44b11e315dd9.png')
-    ]);
-
-    // Background
-    ctx.fillStyle = '#fdf9f3';
+    ctx.fillStyle = '#fde2f3';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Border
-    ctx.strokeStyle = '#b08968';
+    ctx.strokeStyle = '#f9a8d4';
     ctx.lineWidth = 18;
     ctx.strokeRect(90, 90, canvas.width - 180, canvas.height - 180);
-    ctx.strokeStyle = '#e6ccb2';
+    ctx.strokeStyle = '#fbcfe8';
     ctx.lineWidth = 6;
     ctx.strokeRect(140, 140, canvas.width - 280, canvas.height - 280);
 
     ctx.textAlign = 'center';
     ctx.fillStyle = '#2f2f2f';
-
-    // Images
-    const logos = [];
-    if (bannerImg) {
-        logos.push({ type: 'image', img: bannerImg });
-    }
-    if (logoImg) {
-        logos.push({ type: 'image', img: logoImg });
-    } else {
-        logos.push({ type: 'fallback', label: 'ตราจุฬาฯ' });
-    }
-
-    if (logos.length) {
-        const targetWidth = 420;
-        const gap = 160;
-        const totalWidth = logos.length * targetWidth + (logos.length - 1) * gap;
-        let startX = (canvas.width - totalWidth) / 2;
-        const centerY = 360;
-        logos.forEach(entry => {
-            if (entry.type === 'image') {
-                const width = targetWidth;
-                const height = (entry.img.height / entry.img.width) * width;
-                ctx.drawImage(entry.img, startX, centerY - height / 2, width, height);
-                startX += width + gap;
-            } else if (entry.type === 'fallback') {
-                ctx.save();
-                ctx.fillStyle = '#9d174d';
-                ctx.font = 'bold 120px "Sarabun", "TH Sarabun New", "IBM Plex Sans Thai Looped", sans-serif';
-                ctx.fillText(entry.label, startX + targetWidth / 2, centerY + 45);
-                ctx.restore();
-                startX += targetWidth + gap;
-            }
-        });
-    }
 
     const headerFont = 'bold 120px "Sarabun", "TH Sarabun New", "IBM Plex Sans Thai Looped", sans-serif';
     const subHeaderFont = 'bold 90px "Sarabun", "TH Sarabun New", "IBM Plex Sans Thai Looped", sans-serif';
@@ -5322,22 +5450,22 @@ async function generateCertificate() {
     const emphasisFont = 'bold 80px "Sarabun", "TH Sarabun New", "IBM Plex Sans Thai Looped", sans-serif';
 
     ctx.font = headerFont;
-    ctx.fillText('คณะครุศาสตร์ จุฬาลงกรณ์มหาวิทยาลัย', canvas.width / 2, 720);
+    ctx.fillText('คณะครุศาสตร์ จุฬาลงกรณ์มหาวิทยาลัย', canvas.width / 2, 520);
 
     ctx.font = subHeaderFont;
-    ctx.fillText('เกียรติบัตร', canvas.width / 2, 860);
+    ctx.fillText('เกียรติบัตร', canvas.width / 2, 680);
 
     ctx.font = bodyFont;
-    ctx.fillText('มอบให้ไว้เพื่อแสดงว่า', canvas.width / 2, 980);
+    ctx.fillText('มอบให้ไว้เพื่อแสดงว่า', canvas.width / 2, 820);
 
     const studentName = gameState.currentUser?.name || '..............................................';
     ctx.font = emphasisFont;
-    ctx.fillText(studentName, canvas.width / 2, 1100);
+    ctx.fillText(studentName, canvas.width / 2, 950);
 
     ctx.font = bodyFont;
-    ctx.fillText('ได้ผ่านการทดสอบกิจกรรม', canvas.width / 2, 1220);
+    ctx.fillText('ได้ผ่านการทดสอบกิจกรรม', canvas.width / 2, 1080);
     ctx.font = emphasisFont;
-    ctx.fillText('“ไขรหัสวรรณคดี”', canvas.width / 2, 1300);
+    ctx.fillText('“ไขรหัสวรรณคดี”', canvas.width / 2, 1160);
 
     ctx.font = bodyFont;
     const lines = [
@@ -5347,11 +5475,11 @@ async function generateCertificate() {
         'รวมทั้งพัฒนาทักษะการอ่าน วิเคราะห์ และตีความวรรณศิลป์อย่างสร้างสรรค์'
     ];
     lines.forEach((line, index) => {
-        ctx.fillText(line, canvas.width / 2, 1400 + index * 80);
+        ctx.fillText(line, canvas.width / 2, 1290 + index * 80);
     });
 
-    ctx.fillText('ขอให้รักษาความมุ่งมั่นและความเพียรพยายามนี้ไว้', canvas.width / 2, 1720);
-    ctx.fillText('เพื่อก้าวสู่ความสำเร็จในการเรียนรู้ต่อไป', canvas.width / 2, 1800);
+    ctx.fillText('ขอให้รักษาความมุ่งมั่นและความเพียรพยายามนี้ไว้', canvas.width / 2, 1620);
+    ctx.fillText('เพื่อก้าวสู่ความสำเร็จในการเรียนรู้ต่อไป', canvas.width / 2, 1700);
 
     const currentDate = new Date().toLocaleDateString('th-TH', {
         year: 'numeric',
@@ -5359,19 +5487,21 @@ async function generateCertificate() {
         day: 'numeric'
     });
     ctx.font = '60px "Sarabun", "TH Sarabun New", "IBM Plex Sans Thai Looped", sans-serif';
-    ctx.fillText(`ลงวันที่ ${currentDate}`, canvas.width / 2, 1880);
+    ctx.fillText(`ลงวันที่ ${currentDate}`, canvas.width / 2, 1840);
 
-    const signatureBaseline = 2200;
+    const signatureBaseline = 2240;
+    const signatureSpacing = 70;
     ctx.font = bodyFont;
     ctx.fillText('ลงชื่อ .................................................................', canvas.width / 2, signatureBaseline);
     ctx.font = emphasisFont;
-    ctx.fillText('(นายมงคล แก้วไทย)', canvas.width / 2, signatureBaseline + 120);
+    ctx.fillText('(นายมงคล แก้วไทย)', canvas.width / 2, signatureBaseline + signatureSpacing);
     ctx.font = bodyFont;
-    ctx.fillText('คณบดีคณะครุศาสตร์', canvas.width / 2, signatureBaseline + 200);
-    ctx.fillText('จุฬาลงกรณ์มหาวิทยาลัย', canvas.width / 2, signatureBaseline + 280);
+    ctx.fillText('คณบดีคณะครุศาสตร์', canvas.width / 2, signatureBaseline + signatureSpacing * 2);
+    ctx.fillText('จุฬาลงกรณ์มหาวิทยาลัย', canvas.width / 2, signatureBaseline + signatureSpacing * 3);
 
     return canvas;
 }
+
 
 // Play Again Function
 async function playAgain() {
@@ -5441,19 +5571,15 @@ function showCertificate() {
                 ×
             </button>
 
-            <div class="certificate-sheet space-y-6">
-                <div class="certificate-logo-row">
-                    <img src="https://img2.pic.in.th/pic/f1e59dc192445ebe83f800a0476d10eb.png" alt="แถบเกียรติบัตร" />
-                </div>
-
+            <div class="certificate-sheet space-y-8">
                 <div class="text-center space-y-2">
                     <p class="certificate-header-text">คณะครุศาสตร์ จุฬาลงกรณ์มหาวิทยาลัย</p>
-                    <h1 class="text-3xl md:text-5xl font-extrabold text-slate-800 tracking-wide">เกียรติบัตร</h1>
+                    <h1 class="text-3xl md:text-5xl font-extrabold text-rose-700 tracking-wide">เกียรติบัตร</h1>
                 </div>
 
                 <div class="text-center space-y-3">
                     <p class="text-base md:text-lg text-slate-700">มอบให้ไว้เพื่อแสดงว่า</p>
-                    <p class="text-2xl md:text-3xl font-semibold text-indigo-700">${studentName}</p>
+                    <p class="text-2xl md:text-3xl font-semibold text-rose-700">${studentName}</p>
                     <p class="text-xs md:text-sm text-slate-500">${studentDetails}</p>
                 </div>
 
