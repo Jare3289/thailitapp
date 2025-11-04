@@ -1,1621 +1,2331 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="th">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ไขรหัสวรรณคดี - The Literature Detective</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบบริหารตารางติว O-NET ม.6</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      box-sizing: border-box;
+      font-family: 'Prompt', sans-serif;
+    }
     
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    * {
+      font-family: 'Prompt', sans-serif;
+    }
     
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai+Looped:wght@100;200;300;400;500;600;700&display=swap" rel="stylesheet">
+    .card-hover {
+      transition: all 0.2s ease;
+    }
     
-    <style>
-        * {
-            box-sizing: border-box;
-        }
-
-        .sr-only {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            padding: 0;
-            margin: -1px;
-            overflow: hidden;
-            clip: rect(0, 0, 0, 0);
-            white-space: nowrap;
-            border: 0;
-        }
-
-        body {
-            box-sizing: border-box;
-            font-family: 'IBM Plex Sans Thai Looped', sans-serif;
-            background: radial-gradient(circle at top left, #eef2ff 0%, rgba(238, 242, 255, 0) 45%),
-                        radial-gradient(circle at bottom right, #fdf2f8 0%, rgba(253, 242, 248, 0) 45%),
-                        linear-gradient(180deg, #f8fafc 0%, #ffffff 50%, #fdf2f8 100%);
-            position: relative;
-            min-height: 100vh;
-            color: #111827;
-            overflow-x: hidden;
-            padding-bottom: 7rem;
-        }
-
-        body::before,
-        body::after {
-            content: '';
-            position: fixed;
-            width: 420px;
-            height: 420px;
-            border-radius: 9999px;
-            filter: blur(110px);
-            opacity: 0.35;
-            z-index: -1;
-        }
-
-        body::before {
-            top: -180px;
-            left: -120px;
-            background: linear-gradient(135deg, rgba(79, 70, 229, 0.7), rgba(236, 72, 153, 0.6));
-        }
-
-        body::after {
-            bottom: -160px;
-            right: -100px;
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.6), rgba(16, 185, 129, 0.55));
-        }
-        
-        /* Landing page background */
-        #landingPage {
-            background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(236, 233, 254, 0.04)), url('https://img2.pic.in.th/pic/742215688----.jpg');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-            background-repeat: no-repeat;
-            position: relative;
-        }
-        
-        #landingPage::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.03), rgba(224, 231, 255, 0.01));
-            z-index: 1;
-            pointer-events: none;
-            transition: background 0.3s ease;
-        }
-
-        #landingPage.user-logged-in::before {
-            background: rgba(255, 255, 255, 0.45);
-        }
-        
-        #landingPage > * {
-            position: relative;
-            z-index: 2;
-        }
-        
-        .hero-gradient {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-        }
-
-        .hero-title {
-            font-weight: 800;
-            line-height: 1.2;
-            letter-spacing: -0.02em;
-        }
-
-        .hero-highlight {
-            display: inline-block;
-            background: linear-gradient(120deg, #7c3aed 0%, #ec4899 50%, #f59e0b 100%);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            padding-left: 0.35rem;
-            font-size: 0.9em;
-        }
-
-        .hero-subtitle {
-            color: #4b5563;
-            font-size: 1.05rem;
-        }
-
-        .hero-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.65rem 1rem;
-            border-radius: 9999px;
-            background: rgba(255, 255, 255, 0.4);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(148, 163, 184, 0.3);
-            font-weight: 600;
-            color: #4338ca;
-            box-shadow: 0 15px 25px -10px rgba(67, 56, 202, 0.35);
-        }
-
-        .stat-chip {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            gap: 0.25rem;
-            padding: 1rem 0.75rem;
-            border-radius: 1rem;
-            background: rgba(255, 255, 255, 0.65);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(148, 163, 184, 0.35);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .stat-chip:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 15px 30px -12px rgba(59, 130, 246, 0.3);
-        }
-
-        .landing-card {
-            background: rgba(255, 255, 255, 0.75);
-            backdrop-filter: blur(18px);
-            border: 1px solid rgba(148, 163, 184, 0.3);
-            box-shadow: 0 35px 65px -25px rgba(30, 64, 175, 0.45);
-            border-radius: 1.75rem;
-        }
-
-        .landing-card h3 {
-            color: #1f2937;
-        }
-
-        .mission-card {
-            background: rgba(255, 255, 255, 0.82);
-            backdrop-filter: blur(16px);
-            border-radius: 2rem;
-            border: 1px solid rgba(148, 163, 184, 0.35);
-            box-shadow: 0 40px 70px -30px rgba(15, 23, 42, 0.45);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .mission-card::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(236, 72, 153, 0.04));
-            opacity: 0.5;
-            z-index: 0;
-        }
-
-        .mission-card > * {
-            position: relative;
-            z-index: 1;
-        }
-
-        .mission-card .badge-modern {
-            box-shadow: 0 12px 30px -12px rgba(124, 58, 237, 0.4);
-        }
-
-        .login-actions button {
-            transform: translateY(0);
-            transition: transform 0.25s ease, box-shadow 0.25s ease;
-            box-shadow: 0 12px 24px -12px rgba(37, 99, 235, 0.4);
-        }
-
-        .login-actions button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 16px 32px -12px rgba(37, 99, 235, 0.45);
-        }
-
-        .landing-aurora {
-            position: absolute;
-            inset: 0;
-            overflow: hidden;
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        .landing-aurora::before,
-        .landing-aurora::after {
-            content: '';
-            position: absolute;
-            border-radius: 9999px;
-            filter: blur(120px);
-            opacity: 0.55;
-        }
-
-        .landing-aurora::before {
-            width: 520px;
-            height: 520px;
-            top: -120px;
-            right: -80px;
-            background: linear-gradient(135deg, rgba(129, 140, 248, 0.8), rgba(192, 132, 252, 0.7));
-            animation: auroraPulse 14s ease-in-out infinite;
-        }
-
-        .landing-aurora::after {
-            width: 420px;
-            height: 420px;
-            bottom: -160px;
-            left: -40px;
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.65), rgba(16, 185, 129, 0.6));
-            animation: auroraPulse 16s ease-in-out infinite reverse;
-        }
-
-        @keyframes auroraPulse {
-            0%, 100% {
-                transform: translate3d(0, 0, 0) scale(1);
-                opacity: 0.45;
-            }
-            50% {
-                transform: translate3d(40px, -30px, 0) scale(1.1);
-                opacity: 0.7;
-            }
-        }
-        
-        .glass-card {
-            background: rgba(255, 255, 255, 0.25);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.18);
-        }
-        
-        .modern-card {
-            background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-            border: 1px solid rgba(226, 232, 240, 0.8);
-        }
-        
-        .word-to-find {
-            color: #3b82f6;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: 700;
-        }
-
-        .word-to-find:hover {
-            color: #1d4ed8;
-            text-shadow: 0 0 8px rgba(59, 130, 246, 0.3);
-            transform: scale(1.05);
-        }
-
-        .poem-container.plain-poem .word-to-find,
-        .poem-container.plain-poem .word-to-find:hover {
-            color: inherit;
-            cursor: default;
-            text-shadow: none;
-            transform: none;
-            font-weight: 500;
-        }
-        
-        .word-correct {
-            color: #059669;
-            font-weight: 700;
-        }
-        
-        .word-incorrect {
-            color: #dc2626;
-            font-weight: 700;
-            animation: shake 0.5s ease-in-out;
-        }
-        
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
-        }
-        
-        .poem-container {
-            background: linear-gradient(145deg, #f8fafc 0%, #e2e8f0 100%);
-            border: 2px solid rgba(148, 163, 184, 0.25);
-            border-radius: 20px;
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            justify-content: center;
-        }
-
-        .poem-container::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899, #f59e0b);
-        }
-
-        .poem-container.plain-poem {
-            background: transparent;
-            border: none;
-            box-shadow: none;
-        }
-
-        .poem-container.plain-poem::before {
-            display: none;
-        }
-        
-        .poem-text {
-            font-size: 1.5rem;
-            line-height: 1.8;
-            font-weight: 400;
-            font-family: 'IBM Plex Sans Thai Looped', sans-serif;
-            width: 100%;
-            display: flex;
-            justify-content: center;
-        }
-
-        .poem-text .kloang-container {
-            margin: 0 auto;
-            text-align: left;
-            max-width: 640px;
-        }
-
-        .teacher-detail-card {
-            background: rgba(255, 255, 255, 0.92);
-            border-radius: 24px;
-            border: 1px solid rgba(148, 163, 184, 0.3);
-            box-shadow: 0 25px 45px -30px rgba(15, 23, 42, 0.35);
-        }
-
-        .teacher-rank-card {
-            border-radius: 1.5rem;
-            border: 1px solid rgba(148, 163, 184, 0.3);
-            background: rgba(255, 255, 255, 0.9);
-            box-shadow: 0 18px 35px -28px rgba(30, 64, 175, 0.35);
-            padding: 1rem 1.1rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            min-height: 120px;
-        }
-
-        .teacher-rank-card .rank-tier {
-            font-size: 1.25rem;
-            font-weight: 700;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .teacher-rank-card .rank-meta {
-            font-size: 0.8rem;
-            color: #475569;
-        }
-        
-        .kloang-container {
-            line-height: 1.8;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 0 1rem;
-            overflow-x: auto;
-        }
-
-        .bart {
-            display: flex;
-            flex-wrap: nowrap;
-            align-items: flex-start;
-            margin-bottom: 0.8rem;
-            white-space: nowrap;
-            min-width: fit-content;
-        }
-
-        .wak-na {
-            min-width: 280px; 
-            max-width: 280px; 
-            text-align: left;
-            padding-right: 1.5rem;
-            font-weight: 400;
-            flex-shrink: 0;
-            font-style: normal;
-            white-space: nowrap;
-            overflow: visible;
-        }
-
-        .wak-lang {
-            padding-right: 0.5rem;
-            padding-left: 1rem;
-            font-weight: 400;
-            font-style: normal;
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
-
-        .kam-sroi {
-            font-style: normal;
-            font-weight: 400;
-            padding-left: 0.5rem;
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
-        
-        .modern-button {
-            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-            color: white;
-            font-weight: 600;
-            border-radius: 15px;
-            transition: all 0.3s ease;
-            box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3);
-            border: none;
-        }
-        
-        .modern-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 20px 25px -5px rgba(59, 130, 246, 0.4);
-            background: linear-gradient(135deg, #1d4ed8, #1e40af);
-        }
-        
-        .modern-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
-        .modern-input {
-            background: rgba(255, 255, 255, 0.9);
-            border: 2px solid rgba(148, 163, 184, 0.3);
-            border-radius: 15px;
-            transition: all 0.3s ease;
-            font-weight: 500;
-        }
-        
-        .modern-input:focus {
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-            outline: none;
-            background: white;
-        }
-        
-        .progress-bar {
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 25px;
-            height: 12px;
-            overflow: hidden;
-            position: relative;
-        }
-        
-        .progress-fill {
-            background: linear-gradient(90deg, #10b981, #059669);
-            height: 100%;
-            border-radius: 25px;
-            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-        }
-        
-        .progress-fill::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-            animation: shimmer 2s infinite;
-        }
-        
-        @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
-        
-        .notification {
-            position: fixed;
-            top: 2rem;
-            right: 2rem;
-            padding: 1rem 1.5rem;
-            border-radius: 15px;
-            font-weight: 600;
-            z-index: 1000;
-            backdrop-filter: blur(10px);
-            animation: slideIn 0.3s ease-out;
-        }
-        
-        @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-        
-        .notification-success {
-            background: rgba(16, 185, 129, 0.9);
-            color: white;
-            border: 1px solid rgba(16, 185, 129, 0.3);
-        }
-        
-        .notification-error {
-            background: rgba(239, 68, 68, 0.9);
-            color: white;
-            border: 1px solid rgba(239, 68, 68, 0.3);
-        }
-        
-        .floating-elements {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            pointer-events: none;
-        }
-        
-        .floating-element {
-            position: absolute;
-            opacity: 0.1;
-            animation: float 6s ease-in-out infinite;
-        }
-        
-        @keyframes float {
-            0%, 100% { 
-                transform: translateY(0px) rotate(0deg);
-                opacity: 0.1;
-            }
-            50% { 
-                transform: translateY(-20px) rotate(180deg);
-                opacity: 0.3;
-            }
-        }
-        
-        .tooltip-modern {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 20px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-        }
-        
-        .badge-modern {
-            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            font-weight: 600;
-            font-size: 0.875rem;
-        }
-        
-        @keyframes bounceIn {
-            0% {
-                opacity: 0;
-                transform: scale(0.3) translateY(-50px);
-            }
-            50% {
-                opacity: 1;
-                transform: scale(1.05) translateY(-10px);
-            }
-            70% {
-                transform: scale(0.95) translateY(0);
-            }
-            100% {
-                opacity: 1;
-                transform: scale(1) translateY(0);
-            }
-        }
-        
-        .animate-bounce-in {
-            animation: bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-        }
-        
-        .hero-text {
-            text-shadow: 2px 2px 20px rgba(0,0,0,0.3);
-        }
-        
-        .landing-feature {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            transition: all 0.3s ease;
-        }
-        
-        .landing-feature:hover {
-            transform: translateY(-5px);
-            background: rgba(255, 255, 255, 0.25);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-        }
-
-        /* 📱 Responsive refinements */
-        @media (max-width: 1024px) {
-            #landingPage {
-                background-attachment: scroll;
-            }
-
-            .teacher-dashboard-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 1rem;
-            }
-
-        }
-
-        @media (max-width: 768px) {
-            .hero-title {
-                font-size: 2.25rem;
-            }
-
-            .hero-subtitle {
-                font-size: 1.05rem;
-            }
-
-            .hero-badge {
-                font-size: 0.95rem;
-                padding: 0.6rem 1.25rem;
-            }
-
-            .stat-chip {
-                width: 100%;
-                flex-direction: row;
-                align-items: center;
-                text-align: left;
-                gap: 0.75rem;
-            }
-
-            .landing-card,
-            .mission-card {
-                padding: 1.5rem;
-                border-radius: 1.5rem;
-            }
-
-            .mission-card img {
-                max-height: 220px;
-                width: 100%;
-                object-fit: cover;
-            }
-
-            .teacher-summary-grid {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-
-            .teacher-activity-list {
-                gap: 1.5rem;
-            }
-        }
-
-        @media (max-width: 640px) {
-            body {
-                font-size: 16px;
-            }
-
-            .hero-title {
-                font-size: 1.875rem;
-            }
-
-            .hero-subtitle {
-                font-size: 0.95rem;
-            }
-
-            .hero-badge {
-                font-size: 0.85rem;
-            }
-
-            .stat-chip {
-                padding: 1rem;
-            }
-
-            .teacher-summary-grid {
-                grid-template-columns: 1fr;
-                gap: 1rem;
-            }
-
-            .teacher-summary-card {
-                padding: 1.25rem !important;
-            }
-
-            .teacher-table {
-                border: none;
-            }
-
-            .teacher-table thead {
-                display: none;
-            }
-
-            .teacher-table tbody tr {
-                display: block;
-                margin-bottom: 1rem;
-                border: 1px solid rgba(148, 163, 184, 0.25);
-                border-radius: 1rem;
-                overflow: hidden;
-                background: rgba(255, 255, 255, 0.95);
-            }
-
-            .teacher-table tbody tr:last-child {
-                margin-bottom: 0;
-            }
-
-            .teacher-table tbody td {
-                display: flex;
-                justify-content: space-between;
-                gap: 1rem;
-                padding: 0.85rem 1rem;
-                border-bottom: 1px solid rgba(148, 163, 184, 0.15);
-            }
-
-            .teacher-table tbody td:last-child {
-                border-bottom: none;
-            }
-
-            .teacher-table tbody td::before {
-                content: attr(data-label);
-                font-weight: 600;
-                color: #475569;
-            }
-
-            .teacher-dashboard-header button {
-                width: 100%;
-            }
-
-        }
-        /* Header Sticky Positioning */
-        #header {
-            position: sticky !important;
-            top: 0px !important;
-            z-index: 50 !important;
-        }
-
-        /* Main Content Proper Spacing */
-        #mainContent {
-            padding-top: 2rem !important;
-            padding-bottom: 6rem !important;
-            min-height: calc(100vh - 220px) !important;
-        }
-
-        .progress-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0;
-            background: transparent;
-            border: none;
-            box-shadow: none;
-        }
-
-        .progress-track {
-            flex: 1;
-            height: 0.25rem;
-            border-radius: 9999px;
-            background: rgba(148, 163, 184, 0.45);
-            overflow: hidden;
-        }
-
-        .progress-track-fill {
-            height: 100%;
-            border-radius: 9999px;
-            background: linear-gradient(90deg, #f59e0b, #f97316, #ef4444);
-            transition: width 0.4s ease;
-        }
-
-        .progress-percent {
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: #1f2937;
-            min-width: 2.5rem;
-            text-align: right;
-        }
-
-        #stepUtilityBar {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.28), rgba(191, 219, 254, 0.18));
-            backdrop-filter: blur(18px);
-            border-bottom: 1px solid rgba(148, 163, 184, 0.3);
-            color: #1f2937;
-        }
-
-        .step-chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.35rem;
-            padding: 0.45rem 0.75rem;
-            border-radius: 9999px;
-            background: rgba(255, 255, 255, 0.85);
-            border: 1px solid rgba(148, 163, 184, 0.35);
-            color: #1f2937;
-            font-weight: 600;
-            font-size: 0.75rem;
-            transition: all 0.3s ease;
-            white-space: nowrap;
-        }
-
-        .step-chip span {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.25rem;
-        }
-
-        .step-chip-active {
-            background: rgba(59, 130, 246, 0.12);
-            border-color: rgba(59, 130, 246, 0.35);
-            color: #1d4ed8;
-            box-shadow: 0 15px 30px -18px rgba(15, 23, 42, 0.6);
-        }
-
-        .step-chip-completed {
-            background: rgba(226, 232, 240, 0.95);
-            border-color: rgba(148, 163, 184, 0.35);
-            color: #475569;
-        }
-
-        #header {
-            transition: all 0.3s ease;
-        }
-
-        #header.header-compact {
-            padding-top: 0.5rem !important;
-            padding-bottom: 0.75rem !important;
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.95), rgba(76, 29, 149, 0.9));
-            backdrop-filter: blur(16px);
-        }
-
-        #header.header-compact .step-chip {
-            padding: 0.3rem 0.6rem;
-            font-size: 0.7rem;
-        }
-
-        .step-subtitle {
-            margin-top: 0.5rem;
-            font-size: 1.05rem;
-            color: #4b5563;
-            font-weight: 400;
-        }
-
-        .cta-float {
-            position: sticky;
-            bottom: 1.5rem;
-            margin-top: 4rem;
-            animation: ctaPop 0.9s ease forwards;
-            box-shadow: 0 25px 45px -18px rgba(59, 130, 246, 0.45);
-            display: inline-flex;
-            justify-content: center;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        #floatingActionButtons {
-            position: fixed;
-            top: 50%;
-            right: 1rem;
-            transform: translateY(-50%);
-            z-index: 60;
-        }
-
-        #floatingActionButtons.hidden {
-            display: none !important;
-            pointer-events: none !important;
-        }
-
-        #floatingActionButtons .floating-toggle {
-            pointer-events: auto;
-            background: rgba(15, 23, 42, 0.75);
-            color: #f8fafc;
-            border-radius: 9999px;
-            width: 2.75rem;
-            height: 2.75rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.1rem;
-            border: 1px solid rgba(148, 163, 184, 0.45);
-            box-shadow: 0 18px 35px -18px rgba(15, 23, 42, 0.55);
-            transition: all 0.3s ease;
-        }
-
-        #floatingActionButtons .floating-toggle:hover,
-        #floatingActionButtons .floating-toggle:focus {
-            background: rgba(30, 64, 175, 0.85);
-            transform: translateY(-2px);
-        }
-
-        #floatingActionButtons .floating-panel {
-            pointer-events: none;
-            display: none;
-            margin-top: 0.75rem;
-            background: rgba(255, 255, 255, 0.95);
-            border: 1px solid rgba(148, 163, 184, 0.4);
-            border-radius: 1.5rem;
-            padding: 0.85rem;
-            box-shadow: 0 35px 65px -32px rgba(15, 23, 42, 0.5);
-            width: 11rem;
-            transform: translateX(120%);
-            opacity: 0;
-            transition: all 0.35s ease;
-        }
-
-        #floatingActionButtons.show .floating-panel {
-            pointer-events: auto;
-            display: block;
-            transform: translateX(0);
-            opacity: 1;
-        }
-
-        .floating-action-button {
-            width: 100%;
-            border-radius: 0.875rem;
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(59, 130, 246, 0.25));
-            color: #1f2937;
-            font-size: 0.75rem;
-            font-weight: 600;
-            padding: 0.55rem 0.75rem;
-            border: 1px solid rgba(148, 163, 184, 0.45);
-            transition: all 0.25s ease;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.35rem;
-        }
-
-        .floating-action-button:hover,
-        .floating-action-button:focus {
-            background: linear-gradient(135deg, rgba(30, 64, 175, 0.15), rgba(30, 64, 175, 0.35));
-            border-color: rgba(59, 130, 246, 0.45);
-            color: #1e3a8a;
-            transform: translateY(-1px);
-        }
-
-        @media (max-width: 768px) {
-            #floatingActionButtons {
-                top: auto;
-                right: 0.75rem;
-                bottom: 1rem;
-                transform: none;
-            }
-
-            #floatingActionButtons .floating-panel {
-                width: auto;
-                min-width: 12rem;
-            }
-        }
-
-        .summary-action-bar {
-            position: sticky;
-            bottom: 4.5rem;
-            z-index: 70;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 1rem;
-            padding: 0.5rem 0;
-            pointer-events: auto;
-        }
-
-        @media (min-width: 768px) {
-            .summary-action-bar {
-                flex-direction: row;
-                justify-content: center;
-                gap: 1.5rem;
-            }
-        }
-
-        .modal-open .summary-action-bar {
-            display: none;
-        }
-
-        .certificate-modal {
-            width: min(100%, 1200px);
-        }
-
-        .certificate-sheet {
-            width: 100%;
-            aspect-ratio: 1.4142;
-            background: #fde2f3;
-            border: 10px solid #f9a8d4;
-            border-radius: 2rem;
-            padding: clamp(2.5rem, 4.5vw, 4.5rem);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            gap: clamp(1.75rem, 4.5vw, 3rem);
-        }
-
-        .certificate-header-text {
-            text-transform: uppercase;
-            letter-spacing: 0.35em;
-            color: #be185d;
-            font-size: clamp(0.65rem, 2.2vw, 0.95rem);
-        }
-
-        .certificate-signature-block {
-            border-top: 1px solid rgba(244, 114, 182, 0.35);
-            padding-top: clamp(3rem, 7vw, 4.5rem);
-            margin-top: clamp(8rem, 18vw, 12rem);
-        }
-
-        .teacher-activity-card,
-        .teacher-activity-timeline-card {
-            cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .teacher-activity-card:hover,
-        .teacher-activity-card:focus-visible,
-        .teacher-activity-timeline-card:hover,
-        .teacher-activity-timeline-card:focus-visible {
-            transform: translateY(-2px);
-            box-shadow: 0 18px 35px -18px rgba(30, 64, 175, 0.35);
-        }
-
-        .teacher-activity-card:focus-visible,
-        .teacher-activity-timeline-card:focus-visible {
-            outline: 2px solid rgba(59, 130, 246, 0.6);
-            outline-offset: 2px;
-        }
-
-        @keyframes ctaPop {
-            0% {
-                transform: translateY(60px) scale(0.6);
-                opacity: 0;
-            }
-            60% {
-                transform: translateY(-12px) scale(1.05);
-                opacity: 1;
-            }
-            100% {
-                transform: translateY(0) scale(1);
-            }
-        }
-
-        .modal-card {
-            width: min(100%, 960px);
-            max-height: 95vh;
-            min-height: min(90vh, 720px);
-            display: flex;
-            flex-direction: column;
-        }
-
-        .modal-card.scrollable {
-            overflow-y: auto;
-        }
-
-        </style>
-</head>
-<body class="bg-gray-50 text-gray-900">
-    <!-- Floating Background Elements -->
-    <div class="floating-elements">
-        <div class="floating-element text-6xl" style="top: 10%; left: 10%; animation-delay: 0s;">📚</div>
-        <div class="floating-element text-4xl" style="top: 20%; right: 15%; animation-delay: 1s;">✨</div>
-        <div class="floating-element text-5xl" style="bottom: 20%; left: 20%; animation-delay: 2s;">🔍</div>
-        <div class="floating-element text-3xl" style="bottom: 30%; right: 25%; animation-delay: 3s;">💭</div>
+    .card-hover:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    }
+    
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+    
+    .status-open {
+      background-color: #DBEAFE;
+      color: #1E40AF;
+    }
+    
+    .status-done {
+      background-color: #D1FAE5;
+      color: #065F46;
+    }
+    
+    .status-cancelled {
+      background-color: #F3F4F6;
+      color: #6B7280;
+    }
+    
+    .status-pass {
+      background-color: #D1FAE5;
+      color: #065F46;
+    }
+    
+    .status-not-pass {
+      background-color: #FEE2E2;
+      color: #991B1B;
+    }
+    
+    .loading-spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #f3f3f3;
+      border-top: 2px solid #3498db;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 24px;
+      border-radius: 8px;
+      color: white;
+      font-weight: 500;
+      z-index: 1000;
+      transform: translateX(400px);
+      transition: transform 0.3s ease;
+    }
+    
+    .notification.show {
+      transform: translateX(0);
+    }
+    
+    .notification.success {
+      background-color: #10B981;
+    }
+    
+    .notification.error {
+      background-color: #EF4444;
+    }
+    
+    .notification.info {
+      background-color: #3B82F6;
+    }
+    
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+    
+    .modal.show {
+      opacity: 1;
+      visibility: visible;
+    }
+    
+    .modal-content {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      max-width: 90vw;
+      max-height: 90vh;
+      overflow-y: auto;
+      transform: scale(0.9);
+      transition: transform 0.3s ease;
+    }
+    
+    .modal.show .modal-content {
+      transform: scale(1);
+    }
+    
+    .user-role-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+    
+    .role-admin {
+      background-color: #FEE2E2;
+      color: #991B1B;
+    }
+    
+    .role-viewer {
+      background-color: #E0F2FE;
+      color: #0C4A6E;
+    }
+    
+    .admin-only {
+      display: none;
+    }
+    
+    .admin-mode .admin-only {
+      display: block;
+    }
+    
+    .admin-mode .admin-inline {
+      display: inline-flex;
+    }
+    
+    .admin-inline {
+      display: none;
+    }
+    
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 1px;
+      background-color: #e5e7eb;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    
+    .calendar-header {
+      background-color: #f3f4f6;
+      padding: 8px 4px;
+      text-align: center;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #374151;
+    }
+    
+    .calendar-day {
+      background-color: white;
+      padding: 8px 4px;
+      min-height: 40px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+    }
+    
+    .calendar-day:hover {
+      background-color: #f9fafb;
+    }
+    
+    .calendar-day.other-month {
+      color: #9ca3af;
+      background-color: #f9fafb;
+    }
+    
+    .calendar-day.today {
+      background-color: #dcfce7;
+      color: #166534;
+      font-weight: 600;
+    }
+    
+    .calendar-day.has-sessions {
+      background-color: #dbeafe;
+      color: #1e40af;
+      font-weight: 500;
+    }
+    
+    .calendar-day.has-sessions:hover {
+      background-color: #bfdbfe;
+    }
+    
+    .calendar-day-number {
+      font-size: 0.875rem;
+      margin-bottom: 2px;
+    }
+    
+    .calendar-sessions-count {
+      font-size: 0.625rem;
+      background-color: #3b82f6;
+      color: white;
+      border-radius: 10px;
+      padding: 1px 6px;
+      min-width: 16px;
+      text-align: center;
+    }
+    
+    .session-detail-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+    
+    .session-detail-modal.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    @media print {
+      .no-print {
+        display: none !important;
+      }
+      
+      body {
+        background: white;
+      }
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="bg-gray-50">
+  <div id="app" class="min-h-full"><!-- Header -->
+   <header class="bg-white shadow-sm border-b border-gray-200 no-print">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+     <div class="flex items-center justify-between">
+      <div>
+       <h1 id="header-title" class="text-2xl font-bold text-gray-900">ระบบบริหารตารางติว O-NET ม.6</h1>
+       <p id="header-subtitle" class="text-sm text-gray-600 mt-1">โรงเรียนชัยนาทพิทยาคม | ปีการศึกษา 2568</p>
+      </div>
+      <div class="flex items-center gap-3"><span id="period-badge" class="px-3 py-1 bg-blue-50 text-blue-700 rounded-lg text-sm font-medium">28 ต.ค. 2568 – 13 มี.ค. 2569</span>
+       <div class="flex items-center gap-2"><span id="user-role-badge" class="user-role-badge role-viewer">👤 ผู้ใช้งาน</span> <button id="login-logout-btn" onclick="showLoginModal()" class="px-3 py-1 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition-colors"> 🔐 เข้าสู่ระบบ </button>
+       </div>
+      </div>
+     </div>
     </div>
-
-    <!-- Teacher Portal Section -->
-    <div id="teacherPortal" class="hidden bg-slate-100/90 min-h-screen py-10">
-        <div class="w-full px-4 md:px-8 lg:px-12">
-            <div class="mx-auto w-full max-w-screen-2xl space-y-10">
-                <div class="teacher-dashboard-header bg-white/80 backdrop-blur border border-slate-200 rounded-3xl p-6 md:p-8 shadow-lg flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-                    <div class="space-y-2">
-                        <p class="text-sm uppercase tracking-widest text-blue-600/70">ThaiLit Backoffice</p>
-                        <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900">แดชบอร์ดครูผู้สอน</h2>
-                        <p class="text-sm md:text-base text-slate-600 max-w-2xl">ติดตามผลการเรียนรู้แบบเรียลไทม์ ดูคะแนน ทบทวนคำตอบ และวางแผนการสอนให้สอดคล้องกับความคืบหน้าของนักเรียนในแต่ละห้องเรียน</p>
-                    </div>
-                    <button onclick="closeTeacherPortal()" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 text-white shadow hover:bg-slate-800 transition">⬅️ กลับสู่หน้าหลัก</button>
-                </div>
-
-                <div class="space-y-8">
-                    <div id="teacherLoginPanel" class="space-y-6 bg-white/80 border border-slate-200 rounded-3xl p-6 md:p-8 shadow-lg">
-                        <div>
-                            <h3 class="text-2xl font-bold text-slate-900 mb-2">เข้าสู่ระบบสำหรับครู</h3>
-                            <p class="text-sm text-slate-600">ใช้บัญชีที่ได้รับจากผู้ดูแลเพื่อเข้าถึงข้อมูลนักเรียนและบันทึกการเรียนรู้</p>
-                        </div>
-                        <form id="teacherLoginForm" class="space-y-4" onsubmit="submitTeacherLogin(event)">
-                            <div>
-                                <label for="teacherEmail" class="block text-sm font-semibold text-slate-700 mb-2">อีเมลครู</label>
-                                <input id="teacherEmail" type="email" required class="w-full modern-input p-3" placeholder="teacher@school.ac.th">
-                            </div>
-                            <div>
-                                <label for="teacherPassword" class="block text-sm font-semibold text-slate-700 mb-2">รหัสผ่าน</label>
-                                <input id="teacherPassword" type="password" required autocomplete="current-password" class="w-full modern-input p-3" placeholder="••••••••">
-                            </div>
-                            <button type="submit" class="modern-button w-full py-3 text-base rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">เข้าสู่ระบบครู</button>
-                        </form>
-                        <div class="text-xs text-slate-500 leading-relaxed space-y-2">
-                            <p>เมื่อเข้าสู่ระบบ ครูจะสามารถดาวน์โหลดรายงานผลลัพธ์ แสดงคำตอบของนักเรียนแต่ละคน และดูไทม์ไลน์กิจกรรมล่าสุดได้</p>
-                            <div class="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 text-left text-slate-600">
-                                <p class="font-semibold text-slate-700">บัญชีทดลองสำหรับทดสอบระบบ</p>
-                                <p>อีเมล: <span class="font-medium text-slate-800">teacher@thailit.app</span></p>
-                                <p>รหัสผ่าน: <span class="font-medium text-slate-800" data-demo-pass="teacher@thailit.app">••••••</span></p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="teacherDashboard" class="hidden space-y-8">
-                        <div class="bg-white/80 border border-slate-200 rounded-3xl p-6 md:p-8 shadow-lg space-y-6">
-                            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                                <div>
-                                    <h3 class="text-2xl font-bold text-slate-900" id="teacherGreeting">สวัสดีคุณครู</h3>
-                                    <p class="text-sm text-slate-600" id="teacherClasses">บัญชีครูภาษาไทย</p>
-                                    <p class="text-xs text-slate-500" id="teacherEmailDisplay"></p>
-                                </div>
-                                <div class="flex flex-wrap gap-2">
-                                    <button onclick="renderTeacherDashboard()" class="modern-button px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 flex items-center gap-2">
-                                        🔄 รีเฟรชข้อมูล
-                                    </button>
-                                    <button onclick="logoutTeacher()" class="modern-button px-4 py-2 rounded-xl bg-red-500 hover:bg-red-600 flex items-center gap-2">
-                                        🚪 ออกจากระบบครู
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div id="teacherDashboardLoading" class="hidden">
-                                <div class="bg-white border border-slate-200 rounded-2xl p-6 text-center shadow-sm">
-                                    <div class="flex flex-col items-center gap-3">
-                                        <div class="w-12 h-12 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin"></div>
-                                        <p class="text-sm text-slate-600">กำลังดึงข้อมูลนักเรียน...</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div id="teacherSummaryCards" class="teacher-summary-grid grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5 gap-4"></div>
-
-                            <div id="teacherEmptyState" class="hidden bg-white border border-dashed border-slate-300 rounded-2xl p-6 text-center text-slate-500">
-                                <p class="font-semibold">ยังไม่มีข้อมูลนักเรียนในระบบ</p>
-                                <p class="text-sm mt-2">เมื่อมีนักเรียนลงทะเบียนหรือเริ่มทำภารกิจ ข้อมูลจะปรากฏที่นี่อัตโนมัติ</p>
-                            </div>
-                        </div>
-
-                        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-                            <div class="px-6 py-4 border-b border-slate-200 flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
-                                <h4 class="text-lg font-semibold text-slate-900">ภาพรวมคะแนนนักเรียน</h4>
-                                <span class="text-xs text-slate-500" id="teacherTableMeta"></span>
-                            </div>
-                            <div class="overflow-x-auto">
-                                <table class="teacher-table min-w-full divide-y divide-slate-200 text-sm">
-                                    <thead class="bg-slate-50">
-                                        <tr>
-                                            <th class="px-4 py-3 text-left font-semibold text-slate-600">นักเรียน</th>
-                                            <th class="px-4 py-3 text-left font-semibold text-slate-600">ชั้น/ห้อง</th>
-                                            <th class="px-4 py-3 text-left font-semibold text-slate-600">ความคืบหน้า</th>
-                                            <th class="px-4 py-3 text-left font-semibold text-slate-600">คะแนนรวม</th>
-                                            <th class="px-4 py-3 text-left font-semibold text-slate-600">คะแนนเฉลี่ย</th>
-                                            <th class="px-4 py-3 text-left font-semibold text-slate-600">อัปเดตล่าสุด</th>
-                                            <th class="px-4 py-3 text-left font-semibold text-slate-600">การจัดการ</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="teacherStudentTable" class="divide-y divide-slate-100 bg-white"></tbody>
-                                </table>
-                            </div>
-                            <div class="border-t border-slate-200 bg-slate-50/60 px-6 py-4 space-y-3">
-                                <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                                    <h5 class="text-base font-semibold text-slate-900">ระบบอันดับนักสืบ</h5>
-                                    <span class="text-xs text-slate-500" id="teacherRankingMeta"></span>
-                                </div>
-                                <div id="teacherRankingSummary" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 text-sm"></div>
-                            </div>
-                        </div>
-
-                        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
-                            <div class="flex flex-col gap-2 mb-4 lg:flex-row lg:items-center lg:justify-between">
-                                <h4 class="text-lg font-semibold text-slate-900">กิจกรรมล่าสุด</h4>
-                                <span class="text-xs text-slate-500" id="teacherTimelineMeta"></span>
-                            </div>
-                            <div id="teacherActivityTimeline" class="teacher-activity-list grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-                        </div>
-
-                        <div id="teacherStudentDetail" class="teacher-detail-card p-6 md:p-8 space-y-6">
-                            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                                <div>
-                                    <h4 class="text-lg font-semibold text-slate-900">รายงานนักเรียนรายบุคคล</h4>
-                                    <p class="text-sm text-slate-500">คลิกชื่อนักเรียนจากตารางเพื่อเปิดหน้าต่างรายงาน</p>
-                                </div>
-                            </div>
-                            <div id="teacherStudentDetailContent" class="text-sm text-slate-500 text-center">
-                                คลิกชื่อนักเรียนจากตารางเพื่อเปิดหน้าต่างรายงาน
-                            </div>
-                        </div>
-
-                        <div class="bg-white/90 backdrop-blur border border-slate-200 rounded-3xl p-6 md:p-8 space-y-6 shadow-lg">
-                            <div class="space-y-2">
-                                <p class="text-sm text-slate-500 uppercase tracking-wider">ภาพรวมระบบ</p>
-                                <p class="text-lg md:text-xl font-semibold text-slate-900">ข้อมูลสำคัญ</p>
-                            </div>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
-                                <div class="rounded-2xl p-4 bg-slate-50 border border-slate-200 flex items-start gap-3">
-                                    <div class="text-xl">🏅</div>
-                                    <div>
-                                        <p class="text-slate-500 text-sm">คะแนนรวมสะสม</p>
-                                        <p class="text-2xl font-bold text-slate-900" id="teacherQuickTotal">-</p>
-                                    </div>
-                                </div>
-                                <div class="rounded-2xl p-4 bg-slate-50 border border-slate-200 flex items-start gap-3">
-                                    <div class="text-xl">📊</div>
-                                    <div>
-                                        <p class="text-slate-500 text-sm">คะแนนเฉลี่ย</p>
-                                        <p class="text-2xl font-bold text-slate-900" id="teacherQuickAverage">-</p>
-                                    </div>
-                                </div>
-                                <div class="rounded-2xl p-4 bg-slate-50 border border-slate-200 flex items-start gap-3">
-                                    <div class="text-xl">👩‍🎓</div>
-                                    <div>
-                                        <p class="text-slate-500 text-sm">นักเรียนลงทะเบียน</p>
-                                        <p class="text-2xl font-bold text-slate-900" id="teacherQuickStudents">-</p>
-                                    </div>
-                                </div>
-                                <div class="rounded-2xl p-4 bg-slate-50 border border-slate-200 flex items-start gap-3">
-                                    <div class="text-xl">✅</div>
-                                    <div>
-                                        <p class="text-slate-500 text-sm">ภารกิจสำเร็จ</p>
-                                        <p class="text-2xl font-bold text-slate-900" id="teacherQuickCompleted">-</p>
-                                    </div>
-                                </div>
-                                <div class="rounded-2xl p-4 bg-slate-50 border border-slate-200 flex items-start gap-3">
-                                    <div class="text-xl">🕒</div>
-                                    <div>
-                                        <p class="text-slate-500 text-sm">เข้าสู่ระบบวันนี้</p>
-                                        <p class="text-2xl font-bold text-slate-900" id="teacherQuickActive">-</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="text-xs text-slate-500 space-y-1">
-                                <p class="uppercase tracking-wider">บัญชีทดลอง</p>
-                                <p class="font-semibold text-slate-700">อีเมล: teacher@thailit.app • รหัสผ่าน: <span data-demo-pass="teacher@thailit.app">••••••</span></p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+   </header><!-- Navigation -->
+   <nav class="bg-white border-b border-gray-200 no-print">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+     <div class="flex space-x-8 overflow-x-auto"><button onclick="showPage('dashboard')" class="nav-btn px-3 py-4 text-sm font-medium border-b-2 border-blue-600 text-blue-600 whitespace-nowrap"> 📊 Dashboard </button> <button onclick="showPage('schedule')" class="nav-btn px-3 py-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap"> 📅 ตารางติว </button> <button onclick="showPage('sessions')" class="nav-btn px-3 py-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap admin-only"> 📝 จัดการคาบ </button> <button onclick="showPage('attendance')" class="nav-btn px-3 py-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap admin-only"> ✅ จัดการเช็กชื่อ </button> <button onclick="showPage('reports')" class="nav-btn px-3 py-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap"> 📈 รายงาน </button> <button onclick="showPage('masters')" class="nav-btn px-3 py-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap admin-only"> 🗂️ ข้อมูลพื้นฐาน </button> <button onclick="showPage('settings')" class="nav-btn px-3 py-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap admin-only"> ⚙️ ตั้งค่า </button>
+     </div>
     </div>
-
-    <!-- Landing Page -->
-    <div id="landingPage" class="min-h-screen bg-gray-50 flex items-center justify-center p-2 md:p-4 relative overflow-hidden">
-        <div class="landing-aurora"></div>
-        <div class="max-w-6xl mx-auto relative z-10 w-full">
-            <!-- Main Content Grid -->
-            <div class="grid lg:grid-cols-2 gap-4 md:gap-8 items-center min-h-screen py-4">
-                <!-- Left Column - Hero Content -->
-                <div class="text-center lg:text-left flex flex-col justify-center h-full py-8">
-                    <div class="mb-8 space-y-6">
-                        <div class="flex justify-center lg:justify-start">
-                            <span class="hero-badge">
-                                📚 ภารกิจพิชิตศัพท์ยาก
-                            </span>
-                        </div>
-
-                        <h1 class="hero-title text-3xl md:text-4xl lg:text-5xl text-gray-900">
-                            ไขรหัสวรรณคดี
-                            <span class="hero-highlight">The Literature Detective</span>
-                        </h1>
-
-                        <p class="hero-subtitle text-base md:text-lg lg:text-xl">
-                            ประสบการณ์เรียนรู้วรรณคดีไทยที่ผสานเกมการสืบสอบ<br class="hidden md:block">
-                            การจับคู่ศัพท์ และจับใจความให้สนุกกว่าที่เคย
-                        </p>
-
-                        <!-- Login Section -->
-                        <div id="loginSection" class="mb-6">
-                            <div class="landing-card p-6 md:p-7 mb-6">
-                                <div class="flex items-center justify-center gap-4 mb-4">
-                                    <span class="text-2xl">👤</span>
-                                    <h3 class="text-xl font-bold text-gray-900">เข้าสู่ระบบ</h3>
-                                </div>
-                                <p class="text-gray-600 text-center mb-6 leading-relaxed">เข้าสู่ระบบเพื่อบันทึกความคืบหน้า เชื่อมต่อคะแนน และรับคำแนะนำเฉพาะตัวในแต่ละภารกิจ</p>
-
-                                <div id="loginButtons" class="space-y-3">
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 login-actions">
-                                        <button onclick="showStudentForm()" class="bg-slate-900 hover:bg-slate-950 text-white font-semibold py-3 px-2 rounded-xl transition-all duration-200 text-sm">
-                                            📝 ลงทะเบียน
-                                        </button>
-
-                                        <button onclick="showLoginForm()" class="bg-slate-700 hover:bg-slate-800 text-white font-semibold py-3 px-2 rounded-xl transition-all duration-200 text-sm">
-                                            🔑 เข้าสู่ระบบ
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div id="startButtonWrapper" class="mt-4">
-                                    <button id="startGameBtn" onclick="startGame()" class="w-full bg-gradient-to-r from-blue-900 to-slate-900 hover:from-blue-950 hover:to-slate-950 text-white font-bold py-3 rounded-xl transition-all duration-200 text-sm disabled:bg-gray-400 disabled:cursor-not-allowed disabled:opacity-50" disabled>
-                                        ✨ เริ่มเลย
-                                    </button>
-                                    <p class="text-[11px] text-slate-600/80 mt-2" id="startButtonHint">เข้าสู่ระบบก่อนเพื่อเปิดภารกิจ</p>
-                                </div>
-
-                                <!-- Student Registration Form -->
-                                <div id="studentForm" class="hidden space-y-4">
-                                    <div class="text-center mb-4">
-                                        <h4 class="text-lg font-bold text-gray-900">📝 ข้อมูลนักเรียน</h4>
-                                        <p class="text-sm text-gray-600">กรอกข้อมูลเพื่อบันทึกผลการเรียน</p>
-                                    </div>
-                                    
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div>
-                                            <label class="block text-gray-700 text-sm font-semibold mb-2">ชื่อ-นามสกุล *</label>
-                                            <input type="text" id="studentName" class="w-full modern-input p-3" placeholder="ชื่อ นามสกุล" required>
-                                        </div>
-                                        <div>
-                                            <label class="block text-gray-700 text-sm font-semibold mb-2">รหัสนักเรียน *</label>
-                                            <input type="text" id="studentId" class="w-full modern-input p-3" placeholder="12345" required>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="grid grid-cols-3 gap-4">
-                                        <div>
-                                            <label class="block text-gray-700 text-sm font-semibold mb-2">ชั้น *</label>
-                                            <select id="studentGrade" class="w-full modern-input p-3" required>
-                                                <option value="">เลือกชั้น</option>
-                                                <option value="ม.1">ม.1</option>
-                                                <option value="ม.2">ม.2</option>
-                                                <option value="ม.3">ม.3</option>
-                                                <option value="ม.4">ม.4</option>
-                                                <option value="ม.5">ม.5</option>
-                                                <option value="ม.6">ม.6</option>
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label class="block text-gray-700 text-sm font-semibold mb-2">ห้อง *</label>
-                                            <input type="text" id="studentRoom" class="w-full modern-input p-3" placeholder="1" required>
-                                        </div>
-                                        <div>
-                                            <label class="block text-gray-700 text-sm font-semibold mb-2">เลขที่ *</label>
-                                            <input type="text" id="studentNumber" class="w-full modern-input p-3" placeholder="1" required>
-                                        </div>
-                                    </div>
-                                    
-                                    <div>
-                                        <label class="block text-gray-700 text-sm font-semibold mb-2">เบอร์โทรศัพท์ *</label>
-                                        <input type="tel" id="studentPhone" class="w-full modern-input p-3" placeholder="0812345678" required>
-                                        <p class="text-xs text-gray-500 mt-1">ใช้เป็นรหัสผ่านร่วมกับรหัสนักเรียน</p>
-                                    </div>
-                                    
-                                    <div class="flex gap-3 mt-6">
-                                        <button onclick="hideStudentForm()" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white px-4 py-3 rounded-xl font-semibold transition-all duration-200">
-                                            ยกเลิก
-                                        </button>
-                                        <button id="studentFormSubmitButton" onclick="registerStudent()" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-4 py-3 rounded-xl font-semibold transition-all duration-200">
-                                            บันทึกข้อมูล
-                                        </button>
-                                    </div>
-                                </div>
-                                
-                                <!-- Student Login Form -->
-                                <div id="loginForm" class="hidden space-y-4">
-                                    <div class="text-center mb-4">
-                                        <h4 class="text-lg font-bold text-gray-900">🔑 เข้าสู่ระบบ</h4>
-                                        <p class="text-sm text-gray-600">ใช้รหัสนักเรียนและเบอร์โทรศัพท์</p>
-                                    </div>
-                                    
-                                    <div>
-                                        <label class="block text-gray-700 text-sm font-semibold mb-2">รหัสนักเรียน</label>
-                                        <input type="text" id="loginStudentId" class="w-full modern-input p-3" placeholder="12345">
-                                    </div>
-                                    
-                                    <div>
-                                        <label class="block text-gray-700 text-sm font-semibold mb-2">เบอร์โทรศัพท์</label>
-                                        <input type="tel" id="loginPhone" class="w-full modern-input p-3" placeholder="0812345678">
-                                    </div>
-                                    
-                                    <div class="flex gap-3 mt-6">
-                                        <button onclick="hideLoginForm()" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white px-4 py-3 rounded-xl font-semibold transition-all duration-200">
-                                            ยกเลิก
-                                        </button>
-                                        <button onclick="loginStudent()" class="flex-1 bg-green-500 hover:bg-green-600 text-white px-4 py-3 rounded-xl font-semibold transition-all duration-200">
-                                            เข้าสู่ระบบ
-                                        </button>
-                                    </div>
-                                </div>
-                                
-                                <div id="userInfo" class="hidden text-center space-y-4">
-                                    <div class="bg-green-50 border-2 border-green-200 rounded-xl p-4">
-                                        <div class="flex items-center justify-center gap-3 mb-3">
-                                            <img id="userPhoto" src="" alt="Profile" class="w-12 h-12 rounded-full border-2 border-green-300">
-                                            <div>
-                                                <p class="font-bold text-green-900" id="userName"></p>
-                                                <p class="text-sm text-green-700" id="userDetails"></p>
-                                            </div>
-                                        </div>
-                                        <div class="text-xs text-green-600" id="userStats"></div>
-                                        <p class="text-xs text-green-700 mt-3 leading-relaxed">
-                                            ผู้เข้าใช้งานเมื่อเข้าสู่ระบบแล้วสามารถแก้ไขข้อมูลส่วนตัวได้ และตรวจดูบันทึกที่เคยเล่นว่าได้คะแนนไว้เท่าไรรวมถึงทำกิจกรรมใดไปแล้วบ้าง
-                                        </p>
-                                        <div class="flex flex-wrap justify-center gap-2 mt-4">
-                                            <button onclick="openStudentEdit()" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold rounded-xl transition">
-                                                ✏️ แก้ไขข้อมูลส่วนตัว
-                                            </button>
-                                            <button onclick="openStudentHistory()" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold rounded-xl transition">
-                                                📒 ดูบันทึกการเรียนรู้
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <button onclick="signOutUser()" class="text-red-600 hover:text-red-700 font-semibold">
-                                        ออกจากระบบ
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div id="teacherLoginCta" class="mt-4">
-                            <div class="max-w-md mx-auto w-full text-center bg-white/70 backdrop-blur rounded-2xl border border-slate-200/70 px-5 py-4 shadow-sm">
-                                <p class="text-xs font-semibold tracking-wide uppercase text-slate-600/80">สำหรับครูผู้สอน</p>
-                                <p class="text-[11px] text-slate-500 mt-1">เข้าสู่ระบบเพื่อดูคะแนนและความคืบหน้านักเรียน</p>
-                                <button onclick="openTeacherPortal()" class="mt-3 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-slate-800 text-white text-sm font-semibold hover:bg-slate-900 transition">
-                                    👩‍🏫 พื้นที่ครู
-                                    <span class="hidden sm:inline">(เข้าสู่ระบบเพื่อดูคะแนน)</span>
-                                </button>
-                            </div>
-                        </div>
-
-
-                    </div>
-                </div>
-
-                <!-- Right Column - Mission Info -->
-                <div class="mission-card rounded-3xl p-4 md:p-6 lg:max-h-[85vh] overflow-y-auto">
-                    <div class="mb-4">
-                        <h2 class="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
-                            โคลงสี่สุภาพ
-                        </h2>
-                        <p class="text-base md:text-lg lg:text-xl text-gray-600">พระราชพงศาวดาร - เรื่องสมเด็จพระสุริโยทัย</p>
-                    </div>
-                    
-                    <div class="bg-white bg-opacity-70 border border-blue-200/60 rounded-2xl p-4 mb-6 backdrop-blur space-y-5">
-                        <div class="relative mb-4 overflow-hidden rounded-xl border border-blue-200/50 shadow-lg">
-                            <img src="https://img5.pic.in.th/file/secure-sv1/education-booksOK.jpg" alt="กองหนังสือเพื่อการเรียนรู้" class="w-full h-40 object-cover">
-                            <div class="absolute inset-0 bg-gradient-to-t from-blue-900/40 via-transparent to-transparent"></div>
-                        </div>
-
-                        <div class="space-y-3">
-                            <div class="flex items-center gap-3 p-3 bg-white/70 backdrop-blur rounded-xl border border-slate-200/70">
-                                <div class="text-2xl">🔍</div>
-                                <div>
-                                    <h4 class="font-bold text-gray-900 text-sm">สืบสอบคำศัพท์</h4>
-                                    <p class="text-gray-600 text-xs">ค้นหาความหมายด้วยตนเอง พร้อมระบุแหล่งอ้างอิง</p>
-                                </div>
-                            </div>
-                            <div class="flex items-center gap-3 p-3 bg-white/70 backdrop-blur rounded-xl border border-slate-200/70">
-                                <div class="text-2xl">💭</div>
-                                <div>
-                                    <h4 class="font-bold text-gray-900 text-sm">ถอดความ</h4>
-                                    <p class="text-gray-600 text-xs">ถอดเป็นเรียงความร้อยแก้วและใช้จินตนาการ</p>
-                                </div>
-                            </div>
-                            <div class="flex items-center gap-3 p-3 bg-white/70 backdrop-blur rounded-xl border border-slate-200/70">
-                                <div class="text-2xl">🖼️</div>
-                                <div>
-                                    <h4 class="font-bold text-gray-900 text-sm">เปิดภาพจริง</h4>
-                                    <p class="text-gray-600 text-xs">เปรียบเทียบกับข้อมูลประวัติศาสตร์จริง</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="bg-white/80 backdrop-blur border border-yellow-200/70 rounded-2xl p-4 shadow-xl">
-                            <div class="flex items-center gap-2 mb-3">
-                                <span class="text-2xl">🏆</span>
-                                <h3 class="text-lg font-bold text-yellow-900">ระบบอันดับ</h3>
-                            </div>
-
-                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                                <div class="bg-white bg-opacity-60 rounded-xl p-3 text-center">
-                                    <div class="text-base mb-1">🥇</div>
-                                    <div class="font-bold text-yellow-800 text-xs">นักสืบเซียน</div>
-                                    <div class="text-xs text-yellow-700">1000+ แต้ม</div>
-                                </div>
-                                <div class="bg-white bg-opacity-60 rounded-xl p-3 text-center">
-                                    <div class="text-base mb-1">🥈</div>
-                                    <div class="font-bold text-gray-700 text-xs">นักสืบชำนาญ</div>
-                                    <div class="text-xs text-gray-600">500+ แต้ม</div>
-                                </div>
-                                <div class="bg-white bg-opacity-60 rounded-xl p-3 text-center">
-                                    <div class="text-base mb-1">🥉</div>
-                                    <div class="font-bold text-orange-700 text-xs">นักสืบฝึกหัด</div>
-                                    <div class="text-xs text-orange-600">200+ แต้ม</div>
-                                </div>
-                                <div class="bg-white bg-opacity-60 rounded-xl p-3 text-center">
-                                    <div class="text-base mb-1">🌟</div>
-                                    <div class="font-bold text-blue-700 text-xs">มือใหม่</div>
-                                    <div class="text-xs text-blue-600">0+ แต้ม</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="pt-4 mt-6 border-t border-blue-100/60 text-center text-[11px] leading-relaxed text-blue-900/80">
-                            พัฒนาโดย : นัชนันท์ นครคง , นุสรา พึ่งบ้านเกาะ , ราม แสงมณี และสุทธิชา กะรัมย์<br>
-                            นิสิตภาควิชาหลักสูตรและการสอน (การสอนภาษาไทย) คณะครุศาสตร์ จุฬาลงกรณ์มหาวิทยาลัย
-                        </div>
-                    </div>
-                </div>
-            </div>
-
+   </nav><!-- Main Content -->
+   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"><!-- Dashboard Page -->
+    <div id="page-dashboard" class="page-content">
+     <div class="mb-6">
+      <h2 class="text-2xl font-bold text-gray-900">ภาพรวมระบบ</h2>
+      <p class="text-gray-600 mt-1">สรุปข้อมูลการติว O-NET ม.6 แบบเรียลไทม์</p>
+     </div><!-- Storage Status -->
+     <div class="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+      <div class="flex items-center gap-3">
+       <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+       <div>
+        <p class="text-sm font-medium text-green-900">ระบบพร้อมใช้งาน - ข้อมูลจัดเก็บในเบราว์เซอร์</p>
+        <p class="text-xs text-green-700 mt-1">รายการทั้งหมด: <span id="total-records">0</span> รายการ | สิทธิ์ปัจจุบัน: <span id="current-role-text">ผู้ใช้งาน</span></p>
+       </div>
+      </div>
+     </div><!-- KPI Cards -->
+     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+       <div class="flex items-center justify-between">
+        <div>
+         <p class="text-sm font-medium text-gray-600">คาบที่บันทึกแล้ว</p>
+         <p class="text-3xl font-bold text-gray-900 mt-2" id="stat-sessions">0</p>
         </div>
+        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center"><span class="text-2xl">📋</span>
+        </div>
+       </div>
+      </div>
+      <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+       <div class="flex items-center justify-between">
+        <div>
+         <p class="text-sm font-medium text-gray-600">การเช็กชื่อทั้งหมด</p>
+         <p class="text-3xl font-bold text-gray-900 mt-2" id="stat-attendance">0</p>
+        </div>
+        <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center"><span class="text-2xl">✅</span>
+        </div>
+       </div>
+      </div>
+      <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+       <div class="flex items-center justify-between">
+        <div>
+         <p class="text-sm font-medium text-gray-600">อัตราเข้าร่วมเฉลี่ย</p>
+         <p class="text-3xl font-bold text-green-600 mt-2" id="stat-rate">0%</p>
+        </div>
+        <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center"><span class="text-2xl">📊</span>
+        </div>
+       </div>
+      </div>
+      <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+       <div class="flex items-center justify-between">
+        <div>
+         <p class="text-sm font-medium text-gray-600">นักเรียนเสี่ยง &lt;80%</p>
+         <p class="text-3xl font-bold text-red-600 mt-2" id="stat-risk">0</p>
+        </div>
+        <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center"><span class="text-2xl">⚠️</span>
+        </div>
+       </div>
+      </div>
+     </div><!-- Calendar Section -->
+     <div class="mb-8">
+      <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+       <div class="flex items-center justify-between mb-6">
+        <h3 class="text-xl font-bold text-gray-900">📅 ปฏิทินคาบติว</h3>
+        <div class="flex items-center gap-3"><button onclick="previousMonth()" class="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors font-medium"> ‹ เดือนก่อน </button> <span id="calendar-month-year" class="text-lg font-semibold text-gray-800 min-w-40 text-center">ตุลาคม 2568</span> <button onclick="nextMonth()" class="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors font-medium"> เดือนหน้า › </button>
+        </div>
+       </div><!-- Calendar Legend -->
+       <div class="flex items-center justify-center gap-6 mb-4 text-sm">
+        <div class="flex items-center gap-2">
+         <div class="w-4 h-4 bg-green-200 rounded"></div><span class="text-gray-600">วันนี้</span>
+        </div>
+        <div class="flex items-center gap-2">
+         <div class="w-4 h-4 bg-blue-200 rounded"></div><span class="text-gray-600">มีคาบติว</span>
+        </div>
+        <div class="flex items-center gap-2">
+         <div class="w-4 h-4 bg-gray-100 border rounded"></div><span class="text-gray-600">วันปกติ</span>
+        </div>
+       </div>
+       <div id="calendar-container" class="mb-6"><!-- Calendar will be rendered here -->
+       </div><!-- Today's Sessions -->
+       <div class="border-t border-gray-200 pt-6">
+        <h4 class="text-lg font-semibold text-gray-900 mb-4">📋 คาบติววันนี้</h4>
+        <div id="today-sessions" class="space-y-3">
+         <div class="text-center text-gray-500 py-8"><span class="text-4xl mb-2 block">📅</span>
+          <p class="text-sm">ไม่มีคาบติววันนี้</p>
+          <p class="text-xs text-gray-400 mt-1">คลิกวันที่มีสีน้ำเงินในปฏิทินเพื่อดูคาบติว</p>
+         </div>
+        </div>
+       </div>
+      </div>
+     </div>
+     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6"><!-- Quick Actions -->
+      <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+       <h3 class="text-lg font-semibold text-gray-900 mb-4">⚡ เมนูด่วน</h3>
+       <div class="space-y-3"><button onclick="showPage('sessions')" class="admin-only w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center justify-center gap-2"> <span>📝</span> <span>จัดการคาบเรียน</span> </button> <button onclick="showPage('attendance')" class="admin-only w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium flex items-center justify-center gap-2"> <span>✅</span> <span>จัดการเช็กชื่อ</span> </button> <button onclick="showPage('reports')" class="w-full px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium flex items-center justify-center gap-2"> <span>📈</span> <span>ดูรายงานสรุป</span> </button> <button onclick="exportData()" class="w-full px-4 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium flex items-center justify-center gap-2"> <span>📥</span> <span>ส่งออกข้อมูล</span> </button> <button onclick="showPage('schedule')" class="w-full px-4 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium flex items-center justify-center gap-2"> <span>📅</span> <span>ดูตารางเต็ม</span> </button>
+        <div class="admin-only mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+         <div class="flex items-start gap-2"><span class="text-red-600">🗑️</span>
+          <div>
+           <p class="text-sm font-medium text-red-900">รีเซ็ตข้อมูล</p><button onclick="confirmResetData()" class="text-xs text-red-700 mt-1 underline hover:no-underline">ลบข้อมูลทั้งหมด</button>
+          </div>
+         </div>
+        </div>
+       </div>
+      </div><!-- Quick Stats -->
+      <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+       <h3 class="text-lg font-semibold text-gray-900 mb-4">📊 สถิติด่วน</h3>
+       <div class="space-y-4">
+        <div class="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+         <div class="flex items-center gap-3"><span class="text-2xl">📚</span>
+          <div>
+           <p class="text-sm font-medium text-gray-900">คาบเรียนทั้งหมด</p>
+           <p class="text-xs text-gray-600">จำนวนคาบที่บันทึก</p>
+          </div>
+         </div><span class="text-xl font-bold text-blue-600" id="quick-stat-sessions">0</span>
+        </div>
+        <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+         <div class="flex items-center gap-3"><span class="text-2xl">✅</span>
+          <div>
+           <p class="text-sm font-medium text-gray-900">การเช็กชื่อ</p>
+           <p class="text-xs text-gray-600">จำนวนการเช็กชื่อ</p>
+          </div>
+         </div><span class="text-xl font-bold text-green-600" id="quick-stat-attendance">0</span>
+        </div>
+        <div class="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
+         <div class="flex items-center gap-3"><span class="text-2xl">📈</span>
+          <div>
+           <p class="text-sm font-medium text-gray-900">อัตราเข้าร่วม</p>
+           <p class="text-xs text-gray-600">เฉลี่ยการเข้าร่วม</p>
+          </div>
+         </div><span class="text-xl font-bold text-yellow-600" id="quick-stat-rate">0%</span>
+        </div>
+       </div>
+       <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <div class="flex items-start gap-2"><span class="text-blue-600">💡</span>
+         <div>
+          <p class="text-sm font-medium text-blue-900">เคล็ดลับ</p>
+          <p class="text-xs text-blue-700 mt-1">คลิกวันที่มีสีน้ำเงินในปฏิทินเพื่อดูรายละเอียดคาบติว หรือเข้าสู่ระบบเป็น "ผู้ดูแลระบบ" เพื่อจัดการข้อมูล</p>
+         </div>
+        </div>
+       </div>
+      </div>
+     </div>
+    </div><!-- Sessions Management Page -->
+    <div id="page-sessions" class="page-content hidden">
+     <div class="mb-6">
+      <div class="flex items-center justify-between">
+       <div>
+        <h2 class="text-2xl font-bold text-gray-900">จัดการคาบติว</h2>
+        <p class="text-gray-600 mt-1">เพิ่ม แก้ไข ลบ ข้อมูลคาบเรียน</p>
+       </div>
+       <div class="flex gap-3"><button onclick="openSessionModal()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"> ➕ เพิ่มคาบใหม่ </button> <button onclick="bulkDeleteSessions()" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"> 🗑️ ลบหลายรายการ </button> <button onclick="duplicateSession()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"> 📋 คัดลอกคาบ </button>
+       </div>
+      </div>
+     </div><!-- Sessions List -->
+     <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+      <div class="px-6 py-4 border-b border-gray-200">
+       <div class="flex items-center justify-between">
+        <h3 class="text-lg font-semibold text-gray-900">📋 รายการคาบเรียน</h3>
+        <div class="flex items-center gap-4"><label class="flex items-center gap-2 text-sm text-gray-600"> <input type="checkbox" id="select-all-sessions" onchange="toggleSelectAllSessions()" class="rounded border-gray-300"> <span>เลือกทั้งหมด</span> </label>
+         <div id="selected-sessions-count" class="text-sm text-gray-500 hidden">
+          เลือกแล้ว: <span id="sessions-count">0</span> รายการ
+         </div>
+        </div>
+       </div>
+      </div>
+      <div id="sessions-list" class="p-6">
+       <div class="text-center text-gray-500 py-8"><span class="text-4xl mb-4 block">📋</span>
+        <p class="text-sm">ยังไม่มีคาบที่บันทึก</p>
+        <p class="text-xs text-gray-400 mt-1">คลิก "เพิ่มคาบใหม่" เพื่อเริ่มต้น</p>
+       </div>
+      </div>
+     </div>
+    </div><!-- Attendance Management Page -->
+    <div id="page-attendance" class="page-content hidden">
+     <div class="mb-6">
+      <div class="flex items-center justify-between">
+       <div>
+        <h2 class="text-2xl font-bold text-gray-900">จัดการเช็กชื่อ</h2>
+        <p class="text-gray-600 mt-1">เพิ่ม แก้ไข ลบ การเช็กชื่อนักเรียน</p>
+       </div>
+       <div class="flex gap-3"><button onclick="openAttendanceModal()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"> ➕ เพิ่มการเช็กชื่อ </button> <button onclick="bulkDeleteAttendance()" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"> 🗑️ ลบหลายรายการ </button> <button onclick="bulkAttendanceEntry()" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"> 📝 เช็กชื่อหมู่ </button>
+       </div>
+      </div>
+     </div><!-- Attendance List -->
+     <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+      <div class="px-6 py-4 border-b border-gray-200">
+       <div class="flex items-center justify-between">
+        <h3 class="text-lg font-semibold text-gray-900">✅ รายการเช็กชื่อ</h3>
+        <div class="flex items-center gap-4"><label class="flex items-center gap-2 text-sm text-gray-600"> <input type="checkbox" id="select-all-attendance" onchange="toggleSelectAllAttendance()" class="rounded border-gray-300"> <span>เลือกทั้งหมด</span> </label>
+         <div id="selected-attendance-count" class="text-sm text-gray-500 hidden">
+          เลือกแล้ว: <span id="attendance-count">0</span> รายการ
+         </div>
+        </div>
+       </div>
+      </div>
+      <div id="attendance-list" class="p-6">
+       <div class="text-center text-gray-500 py-8"><span class="text-4xl mb-4 block">✅</span>
+        <p class="text-sm">ยังไม่มีการเช็กชื่อ</p>
+        <p class="text-xs text-gray-400 mt-1">คลิก "เพิ่มการเช็กชื่อ" เพื่อเริ่มต้น</p>
+       </div>
+      </div>
+     </div>
+    </div><!-- Reports Page -->
+    <div id="page-reports" class="page-content hidden">
+     <div class="mb-6">
+      <h2 class="text-2xl font-bold text-gray-900">รายงานสรุป</h2>
+      <p class="text-gray-600 mt-1">วิเคราะห์ข้อมูลการเข้าร่วมติว O-NET</p>
+     </div><!-- Summary Cards -->
+     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+      <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+       <div class="text-sm font-medium text-gray-600 mb-2">
+        คาบทั้งหมด
+       </div>
+       <div class="text-3xl font-bold text-gray-900" id="report-total-sessions">
+        0
+       </div>
+      </div>
+      <div class="bg-green-50 rounded-lg shadow-sm p-6 border border-green-200">
+       <div class="text-sm font-medium text-green-700 mb-2">
+        การเช็กชื่อทั้งหมด
+       </div>
+       <div class="text-3xl font-bold text-green-900" id="report-total-attendance">
+        0
+       </div>
+      </div>
+      <div class="bg-blue-50 rounded-lg shadow-sm p-6 border border-blue-200">
+       <div class="text-sm font-medium text-blue-700 mb-2">
+        อัตราเข้าร่วมเฉลี่ย
+       </div>
+       <div class="text-3xl font-bold text-blue-900" id="report-avg-rate">
+        0%
+       </div>
+      </div>
+     </div><!-- Reports Table -->
+     <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-200">
+       <h3 class="text-lg font-semibold text-gray-900">📊 รายงานรายละเอียด</h3>
+      </div>
+      <div class="overflow-x-auto">
+       <div id="reports-table" class="p-6">
+        <div class="text-center text-gray-500 py-8"><span class="text-4xl mb-4 block">📊</span>
+         <p class="text-sm">ยังไม่มีข้อมูลสำหรับรายงาน</p>
+         <p class="text-xs text-gray-400 mt-1">เริ่มต้นด้วยการบันทึกข้อมูลคาบเรียนและการเช็กชื่อ</p>
+        </div>
+       </div>
+      </div>
+     </div>
+    </div><!-- Schedule Page -->
+    <div id="page-schedule" class="page-content hidden">
+     <div class="mb-6">
+      <h2 class="text-2xl font-bold text-gray-900">ตารางติว O-NET</h2>
+      <p class="text-gray-600 mt-1">ดูตารางคาบติวที่บันทึกไว้</p>
+     </div>
+     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div id="schedule-content">
+       <div class="text-center text-gray-500 py-8"><span class="text-4xl mb-4 block">📅</span>
+        <p class="text-sm">ยังไม่มีตารางติว</p>
+        <p class="text-xs text-gray-400 mt-1">บันทึกคาบเรียนเพื่อสร้างตารางติว</p>
+       </div>
+      </div>
+     </div>
+    </div><!-- Masters Page -->
+    <div id="page-masters" class="page-content hidden">
+     <div class="mb-6">
+      <h2 class="text-2xl font-bold text-gray-900">ข้อมูลพื้นฐาน</h2>
+      <p class="text-gray-600 mt-1">จัดการข้อมูลครู วิชา และห้องเรียน</p>
+     </div>
+     <div class="grid grid-cols-1 md:grid-cols-3 gap-6"><!-- Teachers -->
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+       <h3 class="text-lg font-semibold text-gray-900 mb-4">👨‍🏫 ครูผู้สอน</h3>
+       <div id="teachers-list" class="space-y-2">
+        <div class="text-center text-gray-500 py-4">
+         <p class="text-sm">ยังไม่มีข้อมูลครู</p>
+        </div>
+       </div>
+      </div><!-- Subjects -->
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+       <h3 class="text-lg font-semibold text-gray-900 mb-4">📚 วิชา</h3>
+       <div id="subjects-list" class="space-y-2">
+        <div class="text-center text-gray-500 py-4">
+         <p class="text-sm">ยังไม่มีข้อมูลวิชา</p>
+        </div>
+       </div>
+      </div><!-- Classes -->
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+       <h3 class="text-lg font-semibold text-gray-900 mb-4">🏫 ห้องเรียน</h3>
+       <div id="classes-list" class="space-y-2">
+        <div class="text-center text-gray-500 py-4">
+         <p class="text-sm">ยังไม่มีข้อมูลห้อง</p>
+        </div>
+       </div>
+      </div>
+     </div>
+    </div><!-- Settings Page -->
+    <div id="page-settings" class="page-content hidden">
+     <div class="mb-6">
+      <h2 class="text-2xl font-bold text-gray-900">ตั้งค่าระบบ</h2>
+      <p class="text-gray-600 mt-1">กำหนดค่าต่างๆ ของระบบ</p>
+     </div>
+     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6"><!-- System Info -->
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+       <h3 class="text-lg font-semibold text-gray-900 mb-4">⚙️ ข้อมูลระบบ</h3>
+       <div class="space-y-4">
+        <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+         <div class="flex items-center gap-3">
+          <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
+          <div>
+           <p class="text-sm font-medium text-blue-900">ฐานข้อมูล: Local Storage</p>
+           <p class="text-xs text-blue-700 mt-1">ข้อมูลจัดเก็บในเบราว์เซอร์ของคุณ</p>
+          </div>
+         </div>
+        </div>
+        <div class="p-4 bg-green-50 border border-green-200 rounded-lg">
+         <div class="flex items-center gap-3">
+          <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+          <div>
+           <p class="text-sm font-medium text-green-900">สถานะ: พร้อมใช้งาน</p>
+           <p class="text-xs text-green-700 mt-1">ระบบทำงานปกติ</p>
+          </div>
+         </div>
+        </div>
+        <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+         <div class="flex items-center gap-3">
+          <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+          <div>
+           <p class="text-sm font-medium text-yellow-900">ข้อมูลทั้งหมด: <span id="settings-total-records">0</span> รายการ</p>
+           <p class="text-xs text-yellow-700 mt-1">ไม่มีขีดจำกัดการบันทึก</p>
+          </div>
+         </div>
+        </div>
+       </div>
+      </div><!-- Data Management -->
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+       <h3 class="text-lg font-semibold text-gray-900 mb-4">🗂️ จัดการข้อมูล</h3>
+       <div class="space-y-4"><button onclick="exportData()" class="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center justify-center gap-2"> <span>📥</span> <span>ส่งออกข้อมูล (CSV)</span> </button> <button onclick="downloadSampleCSV()" class="w-full px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium flex items-center justify-center gap-2"> <span>📋</span> <span>ดาวน์โหลดต้นฉบับ CSV</span> </button> <button onclick="importData()" class="w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium flex items-center justify-center gap-2"> <span>📤</span> <span>นำเข้าข้อมูล (CSV)</span> </button> <button onclick="loadSampleSchedule()" class="w-full px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium flex items-center justify-center gap-2"> <span>📅</span> <span>โหลดตารางติวตัวอย่าง</span> </button>
+        <div class="border-t border-gray-200 pt-4"><button onclick="confirmResetData()" class="w-full px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium flex items-center justify-center gap-2"> <span>🗑️</span> <span>รีเซ็ตข้อมูลทั้งหมด</span> </button>
+         <p class="text-xs text-red-600 mt-2 text-center">⚠️ การดำเนินการนี้ไม่สามารถย้อนกลับได้</p>
+        </div>
+       </div>
+      </div>
+     </div><!-- Schedule Import Section -->
+     <div class="mt-6 bg-white rounded-lg shadow-sm border border-gray-200 p-6 admin-only">
+      <h3 class="text-lg font-semibold text-gray-900 mb-4">📋 นำเข้าตารางติว</h3>
+      <div class="space-y-4">
+       <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <div class="flex items-start gap-3"><span class="text-blue-600">💡</span>
+         <div>
+          <p class="text-sm font-medium text-blue-900">วิธีใช้งาน</p>
+          <ul class="text-xs text-blue-700 mt-1 space-y-1">
+           <li>• คลิก "โหลดตารางติวตัวอย่าง" เพื่อนำเข้าข้อมูลตารางติวที่คุณให้มา</li>
+           <li>• ข้อมูลจะถูกแปลงเป็นคาบเรียนแยกตามวัน เวลา และห้องเรียน</li>
+           <li>• สามารถแก้ไขหรือเพิ่มเติมข้อมูลได้ในหน้า "จัดการคาบ"</li>
+           <li>• ข้อมูลจะเชื่อมโยงกับระบบเช็กชื่อและรายงานอัตโนมัติ</li>
+          </ul>
+         </div>
+        </div>
+       </div>
+       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+        <div class="p-3 bg-gray-50 rounded-lg">
+         <p class="font-medium text-gray-900">ข้อมูลที่จะนำเข้า:</p>
+         <ul class="text-gray-600 mt-1 space-y-1">
+          <li>• 8 สัปดาห์ของตารางติว</li>
+          <li>• 11 ห้องเรียน (ม.6/1 - ม.6/11)</li>
+          <li>• วิชาต่างๆ พร้อมชื่อครูผู้สอน</li>
+          <li>• วันและเวลาเรียนที่กำหนด</li>
+         </ul>
+        </div>
+        <div class="p-3 bg-gray-50 rounded-lg">
+         <p class="font-medium text-gray-900">ผลลัพธ์:</p>
+         <ul class="text-gray-600 mt-1 space-y-1">
+          <li>• สร้างคาบเรียนในระบบ</li>
+          <li>• เชื่อมโยงกับระบบเช็กชื่อ</li>
+          <li>• แสดงในตารางติวและรายงาน</li>
+          <li>• พร้อมใช้งานทันที</li>
+         </ul>
+        </div>
+       </div>
+      </div>
+     </div>
     </div>
-
-    <!-- Header Dashboard (Hidden initially) -->
-    <header id="header" class="bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 shadow-lg border-b border-blue-300 px-3 md:px-4 py-2 md:py-3 hidden">
-        <div class="max-w-6xl mx-auto">
-            <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                <div class="space-y-1 text-white">
-                    <div class="flex items-center gap-2 text-xs uppercase tracking-[0.25em] text-blue-100/80">
-                        <span class="text-base">📚</span>
-                        <span>เรียนรู้วรรณคดีไทยแบบโต้ตอบ</span>
-                    </div>
-                    <h1 class="text-xl md:text-2xl font-semibold leading-snug">ไขรหัสวรรณคดี</h1>
-                </div>
-
-                <div class="flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-4 w-full md:w-auto">
-                    <div id="playerStatusBar" class="hidden w-full md:w-auto">
-                        <div class="rounded-xl border border-slate-200 bg-white/90 px-3 py-2 text-slate-800 shadow-sm inline-flex flex-col gap-1 w-full">
-                            <div id="headerUserName" class="hidden w-full">
-                                <button type="button" class="toggle-user-dropdown v-btn v-btn--text theme--dark v-size--default px-0 text-left text-sm font-semibold text-slate-800 hover:text-slate-900 transition-colors duration-200" onclick="showUserMenu()">
-                                    <span class="v-btn__content flex flex-col items-start gap-0.5">
-                                        <span id="currentUserName">ผู้ใช้</span>
-                                        <span id="currentUserRank" class="text-xs font-medium text-slate-600">ระดับ มือใหม่</span>
-                                    </span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-    </header>
-
-
-    <div id="stepUtilityBar" class="hidden px-3 md:px-6 py-3">
-        <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3">
-            <div class="progress-wrapper">
-                <span class="hidden sm:inline text-xs font-semibold text-slate-600 tracking-wide uppercase">ความคืบหน้า</span>
-                <div class="progress-track">
-                    <div id="mainProgressFill" class="progress-track-fill" style="width: 0%"></div>
-                </div>
-                <span id="progressText" class="progress-percent">0%</span>
-            </div>
-            <div id="stepIndicatorContainer" class="flex flex-wrap justify-center gap-2">
-                <span class="step-chip step-chip-active" data-step="1"><span class="font-bold">1</span><span>📚 ประวัติศาสตร์</span></span>
-                <span class="step-chip" data-step="2"><span class="font-bold">2</span><span>📖 แสดงโคลง &amp; คำศัพท์</span></span>
-                <span class="step-chip" data-step="3"><span class="font-bold">3</span><span>✍️ ถอดความ</span></span>
-                <span class="step-chip" data-step="4"><span class="font-bold">4</span><span>🖼️ เปิดภาพจริง</span></span>
-                <span class="step-chip" data-step="5"><span class="font-bold">5</span><span>📝 ทบทวน</span></span>
-                <span class="step-chip" data-step="6"><span class="font-bold">6</span><span>🏆 สรุปผล</span></span>
-            </div>
-        </div>
-        <div class="md:hidden text-center text-slate-700 text-xs mt-2" id="currentStepLabel">📚 ประวัติศาสตร์</div>
+   </main><!-- Session Modal -->
+   <div id="session-modal" class="modal">
+    <div class="modal-content w-full max-w-2xl">
+     <div class="flex items-center justify-between mb-6">
+      <h3 id="session-modal-title" class="text-xl font-bold text-gray-900">เพิ่มคาบใหม่</h3><button onclick="closeSessionModal()" class="text-gray-400 hover:text-gray-600"> <span class="text-2xl">×</span> </button>
+     </div>
+     <form id="session-form" class="space-y-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+       <div><label class="block text-sm font-medium text-gray-700 mb-1">วิชา *</label> <select id="session-subject" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"> <option value="">เลือกวิชา</option> <option value="ไทย">ไทย</option> <option value="อังกฤษ">อังกฤษ</option> <option value="คณิตประยุกต์ 1">คณิตประยุกต์ 1</option> <option value="ฟิสิกส์">ฟิสิกส์</option> <option value="เคมี">เคมี</option> <option value="ชีวะ">ชีวะ</option> <option value="สังคม">สังคม</option> <option value="วิทย์ประยุกต์ 1">วิทย์ประยุกต์ 1</option> </select>
+       </div>
+       <div><label class="block text-sm font-medium text-gray-700 mb-1">ครูผู้สอน *</label> <input type="text" id="session-teacher" required placeholder="ชื่อครูผู้สอน" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+       </div>
+       <div><label class="block text-sm font-medium text-gray-700 mb-1">ห้อง ม.6 *</label> <select id="session-class" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"> <option value="">เลือกห้อง</option> <option value="ม.6/1">ม.6/1</option> <option value="ม.6/2">ม.6/2</option> <option value="ม.6/3">ม.6/3</option> <option value="ม.6/4">ม.6/4</option> <option value="ม.6/5">ม.6/5</option> <option value="ม.6/10">ม.6/10</option> </select>
+       </div>
+       <div><label class="block text-sm font-medium text-gray-700 mb-1">ห้องเรียน *</label> <input type="text" id="session-classroom" required placeholder="เช่น 235, 242" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+       </div>
+       <div><label class="block text-sm font-medium text-gray-700 mb-1">วันที่ *</label> <input type="date" id="session-date" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+       </div>
+       <div><label class="block text-sm font-medium text-gray-700 mb-1">เวลา *</label> <select id="session-time" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"> <option value="">เลือกเวลา</option> <option value="08:00-09:30">08:00-09:30</option> <option value="09:45-11:15">09:45-11:15</option> <option value="13:00-14:30">13:00-14:30</option> <option value="14:45-16:15">14:45-16:15</option> <option value="15:30-17:00">15:30-17:00</option> </select>
+       </div>
+      </div>
+      <div class="flex gap-3 pt-4"><button type="submit" id="save-session-btn" class="flex-1 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"> 💾 บันทึก </button> <button type="button" onclick="closeSessionModal()" class="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"> ยกเลิก </button>
+      </div>
+     </form>
     </div>
+   </div><!-- Attendance Modal -->
+   <div id="attendance-modal" class="modal">
+    <div class="modal-content w-full max-w-2xl">
+     <div class="flex items-center justify-between mb-6">
+      <h3 id="attendance-modal-title" class="text-xl font-bold text-gray-900">เพิ่มการเช็กชื่อ</h3><button onclick="closeAttendanceModal()" class="text-gray-400 hover:text-gray-600"> <span class="text-2xl">×</span> </button>
+     </div>
+     <form id="attendance-form" class="space-y-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+       <div><label class="block text-sm font-medium text-gray-700 mb-1">รหัสนักเรียน *</label> <input type="text" id="attendance-student-id" required placeholder="เช่น 68001" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+       </div>
+       <div><label class="block text-sm font-medium text-gray-700 mb-1">ชื่อ-นามสกุล *</label> <input type="text" id="attendance-student-name" required placeholder="ชื่อนักเรียน" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+       </div>
+       <div><label class="block text-sm font-medium text-gray-700 mb-1">ห้อง ม.6 *</label> <select id="attendance-class" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"> <option value="">เลือกห้อง</option> <option value="ม.6/1">ม.6/1</option> <option value="ม.6/2">ม.6/2</option> <option value="ม.6/3">ม.6/3</option> <option value="ม.6/4">ม.6/4</option> <option value="ม.6/5">ม.6/5</option> <option value="ม.6/10">ม.6/10</option> </select>
+       </div>
+       <div><label class="block text-sm font-medium text-gray-700 mb-1">สถานะ *</label> <select id="attendance-status" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"> <option value="">เลือกสถานะ</option> <option value="P">P - มา</option> <option value="L">L - สาย</option> <option value="A">A - ขาด</option> <option value="E">E - ลา</option> </select>
+       </div>
+       <div><label class="block text-sm font-medium text-gray-700 mb-1">วิชา *</label> <select id="attendance-subject" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"> <option value="">เลือกวิชา</option> <option value="ไทย">ไทย</option> <option value="อังกฤษ">อังกฤษ</option> <option value="คณิตประยุกต์ 1">คณิตประยุกต์ 1</option> <option value="ฟิสิกส์">ฟิสิกส์</option> <option value="เคมี">เคมี</option> <option value="ชีวะ">ชีวะ</option> <option value="สังคม">สังคม</option> <option value="วิทย์ประยุกต์ 1">วิทย์ประยุกต์ 1</option> </select>
+       </div>
+       <div><label class="block text-sm font-medium text-gray-700 mb-1">ครูผู้สอน *</label> <input type="text" id="attendance-teacher" required placeholder="ชื่อครูผู้สอน" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+       </div>
+       <div><label class="block text-sm font-medium text-gray-700 mb-1">วันที่ *</label> <input type="date" id="attendance-date" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+       </div>
+       <div><label class="block text-sm font-medium text-gray-700 mb-1">เวลา *</label> <select id="attendance-time" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"> <option value="">เลือกเวลา</option> <option value="08:00-09:30">08:00-09:30</option> <option value="09:45-11:15">09:45-11:15</option> <option value="13:00-14:30">13:00-14:30</option> <option value="14:45-16:15">14:45-16:15</option> <option value="15:30-17:00">15:30-17:00</option> </select>
+       </div>
+      </div>
+      <div class="flex gap-3 pt-4"><button type="submit" id="save-attendance-btn" class="flex-1 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"> ✅ บันทึก </button> <button type="button" onclick="closeAttendanceModal()" class="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"> ยกเลิก </button>
+      </div>
+     </form>
+    </div>
+   </div><!-- Confirmation Modal -->
+   <div id="confirm-modal" class="modal">
+    <div class="modal-content w-full max-w-md">
+     <div class="text-center">
+      <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4"><span class="text-red-600 text-xl">⚠️</span>
+      </div>
+      <h3 class="text-lg font-medium text-gray-900 mb-2" id="confirm-title">ยืนยันการลบ</h3>
+      <p class="text-sm text-gray-500 mb-6" id="confirm-message">คุณแน่ใจหรือไม่ที่จะดำเนินการนี้?</p>
+      <div class="flex gap-3"><button onclick="closeConfirmModal()" class="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"> ยกเลิก </button> <button id="confirm-action-btn" class="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"> ยืนยัน </button>
+      </div>
+     </div>
+    </div>
+   </div><!-- Login Modal -->
+   <div id="login-modal" class="modal">
+    <div class="modal-content w-full max-w-md">
+     <div class="flex items-center justify-between mb-6">
+      <h3 class="text-xl font-bold text-gray-900">เข้าสู่ระบบผู้ดูแลระบบ</h3><button onclick="closeLoginModal()" class="text-gray-400 hover:text-gray-600"> <span class="text-2xl">×</span> </button>
+     </div>
+     <form id="login-form" class="space-y-4">
+      <div><label class="block text-sm font-medium text-gray-700 mb-2">ชื่อผู้ใช้</label> <input type="text" id="login-username" required placeholder="admin" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+      </div>
+      <div><label class="block text-sm font-medium text-gray-700 mb-2">รหัสผ่าน</label> <input type="password" id="login-password" required placeholder="••••••••" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+      </div>
+      <div id="login-error" class="hidden p-3 bg-red-50 border border-red-200 rounded-lg">
+       <p class="text-sm text-red-700">ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง</p>
+      </div>
+      <div class="text-xs text-gray-500 bg-blue-50 p-3 rounded-lg">
+       <p><strong>ข้อมูลเข้าสู่ระบบ:</strong></p>
+       <p>• ชื่อผู้ใช้: <code class="bg-white px-1 rounded">admin</code></p>
+       <p>• รหัสผ่าน: <code class="bg-white px-1 rounded">admin123</code></p>
+      </div>
+      <div class="flex gap-3 pt-4"><button type="submit" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"> 🔐 เข้าสู่ระบบ </button> <button type="button" onclick="closeLoginModal()" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"> ยกเลิก </button>
+      </div>
+     </form>
+    </div>
+   </div><!-- Import Modal -->
+   <div id="import-modal" class="modal">
+    <div class="modal-content w-full max-w-md">
+     <div class="flex items-center justify-between mb-6">
+      <h3 class="text-xl font-bold text-gray-900">นำเข้าข้อมูล</h3><button onclick="closeImportModal()" class="text-gray-400 hover:text-gray-600"> <span class="text-2xl">×</span> </button>
+     </div>
+     <div class="space-y-4">
+      <div><label class="block text-sm font-medium text-gray-700 mb-2">เลือกไฟล์ CSV</label> <input type="file" id="import-file" accept=".csv" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+      </div>
+      <div class="text-xs text-gray-500">
+       <p>• ไฟล์ต้องเป็นรูปแบบ CSV</p>
+       <p>• ข้อมูลจะถูกเพิ่มเข้าไปในระบบ</p>
+       <p>• ข้อมูลเดิมจะไม่ถูกลบ</p>
+      </div>
+      <div class="flex gap-3 pt-4"><button onclick="processImport()" class="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"> 📤 นำเข้า </button> <button onclick="closeImportModal()" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"> ยกเลิก </button>
+      </div>
+     </div>
+    </div>
+   </div><!-- Session Detail Modal -->
+   <div id="session-detail-modal" class="session-detail-modal">
+    <div class="modal-content w-full max-w-2xl">
+     <div class="flex items-center justify-between mb-6">
+      <h3 id="session-detail-title" class="text-xl font-bold text-gray-900">รายละเอียดคาบติว</h3><button onclick="closeSessionDetailModal()" class="text-gray-400 hover:text-gray-600"> <span class="text-2xl">×</span> </button>
+     </div>
+     <div id="session-detail-content" class="space-y-4"><!-- Content will be populated by JavaScript -->
+     </div>
+     <div class="flex gap-3 pt-6 border-t border-gray-200"><button onclick="closeSessionDetailModal()" class="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"> ปิด </button>
+     </div>
+    </div>
+   </div>
+  </div>
+  <script>
+    const defaultConfig = {
+      school_name: 'โรงเรียนชัยนาทพิทยาคม',
+      academic_year: '2568',
+      period_text: '28 ต.ค. 2568 – 13 มี.ค. 2569'
+    };
 
-    <div id="floatingActionButtons" class="hidden">
-        <button type="button" id="floatingActionsToggle" class="floating-toggle" aria-label="เปิดเมนูทางลัด">
-            <span class="sr-only">เปิดเมนูทางลัด</span>
-            <span>☰</span>
-        </button>
-        <div class="floating-panel">
-            <div class="flex flex-col gap-2">
-                <button id="backBtn" onclick="goBack()" class="floating-action-button hidden">
-                    ← ย้อนกลับ
+    // Data management
+    let allData = [];
+    let isAdmin = false;
+    let editingId = null;
+    let currentCalendarDate = new Date();
+
+    // Admin credentials
+    const ADMIN_CREDENTIALS = {
+      username: 'admin',
+      password: 'admin123'
+    };
+
+    // Initialize app
+    function initializeApp() {
+      loadData();
+      loadUserSession();
+      updateUserRole();
+      updateUI();
+      
+      // Set default date to today
+      const today = new Date().toISOString().split('T')[0];
+      const dateInputs = document.querySelectorAll('input[type="date"]');
+      dateInputs.forEach(input => {
+        if (!input.value) {
+          input.value = today;
+        }
+      });
+    }
+
+    // Data persistence
+    function saveData() {
+      localStorage.setItem('onet_tutoring_data', JSON.stringify(allData));
+    }
+
+    function loadData() {
+      const saved = localStorage.getItem('onet_tutoring_data');
+      if (saved) {
+        try {
+          allData = JSON.parse(saved);
+        } catch (e) {
+          allData = [];
+        }
+      }
+    }
+
+    // User session management
+    function saveUserSession() {
+      localStorage.setItem('onet_admin_session', JSON.stringify({ isAdmin, timestamp: Date.now() }));
+    }
+
+    function loadUserSession() {
+      const session = localStorage.getItem('onet_admin_session');
+      if (session) {
+        try {
+          const data = JSON.parse(session);
+          // Session expires after 24 hours
+          if (Date.now() - data.timestamp < 24 * 60 * 60 * 1000) {
+            isAdmin = data.isAdmin;
+          } else {
+            localStorage.removeItem('onet_admin_session');
+            isAdmin = false;
+          }
+        } catch (e) {
+          isAdmin = false;
+        }
+      }
+    }
+
+    function login(username, password) {
+      if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
+        isAdmin = true;
+        saveUserSession();
+        updateUserRole();
+        closeLoginModal();
+        showNotification('เข้าสู่ระบบสำเร็จ', 'success');
+        return true;
+      }
+      return false;
+    }
+
+    function logout() {
+      isAdmin = false;
+      localStorage.removeItem('onet_admin_session');
+      updateUserRole();
+      showNotification('ออกจากระบบสำเร็จ', 'info');
+    }
+
+    function updateUserRole() {
+      const badge = document.getElementById('user-role-badge');
+      const loginBtn = document.getElementById('login-logout-btn');
+      const roleText = document.getElementById('current-role-text');
+      const body = document.body;
+      
+      if (isAdmin) {
+        badge.innerHTML = '🔧 ผู้ดูแลระบบ';
+        badge.className = 'user-role-badge role-admin';
+        loginBtn.innerHTML = '🚪 ออกจากระบบ';
+        loginBtn.onclick = logout;
+        loginBtn.className = 'px-3 py-1 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 transition-colors';
+        body.classList.add('admin-mode');
+        if (roleText) roleText.textContent = 'ผู้ดูแลระบบ';
+      } else {
+        badge.innerHTML = '👤 ผู้ใช้งาน';
+        badge.className = 'user-role-badge role-viewer';
+        loginBtn.innerHTML = '🔐 เข้าสู่ระบบ';
+        loginBtn.onclick = showLoginModal;
+        loginBtn.className = 'px-3 py-1 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition-colors';
+        body.classList.remove('admin-mode');
+        if (roleText) roleText.textContent = 'ผู้ใช้งาน';
+      }
+    }
+
+    // UI Updates
+    function updateUI() {
+      updateDashboardStats();
+      updateCalendar();
+      updateTodaySessions();
+      updateSessionsList();
+      updateAttendanceList();
+      updateReports();
+      updateSchedule();
+      updateMasters();
+      updateTotalRecords();
+    }
+
+    function updateTotalRecords() {
+      const totalElements = document.querySelectorAll('#total-records, #settings-total-records');
+      totalElements.forEach(el => {
+        if (el) el.textContent = allData.length;
+      });
+    }
+
+    function updateDashboardStats() {
+      const sessions = allData.filter(record => record.type === 'session');
+      const attendance = allData.filter(record => record.type === 'attendance');
+      
+      // Update main stats
+      document.getElementById('stat-sessions').textContent = sessions.length;
+      document.getElementById('stat-attendance').textContent = attendance.length;
+      
+      // Update quick stats
+      const quickStatSessions = document.getElementById('quick-stat-sessions');
+      const quickStatAttendance = document.getElementById('quick-stat-attendance');
+      const quickStatRate = document.getElementById('quick-stat-rate');
+      
+      if (quickStatSessions) quickStatSessions.textContent = sessions.length;
+      if (quickStatAttendance) quickStatAttendance.textContent = attendance.length;
+      
+      // Calculate attendance rate
+      const presentCount = attendance.filter(record => record.status === 'P').length;
+      const rate = attendance.length > 0 ? Math.round((presentCount / attendance.length) * 100) : 0;
+      document.getElementById('stat-rate').textContent = `${rate}%`;
+      if (quickStatRate) quickStatRate.textContent = `${rate}%`;
+      
+      // Calculate at-risk students (simplified)
+      const riskCount = Math.max(0, Math.floor(attendance.length * 0.1));
+      document.getElementById('stat-risk').textContent = riskCount;
+    }
+
+    function updateCalendar() {
+      const container = document.getElementById('calendar-container');
+      const monthYearElement = document.getElementById('calendar-month-year');
+      
+      const year = currentCalendarDate.getFullYear();
+      const month = currentCalendarDate.getMonth();
+      
+      // Update month/year display
+      const thaiMonths = [
+        'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+        'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
+      ];
+      const thaiYear = year + 543;
+      monthYearElement.textContent = `${thaiMonths[month]} ${thaiYear}`;
+      
+      // Get sessions for this month
+      const sessions = allData.filter(record => record.type === 'session');
+      const sessionsByDate = {};
+      sessions.forEach(session => {
+        const date = session.date;
+        if (!sessionsByDate[date]) {
+          sessionsByDate[date] = [];
+        }
+        sessionsByDate[date].push(session);
+      });
+      
+      // Generate calendar
+      const firstDay = new Date(year, month, 1);
+      const lastDay = new Date(year, month + 1, 0);
+      const startDate = new Date(firstDay);
+      startDate.setDate(startDate.getDate() - firstDay.getDay());
+      
+      const today = new Date();
+      const todayStr = today.toISOString().split('T')[0];
+      
+      let calendarHTML = `
+        <div class="calendar-grid">
+          <div class="calendar-header">อา</div>
+          <div class="calendar-header">จ</div>
+          <div class="calendar-header">อ</div>
+          <div class="calendar-header">พ</div>
+          <div class="calendar-header">พฤ</div>
+          <div class="calendar-header">ศ</div>
+          <div class="calendar-header">ส</div>
+      `;
+      
+      for (let i = 0; i < 42; i++) {
+        const currentDate = new Date(startDate);
+        currentDate.setDate(startDate.getDate() + i);
+        
+        const dateStr = currentDate.toISOString().split('T')[0];
+        const dayNumber = currentDate.getDate();
+        const isCurrentMonth = currentDate.getMonth() === month;
+        const isToday = dateStr === todayStr;
+        const hasSessions = sessionsByDate[dateStr] && sessionsByDate[dateStr].length > 0;
+        
+        let dayClass = 'calendar-day';
+        if (!isCurrentMonth) dayClass += ' other-month';
+        if (isToday) dayClass += ' today';
+        if (hasSessions) dayClass += ' has-sessions';
+        
+        const sessionsCount = hasSessions ? sessionsByDate[dateStr].length : 0;
+        
+        calendarHTML += `
+          <div class="${dayClass}" onclick="showDateSessions('${dateStr}')">
+            <span class="calendar-day-number">${dayNumber}</span>
+            ${hasSessions ? `<span class="calendar-sessions-count">${sessionsCount}</span>` : ''}
+          </div>
+        `;
+      }
+      
+      calendarHTML += '</div>';
+      container.innerHTML = calendarHTML;
+    }
+
+    function updateTodaySessions() {
+      const container = document.getElementById('today-sessions');
+      const today = new Date().toISOString().split('T')[0];
+      const todaySessions = allData.filter(record => 
+        record.type === 'session' && record.date === today
+      );
+      
+      if (todaySessions.length === 0) {
+        container.innerHTML = `
+          <div class="text-center text-gray-500 py-8">
+            <span class="text-4xl mb-2 block">📅</span>
+            <p class="text-sm">ไม่มีคาบติววันนี้</p>
+            <p class="text-xs text-gray-400 mt-1">คลิกวันที่มีสีน้ำเงินในปฏิทินเพื่อดูคาบติว</p>
+          </div>
+        `;
+        return;
+      }
+      
+      container.innerHTML = todaySessions.map(session => `
+        <div class="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg hover:shadow-md transition-all">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+              <span class="text-xl">📚</span>
+            </div>
+            <div>
+              <div class="text-base font-semibold text-gray-900">${session.subject}</div>
+              <div class="text-sm text-gray-600">${session.teacher} | ${session.class_name}</div>
+              <div class="flex items-center gap-3 mt-1">
+                <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">ห้อง ${session.classroom}</span>
+                <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">${session.time}</span>
+              </div>
+            </div>
+          </div>
+          <div class="admin-only flex gap-2">
+            <button onclick="editSession('${session.id}')" class="px-3 py-2 bg-blue-100 text-blue-700 rounded-lg text-xs hover:bg-blue-200 transition-colors font-medium">
+              ✏️ แก้ไข
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function previousMonth() {
+      currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
+      updateCalendar();
+    }
+
+    function nextMonth() {
+      currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
+      updateCalendar();
+    }
+
+    function showDateSessions(dateStr) {
+      const sessions = allData.filter(record => 
+        record.type === 'session' && record.date === dateStr
+      );
+      
+      if (sessions.length === 0) {
+        showNotification('ไม่มีคาบติวในวันนี้', 'info');
+        return;
+      }
+      
+      const date = new Date(dateStr);
+      const thaiDate = date.toLocaleDateString('th-TH', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+      
+      document.getElementById('session-detail-title').textContent = `คาบติว ${thaiDate}`;
+      
+      const content = sessions.map(session => `
+        <div class="border border-gray-200 rounded-lg p-4">
+          <div class="flex items-start justify-between">
+            <div class="flex items-start gap-3 flex-1">
+              <span class="text-xl">📚</span>
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-2">
+                  <h4 class="text-base font-semibold text-gray-900">${session.subject}</h4>
+                  <span class="status-badge status-done">บันทึกแล้ว</span>
+                </div>
+                <div class="grid grid-cols-2 gap-2 text-sm text-gray-600">
+                  <div><strong>ครู:</strong> ${session.teacher}</div>
+                  <div><strong>ห้อง:</strong> ${session.class_name}</div>
+                  <div><strong>ห้องเรียน:</strong> ${session.classroom}</div>
+                  <div><strong>เวลา:</strong> ${session.time}</div>
+                </div>
+              </div>
+            </div>
+            <div class="admin-only flex gap-2 ml-4">
+              <button onclick="editSession('${session.id}'); closeSessionDetailModal();" class="px-3 py-1 bg-blue-100 text-blue-700 rounded text-xs hover:bg-blue-200 transition-colors">
+                ✏️ แก้ไข
+              </button>
+              <button onclick="deleteRecord('${session.id}', 'คาบเรียน'); closeSessionDetailModal();" class="px-3 py-1 bg-red-100 text-red-700 rounded text-xs hover:bg-red-200 transition-colors">
+                🗑️ ลบ
+              </button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+      
+      document.getElementById('session-detail-content').innerHTML = content;
+      document.getElementById('session-detail-modal').classList.add('show');
+    }
+
+    function closeSessionDetailModal() {
+      document.getElementById('session-detail-modal').classList.remove('show');
+    }
+
+    function updateSessionsList() {
+      const container = document.getElementById('sessions-list');
+      const sessions = allData.filter(record => record.type === 'session').reverse();
+      
+      if (sessions.length === 0) {
+        container.innerHTML = `
+          <div class="text-center text-gray-500 py-8">
+            <span class="text-4xl mb-4 block">📋</span>
+            <p class="text-sm">ยังไม่มีคาบที่บันทึก</p>
+            <p class="text-xs text-gray-400 mt-1">คลิก "เพิ่มคาบใหม่" เพื่อเริ่มต้น</p>
+          </div>
+        `;
+        return;
+      }
+      
+      container.innerHTML = sessions.map(session => `
+        <div class="border border-gray-200 rounded-lg p-4 mb-4">
+          <div class="flex items-start justify-between">
+            <div class="flex items-start gap-3 flex-1">
+              <input type="checkbox" value="${session.id}" class="session-checkbox mt-1 rounded border-gray-300" onchange="updateSelectedSessionsCount()">
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="text-lg">📚</span>
+                  <h4 class="text-base font-semibold text-gray-900">${session.subject}</h4>
+                  <span class="status-badge status-done">บันทึกแล้ว</span>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm text-gray-600">
+                  <div><strong>ครู:</strong> ${session.teacher}</div>
+                  <div><strong>ห้อง:</strong> ${session.class_name}</div>
+                  <div><strong>ห้องเรียน:</strong> ${session.classroom}</div>
+                  <div><strong>วันที่:</strong> ${new Date(session.date).toLocaleDateString('th-TH')}</div>
+                  <div><strong>เวลา:</strong> ${session.time}</div>
+                  <div><strong>บันทึกเมื่อ:</strong> ${new Date(session.created_at).toLocaleString('th-TH')}</div>
+                </div>
+              </div>
+            </div>
+            <div class="flex gap-2 ml-4">
+              <button onclick="editSession('${session.id}')" class="px-3 py-1 bg-blue-100 text-blue-700 rounded text-xs hover:bg-blue-200 transition-colors">
+                ✏️ แก้ไข
+              </button>
+              <button onclick="deleteRecord('${session.id}', 'คาบเรียน')" class="px-3 py-1 bg-red-100 text-red-700 rounded text-xs hover:bg-red-200 transition-colors">
+                🗑️ ลบ
+              </button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function updateAttendanceList() {
+      const container = document.getElementById('attendance-list');
+      const attendance = allData.filter(record => record.type === 'attendance').reverse();
+      
+      if (attendance.length === 0) {
+        container.innerHTML = `
+          <div class="text-center text-gray-500 py-8">
+            <span class="text-4xl mb-4 block">✅</span>
+            <p class="text-sm">ยังไม่มีการเช็กชื่อ</p>
+            <p class="text-xs text-gray-400 mt-1">คลิก "เพิ่มการเช็กชื่อ" เพื่อเริ่มต้น</p>
+          </div>
+        `;
+        return;
+      }
+      
+      container.innerHTML = attendance.map(record => {
+        const statusClass = {
+          'P': 'bg-green-100 text-green-800',
+          'L': 'bg-yellow-100 text-yellow-800',
+          'A': 'bg-red-100 text-red-800',
+          'E': 'bg-blue-100 text-blue-800'
+        }[record.status] || 'bg-gray-100 text-gray-800';
+        
+        const statusText = {
+          'P': 'มา',
+          'L': 'สาย',
+          'A': 'ขาด',
+          'E': 'ลา'
+        }[record.status] || record.status;
+        
+        return `
+          <div class="border border-gray-200 rounded-lg p-4 mb-4">
+            <div class="flex items-start justify-between">
+              <div class="flex items-start gap-3 flex-1">
+                <input type="checkbox" value="${record.id}" class="attendance-checkbox mt-1 rounded border-gray-300" onchange="updateSelectedAttendanceCount()">
+                <div class="flex-1">
+                  <div class="flex items-center gap-3 mb-2">
+                    <span class="text-lg">👤</span>
+                    <div>
+                      <h4 class="text-base font-semibold text-gray-900">${record.student_name}</h4>
+                      <p class="text-sm text-gray-600">${record.student_id} | ${record.class_name}</p>
+                    </div>
+                    <span class="px-3 py-1 rounded-full text-xs font-medium ${statusClass}">
+                      ${record.status} - ${statusText}
+                    </span>
+                  </div>
+                  <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm text-gray-600">
+                    <div><strong>วิชา:</strong> ${record.subject}</div>
+                    <div><strong>ครู:</strong> ${record.teacher}</div>
+                    <div><strong>วันที่:</strong> ${new Date(record.date).toLocaleDateString('th-TH')}</div>
+                    <div><strong>เวลา:</strong> ${record.time}</div>
+                    <div class="md:col-span-2"><strong>บันทึกเมื่อ:</strong> ${new Date(record.created_at).toLocaleString('th-TH')}</div>
+                  </div>
+                </div>
+              </div>
+              <div class="flex gap-2 ml-4">
+                <button onclick="editAttendance('${record.id}')" class="px-3 py-1 bg-blue-100 text-blue-700 rounded text-xs hover:bg-blue-200 transition-colors">
+                  ✏️ แก้ไข
                 </button>
-                <button onclick="resetGame()" class="floating-action-button">
-                    🔄 เริ่มใหม่
+                <button onclick="deleteRecord('${record.id}', 'การเช็กชื่อ')" class="px-3 py-1 bg-red-100 text-red-700 rounded text-xs hover:bg-red-200 transition-colors">
+                  🗑️ ลบ
                 </button>
-                <button onclick="goToHome()" class="floating-action-button">
-                    🏠 หน้าหลัก
-                </button>
+              </div>
             </div>
-        </div>
-    </div>
+          </div>
+        `;
+      }).join('');
+    }
 
+    function updateReports() {
+      const sessions = allData.filter(record => record.type === 'session');
+      const attendance = allData.filter(record => record.type === 'attendance');
+      
+      document.getElementById('report-total-sessions').textContent = sessions.length;
+      document.getElementById('report-total-attendance').textContent = attendance.length;
+      
+      const presentCount = attendance.filter(record => record.status === 'P').length;
+      const rate = attendance.length > 0 ? Math.round((presentCount / attendance.length) * 100) : 0;
+      document.getElementById('report-avg-rate').textContent = `${rate}%`;
+      
+      // Update reports table
+      const tableContainer = document.getElementById('reports-table');
+      if (allData.length === 0) {
+        tableContainer.innerHTML = `
+          <div class="text-center text-gray-500 py-8">
+            <span class="text-4xl mb-4 block">📊</span>
+            <p class="text-sm">ยังไม่มีข้อมูลสำหรับรายงาน</p>
+            <p class="text-xs text-gray-400 mt-1">เริ่มต้นด้วยการบันทึกข้อมูลคาบเรียนและการเช็กชื่อ</p>
+          </div>
+        `;
+        return;
+      }
+      
+      // Create summary by subject
+      const subjectStats = {};
+      sessions.forEach(session => {
+        if (!subjectStats[session.subject]) {
+          subjectStats[session.subject] = { sessions: 0, attendance: 0, present: 0 };
+        }
+        subjectStats[session.subject].sessions++;
+      });
+      
+      attendance.forEach(record => {
+        if (!subjectStats[record.subject]) {
+          subjectStats[record.subject] = { sessions: 0, attendance: 0, present: 0 };
+        }
+        subjectStats[record.subject].attendance++;
+        if (record.status === 'P') {
+          subjectStats[record.subject].present++;
+        }
+      });
+      
+      const tableRows = Object.entries(subjectStats).map(([subject, stats]) => {
+        const rate = stats.attendance > 0 ? Math.round((stats.present / stats.attendance) * 100) : 0;
+        return `
+          <tr class="border-b border-gray-200">
+            <td class="px-4 py-3 text-sm font-medium text-gray-900">${subject}</td>
+            <td class="px-4 py-3 text-sm text-gray-600">${stats.sessions}</td>
+            <td class="px-4 py-3 text-sm text-gray-600">${stats.attendance}</td>
+            <td class="px-4 py-3 text-sm text-gray-600">${stats.present}</td>
+            <td class="px-4 py-3 text-sm font-semibold ${rate >= 80 ? 'text-green-600' : 'text-red-600'}">${rate}%</td>
+          </tr>
+        `;
+      }).join('');
+      
+      tableContainer.innerHTML = `
+        <table class="w-full">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">วิชา</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">คาบ</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">เช็กชื่อ</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">มา</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">อัตรา</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${tableRows}
+          </tbody>
+        </table>
+      `;
+    }
 
-    <!-- Main Content -->
-    <main id="mainContent" class="max-w-6xl mx-auto p-3 md:p-6 pb-28 md:pb-32 hidden">
-        <!-- Content will be dynamically rendered here -->
-    </main>
+    function updateSchedule() {
+      const container = document.getElementById('schedule-content');
+      const sessions = allData.filter(record => record.type === 'session');
+      
+      if (sessions.length === 0) {
+        container.innerHTML = `
+          <div class="text-center text-gray-500 py-8">
+            <span class="text-4xl mb-4 block">📅</span>
+            <p class="text-sm">ยังไม่มีตารางติว</p>
+            <p class="text-xs text-gray-400 mt-1">บันทึกคาบเรียนเพื่อสร้างตารางติว</p>
+          </div>
+        `;
+        return;
+      }
+      
+      // Group sessions by date
+      const sessionsByDate = {};
+      sessions.forEach(session => {
+        const date = session.date;
+        if (!sessionsByDate[date]) {
+          sessionsByDate[date] = [];
+        }
+        sessionsByDate[date].push(session);
+      });
+      
+      const scheduleHtml = Object.entries(sessionsByDate)
+        .sort(([a], [b]) => new Date(b) - new Date(a))
+        .map(([date, dateSessions]) => {
+          const dateStr = new Date(date).toLocaleDateString('th-TH', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          });
+          
+          const sessionCards = dateSessions.map(session => `
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="text-lg">📚</span>
+                <h4 class="text-base font-semibold text-gray-900">${session.subject}</h4>
+              </div>
+              <div class="grid grid-cols-2 gap-2 text-sm text-gray-600">
+                <div><strong>ครู:</strong> ${session.teacher}</div>
+                <div><strong>ห้อง:</strong> ${session.class_name}</div>
+                <div><strong>ห้องเรียน:</strong> ${session.classroom}</div>
+                <div><strong>เวลา:</strong> ${session.time}</div>
+              </div>
+            </div>
+          `).join('');
+          
+          return `
+            <div class="mb-6">
+              <h3 class="text-lg font-semibold text-gray-900 mb-4">${dateStr}</h3>
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                ${sessionCards}
+              </div>
+            </div>
+          `;
+        }).join('');
+      
+      container.innerHTML = scheduleHtml;
+    }
 
-    <!-- Modal Container -->
-    <div id="modalContainer"></div>
+    function updateMasters() {
+      // Extract unique values
+      const teachers = [...new Set(allData.filter(r => r.teacher).map(r => r.teacher))];
+      const subjects = [...new Set(allData.filter(r => r.subject).map(r => r.subject))];
+      const classes = [...new Set(allData.filter(r => r.class_name).map(r => r.class_name))];
+      
+      // Update teachers list
+      const teachersList = document.getElementById('teachers-list');
+      if (teachers.length === 0) {
+        teachersList.innerHTML = '<div class="text-center text-gray-500 py-4"><p class="text-sm">ยังไม่มีข้อมูลครู</p></div>';
+      } else {
+        teachersList.innerHTML = teachers.map(teacher => 
+          `<div class="px-3 py-2 bg-gray-50 rounded text-sm">${teacher}</div>`
+        ).join('');
+      }
+      
+      // Update subjects list
+      const subjectsList = document.getElementById('subjects-list');
+      if (subjects.length === 0) {
+        subjectsList.innerHTML = '<div class="text-center text-gray-500 py-4"><p class="text-sm">ยังไม่มีข้อมูลวิชา</p></div>';
+      } else {
+        subjectsList.innerHTML = subjects.map(subject => 
+          `<div class="px-3 py-2 bg-gray-50 rounded text-sm">${subject}</div>`
+        ).join('');
+      }
+      
+      // Update classes list
+      const classesList = document.getElementById('classes-list');
+      if (classes.length === 0) {
+        classesList.innerHTML = '<div class="text-center text-gray-500 py-4"><p class="text-sm">ยังไม่มีข้อมูลห้อง</p></div>';
+      } else {
+        classesList.innerHTML = classes.map(className => 
+          `<div class="px-3 py-2 bg-gray-50 rounded text-sm">${className}</div>`
+        ).join('');
+      }
+    }
 
-    <!-- Notification Container -->
-    <div id="notificationContainer"></div>
+    // CRUD Operations
+    function saveSession(sessionData) {
+      const record = {
+        id: editingId || `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        type: 'session',
+        ...sessionData,
+        created_at: editingId ? allData.find(r => r.id === editingId)?.created_at || new Date().toISOString() : new Date().toISOString(),
+        updated_at: editingId ? new Date().toISOString() : undefined
+      };
+      
+      if (editingId) {
+        const index = allData.findIndex(r => r.id === editingId);
+        if (index !== -1) {
+          allData[index] = record;
+          showNotification('แก้ไขคาบเรียนสำเร็จ', 'success');
+        }
+      } else {
+        allData.push(record);
+        showNotification('เพิ่มคาบเรียนสำเร็จ', 'success');
+      }
+      
+      saveData();
+      updateUI();
+      closeSessionModal();
+    }
 
-    <footer id="siteFooter" class="bg-slate-900 text-white text-[10px] sm:text-xs text-center py-2.5 px-3 hidden fixed bottom-0 inset-x-0 z-40 shadow-lg">
-        พัฒนาโดย : นัชนันท์ นครคง , นุสรา พึ่งบ้านเกาะ , ราม แสงมณี และสุทธิชา กะรัมย์ นิสิตภาควิชาหลักสูตรและการสอน (การสอนภาษาไทย) คณะครุศาสตร์ จุฬาลงกรณ์มหาวิทยาลัย
-    </footer>
+    function saveAttendance(attendanceData) {
+      const record = {
+        id: editingId || `attendance_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        type: 'attendance',
+        ...attendanceData,
+        created_at: editingId ? allData.find(r => r.id === editingId)?.created_at || new Date().toISOString() : new Date().toISOString(),
+        updated_at: editingId ? new Date().toISOString() : undefined
+      };
+      
+      if (editingId) {
+        const index = allData.findIndex(r => r.id === editingId);
+        if (index !== -1) {
+          allData[index] = record;
+          showNotification('แก้ไขการเช็กชื่อสำเร็จ', 'success');
+        }
+      } else {
+        allData.push(record);
+        showNotification('เพิ่มการเช็กชื่อสำเร็จ', 'success');
+      }
+      
+      saveData();
+      updateUI();
+      closeAttendanceModal();
+    }
 
-    <script id="firebase-config" type="application/json">
+    function deleteRecord(id, type) {
+      showConfirmModal(
+        'ยืนยันการลบ',
+        `คุณแน่ใจหรือไม่ที่จะลบ${type}นี้?`,
+        () => {
+          const index = allData.findIndex(r => r.id === id);
+          if (index !== -1) {
+            allData.splice(index, 1);
+            saveData();
+            updateUI();
+            showNotification(`ลบ${type}สำเร็จ`, 'success');
+          }
+          closeConfirmModal();
+        }
+      );
+    }
+
+    function resetAllData() {
+      allData = [];
+      saveData();
+      updateUI();
+      showNotification('รีเซ็ตข้อมูลทั้งหมดสำเร็จ', 'success');
+    }
+
+    // Modal Management
+    function openSessionModal(id = null) {
+      editingId = id;
+      const modal = document.getElementById('session-modal');
+      const title = document.getElementById('session-modal-title');
+      const form = document.getElementById('session-form');
+      
+      if (id) {
+        const record = allData.find(r => r.id === id);
+        if (record) {
+          title.textContent = 'แก้ไขคาบเรียน';
+          document.getElementById('session-subject').value = record.subject || '';
+          document.getElementById('session-teacher').value = record.teacher || '';
+          document.getElementById('session-class').value = record.class_name || '';
+          document.getElementById('session-classroom').value = record.classroom || '';
+          document.getElementById('session-date').value = record.date || '';
+          document.getElementById('session-time').value = record.time || '';
+        }
+      } else {
+        title.textContent = 'เพิ่มคาบใหม่';
+        form.reset();
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('session-date').value = today;
+      }
+      
+      modal.classList.add('show');
+    }
+
+    function closeSessionModal() {
+      editingId = null;
+      document.getElementById('session-modal').classList.remove('show');
+      document.getElementById('session-form').reset();
+    }
+
+    function openAttendanceModal(id = null) {
+      editingId = id;
+      const modal = document.getElementById('attendance-modal');
+      const title = document.getElementById('attendance-modal-title');
+      const form = document.getElementById('attendance-form');
+      
+      if (id) {
+        const record = allData.find(r => r.id === id);
+        if (record) {
+          title.textContent = 'แก้ไขการเช็กชื่อ';
+          document.getElementById('attendance-student-id').value = record.student_id || '';
+          document.getElementById('attendance-student-name').value = record.student_name || '';
+          document.getElementById('attendance-class').value = record.class_name || '';
+          document.getElementById('attendance-status').value = record.status || '';
+          document.getElementById('attendance-subject').value = record.subject || '';
+          document.getElementById('attendance-teacher').value = record.teacher || '';
+          document.getElementById('attendance-date').value = record.date || '';
+          document.getElementById('attendance-time').value = record.time || '';
+        }
+      } else {
+        title.textContent = 'เพิ่มการเช็กชื่อ';
+        form.reset();
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('attendance-date').value = today;
+      }
+      
+      modal.classList.add('show');
+    }
+
+    function closeAttendanceModal() {
+      editingId = null;
+      document.getElementById('attendance-modal').classList.remove('show');
+      document.getElementById('attendance-form').reset();
+    }
+
+    function showConfirmModal(title, message, onConfirm) {
+      document.getElementById('confirm-title').textContent = title;
+      document.getElementById('confirm-message').textContent = message;
+      document.getElementById('confirm-action-btn').onclick = onConfirm;
+      document.getElementById('confirm-modal').classList.add('show');
+    }
+
+    function closeConfirmModal() {
+      document.getElementById('confirm-modal').classList.remove('show');
+    }
+
+    function confirmResetData() {
+      showConfirmModal(
+        'รีเซ็ตข้อมูลทั้งหมด',
+        'คุณแน่ใจหรือไม่ที่จะลบข้อมูลทั้งหมด? การดำเนินการนี้ไม่สามารถย้อนกลับได้',
+        () => {
+          resetAllData();
+          closeConfirmModal();
+        }
+      );
+    }
+
+    // Login modal functions
+    function showLoginModal() {
+      document.getElementById('login-modal').classList.add('show');
+      document.getElementById('login-error').classList.add('hidden');
+      document.getElementById('login-form').reset();
+    }
+
+    function closeLoginModal() {
+      document.getElementById('login-modal').classList.remove('show');
+      document.getElementById('login-form').reset();
+      document.getElementById('login-error').classList.add('hidden');
+    }
+
+    // Edit functions
+    function editSession(id) {
+      openSessionModal(id);
+    }
+
+    function editAttendance(id) {
+      openAttendanceModal(id);
+    }
+
+    // Bulk operations for sessions
+    function toggleSelectAllSessions() {
+      const selectAll = document.getElementById('select-all-sessions');
+      const checkboxes = document.querySelectorAll('.session-checkbox');
+      
+      checkboxes.forEach(checkbox => {
+        checkbox.checked = selectAll.checked;
+      });
+      
+      updateSelectedSessionsCount();
+    }
+
+    function updateSelectedSessionsCount() {
+      const checkboxes = document.querySelectorAll('.session-checkbox:checked');
+      const count = checkboxes.length;
+      const countElement = document.getElementById('selected-sessions-count');
+      const countNumber = document.getElementById('sessions-count');
+      
+      if (count > 0) {
+        countElement.classList.remove('hidden');
+        countNumber.textContent = count;
+      } else {
+        countElement.classList.add('hidden');
+      }
+    }
+
+    function bulkDeleteSessions() {
+      const checkboxes = document.querySelectorAll('.session-checkbox:checked');
+      const selectedIds = Array.from(checkboxes).map(cb => cb.value);
+      
+      if (selectedIds.length === 0) {
+        showNotification('กรุณาเลือกคาบที่ต้องการลบ', 'error');
+        return;
+      }
+      
+      showConfirmModal(
+        'ลบคาบเรียนหลายรายการ',
+        `คุณแน่ใจหรือไม่ที่จะลบคาบเรียน ${selectedIds.length} รายการ?`,
+        () => {
+          selectedIds.forEach(id => {
+            const index = allData.findIndex(r => r.id === id);
+            if (index !== -1) {
+              allData.splice(index, 1);
+            }
+          });
+          
+          saveData();
+          updateUI();
+          showNotification(`ลบคาบเรียนสำเร็จ ${selectedIds.length} รายการ`, 'success');
+          closeConfirmModal();
+        }
+      );
+    }
+
+    function duplicateSession() {
+      const checkboxes = document.querySelectorAll('.session-checkbox:checked');
+      const selectedIds = Array.from(checkboxes).map(cb => cb.value);
+      
+      if (selectedIds.length === 0) {
+        showNotification('กรุณาเลือกคาบที่ต้องการคัดลอก', 'error');
+        return;
+      }
+      
+      if (selectedIds.length > 1) {
+        showNotification('กรุณาเลือกเพียง 1 คาบสำหรับการคัดลอก', 'error');
+        return;
+      }
+      
+      const originalSession = allData.find(r => r.id === selectedIds[0]);
+      if (originalSession) {
+        const duplicatedSession = {
+          ...originalSession,
+          id: `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          created_at: new Date().toISOString(),
+          updated_at: undefined
+        };
+        
+        allData.push(duplicatedSession);
+        saveData();
+        updateUI();
+        showNotification('คัดลอกคาบเรียนสำเร็จ', 'success');
+      }
+    }
+
+    // Bulk operations for attendance
+    function toggleSelectAllAttendance() {
+      const selectAll = document.getElementById('select-all-attendance');
+      const checkboxes = document.querySelectorAll('.attendance-checkbox');
+      
+      checkboxes.forEach(checkbox => {
+        checkbox.checked = selectAll.checked;
+      });
+      
+      updateSelectedAttendanceCount();
+    }
+
+    function updateSelectedAttendanceCount() {
+      const checkboxes = document.querySelectorAll('.attendance-checkbox:checked');
+      const count = checkboxes.length;
+      const countElement = document.getElementById('selected-attendance-count');
+      const countNumber = document.getElementById('attendance-count');
+      
+      if (count > 0) {
+        countElement.classList.remove('hidden');
+        countNumber.textContent = count;
+      } else {
+        countElement.classList.add('hidden');
+      }
+    }
+
+    function bulkDeleteAttendance() {
+      const checkboxes = document.querySelectorAll('.attendance-checkbox:checked');
+      const selectedIds = Array.from(checkboxes).map(cb => cb.value);
+      
+      if (selectedIds.length === 0) {
+        showNotification('กรุณาเลือกการเช็กชื่อที่ต้องการลบ', 'error');
+        return;
+      }
+      
+      showConfirmModal(
+        'ลบการเช็กชื่อหลายรายการ',
+        `คุณแน่ใจหรือไม่ที่จะลบการเช็กชื่อ ${selectedIds.length} รายการ?`,
+        () => {
+          selectedIds.forEach(id => {
+            const index = allData.findIndex(r => r.id === id);
+            if (index !== -1) {
+              allData.splice(index, 1);
+            }
+          });
+          
+          saveData();
+          updateUI();
+          showNotification(`ลบการเช็กชื่อสำเร็จ ${selectedIds.length} รายการ`, 'success');
+          closeConfirmModal();
+        }
+      );
+    }
+
+    function bulkAttendanceEntry() {
+      showNotification('ฟีเจอร์เช็กชื่อหมู่กำลังพัฒนา', 'info');
+      // This could open a modal for bulk attendance entry
+    }
+
+    // Sample schedule data
+    function loadSampleSchedule() {
+      showConfirmModal(
+        'โหลดตารางติวตัวอย่าง',
+        'คุณต้องการนำเข้าตารางติวตัวอย่างหรือไม่? ข้อมูลจะถูกเพิ่มเข้าไปในระบบ',
+        () => {
+          const sampleScheduleData = generateSampleScheduleData();
+          allData.push(...sampleScheduleData);
+          saveData();
+          updateUI();
+          showNotification(`นำเข้าตารางติวสำเร็จ ${sampleScheduleData.length} คาบเรียน`, 'success');
+          closeConfirmModal();
+        }
+      );
+    }
+
+    function generateSampleScheduleData() {
+      const scheduleData = [];
+      
+      // Define the schedule structure based on your table
+      const scheduleTemplate = [
+        // Week 1
         {
-            "apiKey": "AIzaSyCgIPCTpBY4Wwtk7kF4oViRVwJ7IAT77N0",
-            "authDomain": "thailit-d1633.firebaseapp.com",
-            "projectId": "thailit-d1633",
-            "storageBucket": "thailit-d1633.firebasestorage.app",
-            "messagingSenderId": "769056016001",
-            "appId": "1:769056016001:web:1e0d2eb6118a405120af80",
-            "measurementId": "G-XR94B0EBD6"
+          week: 1,
+          sessions: [
+            {
+              day: 'อังคาร',
+              date: '2568-10-28',
+              time: '08:00-09:30',
+              classes: [
+                { class: 'ม.6/1', room: '235', subject: 'ชีวะ', teacher: 'ครูธีราภรณ์' },
+                { class: 'ม.6/2', room: '242', subject: 'เคมี', teacher: 'ครูรุจิภา' },
+                { class: 'ม.6/3', room: '243', subject: 'สังคม', teacher: 'ครูณัฐธิดา' },
+                { class: 'ม.6/10', room: '644', subject: 'ไทย', teacher: 'ครูนัชนันท์' },
+                { class: 'ม.6/11', room: '547', subject: 'อังกฤษ', teacher: 'ครูปณิตา' },
+                { class: 'ม.6/4', room: '244', subject: 'คณิตประยุกต์ 2', teacher: 'ครูปิยะพร' },
+                { class: 'ม.6/5', room: '245', subject: 'วิทย์ประยุกต์ 1', teacher: 'ครูชลสิทธิ์' },
+                { class: 'ม.6/6', room: '246', subject: 'วิทย์ประยุกต์ 2', teacher: 'ครูรวิภา' },
+                { class: 'ม.6/7', room: '447', subject: 'วิทย์ประยุกต์ 3', teacher: 'ครูดุจดาว' },
+                { class: 'ม.6/8', room: '448', subject: 'สังคม', teacher: 'ครูชลีรัตน์' },
+                { class: 'ม.6/9', room: '437', subject: 'ไทย', teacher: 'ครูเพ็ญพรรณี' }
+              ]
+            },
+            {
+              day: 'ศุกร์',
+              date: '2568-10-31',
+              time: '08:00-09:30',
+              classes: [
+                { class: 'ม.6/1', room: '235', subject: 'เคมี', teacher: 'ครูรุจิภา' },
+                { class: 'ม.6/2', room: '242', subject: 'สังคม', teacher: 'ครูธัญญาวรรณ' },
+                { class: 'ม.6/3', room: '243', subject: 'ไทย', teacher: 'ครูอังคณา' },
+                { class: 'ม.6/10', room: '644', subject: 'อังกฤษ', teacher: 'ครูจิณณ์' },
+                { class: 'ม.6/11', room: '547', subject: 'คณิตประยุกต์ 1', teacher: 'ครูอิทธิพล' },
+                { class: 'ม.6/4', room: '244', subject: 'วิทย์ประยุกต์ 1', teacher: 'ครูยุดาวดี' },
+                { class: 'ม.6/5', room: '245', subject: 'วิทย์ประยุกต์ 2', teacher: 'ครูรวิภา' },
+                { class: 'ม.6/6', room: '246', subject: 'วิทย์ประยุกต์ 3', teacher: 'ครูณัฐฤทัย' },
+                { class: 'ม.6/7', room: '447', subject: 'สังคม', teacher: 'ครูอัตถสิทธิ์' },
+                { class: 'ม.6/8', room: '448', subject: 'ไทย', teacher: 'ครูวิลาวรรณ' },
+                { class: 'ม.6/9', room: '437', subject: 'อังกฤษ', teacher: 'ครูมนัสวีร์' }
+              ]
+            }
+          ]
+        },
+        // Week 2
+        {
+          week: 2,
+          sessions: [
+            {
+              day: 'อังคาร',
+              date: '2568-11-04',
+              time: '08:00-09:30',
+              classes: [
+                { class: 'ม.6/1', room: '235', subject: 'สังคม', teacher: 'ครูณัฐธิดา' },
+                { class: 'ม.6/2', room: '242', subject: 'ไทย', teacher: 'ครูนัชนันท์' },
+                { class: 'ม.6/3', room: '243', subject: 'อังกฤษ', teacher: 'ครูปณิตา' },
+                { class: 'ม.6/10', room: '644', subject: 'คณิตประยุกต์ 1', teacher: 'ครูปุญยนุช' },
+                { class: 'ม.6/11', room: '547', subject: 'ฟิสิกส์', teacher: 'ครูศรัณย์' },
+                { class: 'ม.6/4', room: '244', subject: 'วิทย์ประยุกต์ 2', teacher: 'ครูรวิภา' },
+                { class: 'ม.6/5', room: '245', subject: 'วิทย์ประยุกต์ 3', teacher: 'ครูดุจดาว' },
+                { class: 'ม.6/6', room: '246', subject: 'สังคม', teacher: 'ครูชลีรัตน์' },
+                { class: 'ม.6/7', room: '447', subject: 'ไทย', teacher: 'ครูเพ็ญพรรณี' },
+                { class: 'ม.6/8', room: '448', subject: 'อังกฤษ', teacher: 'ครูธัญยดา' },
+                { class: 'ม.6/9', room: '437', subject: 'คณิตประยุกต์ 2', teacher: 'ครูปิยะพร' }
+              ]
+            },
+            {
+              day: 'ศุกร์',
+              date: '2568-11-07',
+              time: '08:00-09:30',
+              classes: [
+                { class: 'ม.6/1', room: '235', subject: 'ไทย', teacher: 'ครูอังคณา' },
+                { class: 'ม.6/2', room: '242', subject: 'อังกฤษ', teacher: 'ครูมนัสวีร์' },
+                { class: 'ม.6/3', room: '243', subject: 'คณิตประยุกต์ 1', teacher: 'ครูสิริรัตน์' },
+                { class: 'ม.6/10', room: '644', subject: 'ฟิสิกส์', teacher: 'ครูสุธาสินี' },
+                { class: 'ม.6/11', room: '547', subject: 'ชีวะ', teacher: 'ครูนฤมล' },
+                { class: 'ม.6/4', room: '244', subject: 'วิทย์ประยุกต์ 3', teacher: 'ครูณัฐฤทัย' },
+                { class: 'ม.6/5', room: '245', subject: 'สังคม', teacher: 'ครูอัตถสิทธิ์' },
+                { class: 'ม.6/6', room: '246', subject: 'ไทย', teacher: 'ครูวิลาวรรณ' },
+                { class: 'ม.6/7', room: '447', subject: 'อังกฤษ', teacher: 'ครูจิณณ์' },
+                { class: 'ม.6/8', room: '448', subject: 'คณิตประยุกต์ 2', teacher: 'ครูอิทธิพล' },
+                { class: 'ม.6/9', room: '437', subject: 'วิทย์ประยุกต์ 1', teacher: 'ครูยุดาวดี' }
+              ]
+            }
+          ]
+        },
+        // Week 3
+        {
+          week: 3,
+          sessions: [
+            {
+              day: 'อังคาร',
+              date: '2568-11-11',
+              time: '08:00-09:30',
+              classes: [
+                { class: 'ม.6/1', room: '235', subject: 'อังกฤษ', teacher: 'ครูธัญยดา' },
+                { class: 'ม.6/2', room: '242', subject: 'คณิตประยุกต์ 1', teacher: 'ครูปิยะพร' },
+                { class: 'ม.6/3', room: '243', subject: 'ฟิสิกส์', teacher: 'ครูศรัณย์' },
+                { class: 'ม.6/10', room: '644', subject: 'ชีวะ', teacher: 'ครูธีราภรณ์' },
+                { class: 'ม.6/11', room: '547', subject: 'เคมี', teacher: 'ครูรุจิภา' },
+                { class: 'ม.6/4', room: '244', subject: 'สังคม', teacher: 'ครูชลีรัตน์' },
+                { class: 'ม.6/5', room: '245', subject: 'ไทย', teacher: 'ครูเพ็ญพรรณี' },
+                { class: 'ม.6/6', room: '246', subject: 'อังกฤษ', teacher: 'ครูปณิตา' },
+                { class: 'ม.6/7', room: '447', subject: 'คณิตประยุกต์ 2', teacher: 'ครูปุญยนุช' },
+                { class: 'ม.6/8', room: '448', subject: 'วิทย์ประยุกต์ 1', teacher: 'ครูชลสิทธิ์' },
+                { class: 'ม.6/9', room: '437', subject: 'วิทย์ประยุกต์ 2', teacher: 'ครูรวิภา' }
+              ]
+            },
+            {
+              day: 'ศุกร์',
+              date: '2568-11-14',
+              time: '08:00-09:30',
+              classes: [
+                { class: 'ม.6/1', room: '235', subject: 'คณิตประยุกต์ 1', teacher: 'ครูสิริรัตน์' },
+                { class: 'ม.6/2', room: '242', subject: 'ฟิสิกส์', teacher: 'ครูสุธาสินี' },
+                { class: 'ม.6/3', room: '243', subject: 'ชีวะ', teacher: 'ครูนฤมล' },
+                { class: 'ม.6/10', room: '644', subject: 'เคมี', teacher: 'ครูรุจิภา' },
+                { class: 'ม.6/11', room: '547', subject: 'สังคม', teacher: 'ครูธัญญาวรรณ' },
+                { class: 'ม.6/4', room: '244', subject: 'ไทย', teacher: 'ครูวิลาวรรณ' },
+                { class: 'ม.6/5', room: '245', subject: 'อังกฤษ', teacher: 'ครูจิณณ์' },
+                { class: 'ม.6/6', room: '246', subject: 'คณิตประยุกต์ 2', teacher: 'ครูอิทธิพล' },
+                { class: 'ม.6/7', room: '447', subject: 'วิทย์ประยุกต์ 1', teacher: 'ครูยุดาวดี' },
+                { class: 'ม.6/8', room: '448', subject: 'วิทย์ประยุกต์ 2', teacher: 'ครูรวิภา' },
+                { class: 'ม.6/9', room: '437', subject: 'วิทย์ประยุกต์ 3', teacher: 'ครูณัฐฤทัย' }
+              ]
+            }
+          ]
+        },
+        // Week 5 (Skip week 4 as it's external activities)
+        {
+          week: 5,
+          sessions: [
+            {
+              day: 'อังคาร',
+              date: '2568-11-25',
+              time: '08:00-09:30',
+              classes: [
+                { class: 'ม.6/1', room: '235', subject: 'ฟิสิกส์', teacher: 'ครูศรัณย์' },
+                { class: 'ม.6/2', room: '242', subject: 'ชีวะ', teacher: 'ครูธีราภรณ์' },
+                { class: 'ม.6/3', room: '243', subject: 'เคมี', teacher: 'ครูรุจิภา' },
+                { class: 'ม.6/10', room: '644', subject: 'สังคม', teacher: 'ครูณัฐธิดา' },
+                { class: 'ม.6/11', room: '547', subject: 'ไทย', teacher: 'ครูเพ็ญพรรณี' },
+                { class: 'ม.6/4', room: '244', subject: 'อังกฤษ', teacher: 'ครูธัญยดา' },
+                { class: 'ม.6/5', room: '245', subject: 'คณิตประยุกต์ 2', teacher: 'ครูปิยะพร' },
+                { class: 'ม.6/6', room: '246', subject: 'วิทย์ประยุกต์ 1', teacher: 'ครูชลสิทธิ์' },
+                { class: 'ม.6/7', room: '447', subject: 'วิทย์ประยุกต์ 2', teacher: 'ครูรวิภา' },
+                { class: 'ม.6/8', room: '448', subject: 'วิทย์ประยุกต์ 3', teacher: 'ครูดุจดาว' },
+                { class: 'ม.6/9', room: '437', subject: 'สังคม', teacher: 'ครูชลีรัตน์' }
+              ]
+            },
+            {
+              day: 'ศุกร์',
+              date: '2568-11-28',
+              time: '08:00-09:30',
+              classes: [
+                { class: 'ม.6/1', room: '235', subject: 'ชีวะ', teacher: 'ครูนฤมล' },
+                { class: 'ม.6/2', room: '242', subject: 'เคมี', teacher: 'ครูรุจิภา' },
+                { class: 'ม.6/3', room: '243', subject: 'สังคม', teacher: 'ครูอัตถสิทธิ์' },
+                { class: 'ม.6/10', room: '644', subject: 'ไทย', teacher: 'ครูวิลาวรรณ' },
+                { class: 'ม.6/11', room: '547', subject: 'อังกฤษ', teacher: 'ครูจิณณ์' },
+                { class: 'ม.6/4', room: '244', subject: 'คณิตประยุกต์ 2', teacher: 'ครูอิทธิพล' },
+                { class: 'ม.6/5', room: '245', subject: 'วิทย์ประยุกต์ 1', teacher: 'ครูยุดาวดี' },
+                { class: 'ม.6/6', room: '246', subject: 'วิทย์ประยุกต์ 2', teacher: 'ครูรวิภา' },
+                { class: 'ม.6/7', room: '447', subject: 'วิทย์ประยุกต์ 3', teacher: 'ครูณัฐฤทัย' },
+                { class: 'ม.6/8', room: '448', subject: 'สังคม', teacher: 'ครูธัญญาวรรณ' },
+                { class: 'ม.6/9', room: '437', subject: 'ไทย', teacher: 'ครูอังคณา' }
+              ]
+            }
+          ]
         }
-    </script>
+      ];
 
-    <script src="app.js"></script>
-</body>
+      // Convert schedule template to session records
+      scheduleTemplate.forEach(week => {
+        week.sessions.forEach(session => {
+          session.classes.forEach(classInfo => {
+            const sessionRecord = {
+              id: `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+              type: 'session',
+              subject: classInfo.subject,
+              teacher: classInfo.teacher,
+              class_name: classInfo.class,
+              classroom: classInfo.room,
+              date: session.date,
+              time: session.time,
+              day: session.day,
+              week: week.week,
+              status: 'SCHEDULED',
+              created_at: new Date().toISOString()
+            };
+            scheduleData.push(sessionRecord);
+          });
+        });
+      });
+
+      return scheduleData;
+    }
+
+    // Import/Export
+    function exportData() {
+      if (allData.length === 0) {
+        showNotification('ไม่มีข้อมูลสำหรับส่งออก', 'info');
+        return;
+      }
+      
+      const csv = convertToCSV(allData);
+      downloadCSV(csv, 'onet-tutoring-data.csv');
+      showNotification('ส่งออกข้อมูลสำเร็จ', 'success');
+    }
+
+    function downloadSampleCSV() {
+      const sampleData = [
+        {
+          id: 'session_sample_001',
+          type: 'session',
+          subject: 'ไทย',
+          teacher: 'ครูอังคณา',
+          class_name: 'ม.6/1',
+          classroom: '235',
+          date: '2568-10-28',
+          time: '08:00-09:30',
+          day: 'อังคาร',
+          week: '1',
+          status: 'DONE',
+          created_at: '2024-01-15T08:00:00.000Z'
+        },
+        {
+          id: 'attendance_sample_001',
+          type: 'attendance',
+          student_id: '68001',
+          student_name: 'นางสาวสมใจ ใจดี',
+          class_name: 'ม.6/1',
+          subject: 'ไทย',
+          teacher: 'ครูอังคณา',
+          classroom: '235',
+          date: '2568-10-28',
+          time: '08:00-09:30',
+          status: 'P',
+          created_at: '2024-01-15T08:30:00.000Z'
+        },
+        {
+          id: 'session_sample_002',
+          type: 'session',
+          subject: 'อังกฤษ',
+          teacher: 'ครูปณิตา',
+          class_name: 'ม.6/2',
+          classroom: '242',
+          date: '2568-10-28',
+          time: '09:45-11:15',
+          day: 'อังคาร',
+          week: '1',
+          status: 'DONE',
+          created_at: '2024-01-15T09:00:00.000Z'
+        },
+        {
+          id: 'attendance_sample_002',
+          type: 'attendance',
+          student_id: '68002',
+          student_name: 'นายสมชาย ดีใจ',
+          class_name: 'ม.6/2',
+          subject: 'อังกฤษ',
+          teacher: 'ครูปณิตา',
+          classroom: '242',
+          date: '2568-10-28',
+          time: '09:45-11:15',
+          status: 'L',
+          created_at: '2024-01-15T10:00:00.000Z'
+        },
+        {
+          id: 'session_sample_003',
+          type: 'session',
+          subject: 'คณิตประยุกต์ 1',
+          teacher: 'ครูสิริรัตน์',
+          class_name: 'ม.6/3',
+          classroom: '243',
+          date: '2568-10-31',
+          time: '13:00-14:30',
+          day: 'ศุกร์',
+          week: '1',
+          status: 'DONE',
+          created_at: '2024-01-15T13:00:00.000Z'
+        },
+        {
+          id: 'attendance_sample_003',
+          type: 'attendance',
+          student_id: '68003',
+          student_name: 'นางสาวสมหญิง รักเรียน',
+          class_name: 'ม.6/3',
+          subject: 'คณิตประยุกต์ 1',
+          teacher: 'ครูสิริรัตน์',
+          classroom: '243',
+          date: '2568-10-31',
+          time: '13:00-14:30',
+          status: 'A',
+          created_at: '2024-01-15T14:00:00.000Z'
+        }
+      ];
+      
+      const csv = convertToCSV(sampleData);
+      downloadCSV(csv, 'onet-sample-template.csv');
+      showNotification('ดาวน์โหลดต้นฉบับ CSV สำเร็จ', 'success');
+    }
+
+    function importData() {
+      document.getElementById('import-modal').classList.add('show');
+    }
+
+    function closeImportModal() {
+      document.getElementById('import-modal').classList.remove('show');
+      document.getElementById('import-file').value = '';
+    }
+
+    function processImport() {
+      const fileInput = document.getElementById('import-file');
+      const file = fileInput.files[0];
+      
+      if (!file) {
+        showNotification('กรุณาเลือกไฟล์', 'error');
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const csv = e.target.result;
+          const data = parseCSV(csv);
+          
+          if (data.length > 0) {
+            allData.push(...data);
+            saveData();
+            updateUI();
+            showNotification(`นำเข้าข้อมูลสำเร็จ ${data.length} รายการ`, 'success');
+            closeImportModal();
+          } else {
+            showNotification('ไม่พบข้อมูลในไฟล์', 'error');
+          }
+        } catch (error) {
+          showNotification('เกิดข้อผิดพลาดในการอ่านไฟล์', 'error');
+        }
+      };
+      
+      reader.readAsText(file);
+    }
+
+    function convertToCSV(data) {
+      if (data.length === 0) return '';
+      
+      const headers = Object.keys(data[0]);
+      const csvContent = [
+        headers.join(','),
+        ...data.map(row => headers.map(header => `"${row[header] || ''}"`).join(','))
+      ].join('\n');
+      
+      return csvContent;
+    }
+
+    function parseCSV(csv) {
+      const lines = csv.split('\n');
+      if (lines.length < 2) return [];
+      
+      const headers = lines[0].split(',').map(h => h.replace(/"/g, ''));
+      const data = [];
+      
+      for (let i = 1; i < lines.length; i++) {
+        if (lines[i].trim()) {
+          const values = lines[i].split(',').map(v => v.replace(/"/g, ''));
+          const record = {};
+          headers.forEach((header, index) => {
+            record[header] = values[index] || '';
+          });
+          
+          // Add missing fields
+          if (!record.id) {
+            record.id = `imported_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+          }
+          if (!record.created_at) {
+            record.created_at = new Date().toISOString();
+          }
+          
+          data.push(record);
+        }
+      }
+      
+      return data;
+    }
+
+    function downloadCSV(csv, filename) {
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', filename);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    // Utility functions
+    function showNotification(message, type = 'info') {
+      const notification = document.createElement('div');
+      notification.className = `notification ${type}`;
+      notification.textContent = message;
+      
+      document.body.appendChild(notification);
+      
+      setTimeout(() => notification.classList.add('show'), 100);
+      
+      setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => notification.remove(), 300);
+      }, 3000);
+    }
+
+    // Form handlers
+    document.getElementById('login-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      const username = document.getElementById('login-username').value;
+      const password = document.getElementById('login-password').value;
+      
+      if (login(username, password)) {
+        // Login successful - handled in login function
+      } else {
+        document.getElementById('login-error').classList.remove('hidden');
+      }
+    });
+
+    document.getElementById('session-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      const sessionData = {
+        subject: document.getElementById('session-subject').value,
+        teacher: document.getElementById('session-teacher').value,
+        class_name: document.getElementById('session-class').value,
+        classroom: document.getElementById('session-classroom').value,
+        date: document.getElementById('session-date').value,
+        time: document.getElementById('session-time').value,
+        status: 'DONE'
+      };
+      
+      saveSession(sessionData);
+    });
+
+    document.getElementById('attendance-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      const attendanceData = {
+        student_id: document.getElementById('attendance-student-id').value,
+        student_name: document.getElementById('attendance-student-name').value,
+        class_name: document.getElementById('attendance-class').value,
+        subject: document.getElementById('attendance-subject').value,
+        teacher: document.getElementById('attendance-teacher').value,
+        classroom: '',
+        date: document.getElementById('attendance-date').value,
+        time: document.getElementById('attendance-time').value,
+        status: document.getElementById('attendance-status').value
+      };
+      
+      saveAttendance(attendanceData);
+    });
+
+    // Navigation
+    function showPage(pageId) {
+      document.querySelectorAll('.page-content').forEach(page => {
+        page.classList.add('hidden');
+      });
+      
+      document.getElementById(`page-${pageId}`).classList.remove('hidden');
+      
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('border-blue-600', 'text-blue-600');
+        btn.classList.add('border-transparent', 'text-gray-500');
+      });
+      
+      event.target.classList.remove('border-transparent', 'text-gray-500');
+      event.target.classList.add('border-blue-600', 'text-blue-600');
+    }
+
+    // Element SDK integration
+    async function onConfigChange(config) {
+      const schoolName = config.school_name || defaultConfig.school_name;
+      const academicYear = config.academic_year || defaultConfig.academic_year;
+      const periodText = config.period_text || defaultConfig.period_text;
+
+      document.getElementById('header-subtitle').textContent = `${schoolName} | ปีการศึกษา ${academicYear}`;
+      document.getElementById('period-badge').textContent = periodText;
+    }
+
+    function mapToCapabilities(config) {
+      return {
+        recolorables: [],
+        borderables: [],
+        fontEditable: undefined,
+        fontSizeable: undefined
+      };
+    }
+
+    function mapToEditPanelValues(config) {
+      return new Map([
+        ['school_name', config.school_name || defaultConfig.school_name],
+        ['academic_year', config.academic_year || defaultConfig.academic_year],
+        ['period_text', config.period_text || defaultConfig.period_text]
+      ]);
+    }
+
+    // Initialize SDKs
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange,
+        mapToCapabilities,
+        mapToEditPanelValues
+      });
+    }
+
+    // Initialize app
+    document.addEventListener('DOMContentLoaded', initializeApp);
+
+    // Close modals when clicking outside
+    document.addEventListener('click', (e) => {
+      if (e.target.classList.contains('modal')) {
+        if (e.target.id === 'login-modal') closeLoginModal();
+        if (e.target.id === 'session-modal') closeSessionModal();
+        if (e.target.id === 'attendance-modal') closeAttendanceModal();
+        if (e.target.id === 'confirm-modal') closeConfirmModal();
+        if (e.target.id === 'import-modal') closeImportModal();
+      }
+      if (e.target.classList.contains('session-detail-modal')) {
+        if (e.target.id === 'session-detail-modal') closeSessionDetailModal();
+      }
+    });
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9992e9fe53087331',t:'MTc2MjI0Njc1My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
